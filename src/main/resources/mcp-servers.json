@@ -17,7 +17,7 @@
         "-Dspring.main.web-application-type=none",
         "-Dlogging.pattern.console=",
         "-jar",
-        "yu-image-search-mcp-server/target/yu-image-search-mcp-server-0.0.1-SNAPSHOT.jar"
+        "qhn-image-search-mcp-server/target/image-search-mcp-server-0.0.1-SNAPSHOT.jar"
       ],
       "env": {}
     }
