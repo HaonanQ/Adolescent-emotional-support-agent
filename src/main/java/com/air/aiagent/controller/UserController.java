@@ -1,30 +1,20 @@
 package com.air.aiagent.controller;
 import cn.hutool.core.util.StrUtil;
-import com.air.aiagent.Enum.VerificationCodeTypeEnum;
 import com.air.aiagent.common.BaseResponse;
 import com.air.aiagent.common.ResultUtils;
 import com.air.aiagent.domain.dto.AddUserRequest;
 import com.air.aiagent.domain.dto.UserLoginRequest;
 import com.air.aiagent.domain.entity.User;
-import com.air.aiagent.domain.vo.UserFileVO;
 import com.air.aiagent.domain.vo.UserVO;
 import com.air.aiagent.exception.BusinessException;
 import com.air.aiagent.exception.ErrorCode;
 import com.air.aiagent.service.UserService;
-import com.air.aiagent.service.impl.AsyncTaskService;
-import com.air.aiagent.utils.MailUtils;
-import com.air.aiagent.utils.ValidationUtils;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
-import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.concurrent.TimeUnit;
-
 import static com.air.aiagent.constant.Constant.LOGIN_USER;
-import static com.air.aiagent.constant.Constant.VERIFICATIONCODE;
 
 
 /**
@@ -33,6 +23,7 @@ import static com.air.aiagent.constant.Constant.VERIFICATIONCODE;
  */
 @RestController
 @RequestMapping("/loveai/user")
+@Tag(name = "测试接口", description = "用于测试文档的基础接口")
 public class UserController {
 
     @Resource
@@ -44,14 +35,11 @@ public class UserController {
      */
     @PostMapping("/register")
     public BaseResponse<Boolean> register(@RequestBody AddUserRequest request) {
-        // 1.判断所传递的参数是否合法，不合法就抛出异常
-        ValidationUtils.validateAddUserRequest(request);
-
-        // 2.调用注册方法，返回结果
+        // 1.调用注册方法，返回结果
         if(userService.register(request)){
             return ResultUtils.success(true);
         }
-        // 3.未注册成功，抛异常
+        // 2.未注册成功，抛异常
         throw new BusinessException(ErrorCode.SYSTEM_ERROR, "注册失败");
     }
 
@@ -97,17 +85,5 @@ public class UserController {
         if(user != null)
             return ResultUtils.success(true);
         return ResultUtils.success(false);
-    }
-
-
-    /**
-     * 发送验证码
-     */
-    @PostMapping("/sendEmailCode")
-    public BaseResponse<Boolean> sendEmailCode(@RequestBody AddUserRequest request){
-        if(userService.sendEmailCode(request)){
-            return ResultUtils.success( true);
-        }
-        throw new BusinessException(ErrorCode.SYSTEM_ERROR, "发送验证码失败");
     }
 }

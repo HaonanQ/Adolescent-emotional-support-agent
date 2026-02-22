@@ -10,18 +10,12 @@ import lombok.Data;
 @Data
 public class AddUserRequest {
     /**
-     * qq 邮箱
+     * 用户名
      */
-    private String qqEmail;
+    private String username;
 
     /**
-     * 邮箱验证码
+     * 密码
      */
-    private String verificationCode;
-
-    /**
-     * "0" 注册时发送的验证码
-     * "1" 登录时发送验证码
-     */
-    private String verificationCodeType;
+    private String password;
 }

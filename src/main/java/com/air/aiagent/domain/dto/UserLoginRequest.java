@@ -9,14 +9,9 @@ import lombok.Data;
 @Data
 public class UserLoginRequest {
     /**
-     * qq邮箱
+     * 用户名
      */
-    private String qqEmail;
-
-    /**
-     * 邮箱验证码
-     */
-    private String verificationCode;
+    private String username;
 
     /**
      * 密码

@@ -34,11 +34,6 @@ public interface UserService extends IService<User> {
     Boolean register(AddUserRequest request);
 
     /**
-     * 发送验证码
-     */
-    Boolean sendEmailCode(AddUserRequest request);
-
-    /**
      * 获取当前登录用户
      */
     User getLoginUser(HttpServletRequest request);

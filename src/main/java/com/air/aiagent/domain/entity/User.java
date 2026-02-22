@@ -33,11 +33,6 @@ public class User implements Serializable {
     private String password;
 
     /**
-     * QQ邮箱
-     */
-    private String qqEmail;
-
-    /**
      * 恋爱状态：0-单身，1-恋爱中
      */
     private Integer relationshipStatus;
