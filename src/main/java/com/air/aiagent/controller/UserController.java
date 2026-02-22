@@ -23,7 +23,7 @@ import static com.air.aiagent.constant.Constant.LOGIN_USER;
  */
 @RestController
 @RequestMapping("/loveai/user")
-@Tag(name = "测试接口", description = "用于测试文档的基础接口")
+@Tag(name = "用户接口", description = "用于用户登陆相关的基础接口")
 public class UserController {
 
     @Resource
