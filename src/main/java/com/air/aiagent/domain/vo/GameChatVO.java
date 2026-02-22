@@ -1,6 +1,9 @@
 package com.air.aiagent.domain.vo;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * @author WyH524

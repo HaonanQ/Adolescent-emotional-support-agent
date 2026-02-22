@@ -1,4 +1,4 @@
-package com.air.aiagent.mapper.repository;
+package com.air.aiagent.repository;
 
 import com.air.aiagent.domain.entity.ChatSession;
 import org.springframework.data.domain.Page;

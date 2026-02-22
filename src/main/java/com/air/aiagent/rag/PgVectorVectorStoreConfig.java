@@ -19,7 +19,7 @@ public class PgVectorVectorStoreConfig {
 
     // 引入文档加载器
     @Resource
-    private LoveAppDocumentLoader loader;
+    private TeenSupportDocumentLoader loader;
 
     // 初始化Bean
     @Bean

@@ -1,8 +1,7 @@
 package com.air.aiagent.service.impl;// ChatSessionService.java
 
 import com.air.aiagent.domain.entity.ChatSession;
-import com.air.aiagent.domain.vo.ChatSessionVO;
-import com.air.aiagent.mapper.repository.ChatSessionRepository;
+import com.air.aiagent.repository.ChatSessionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -10,6 +9,7 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;

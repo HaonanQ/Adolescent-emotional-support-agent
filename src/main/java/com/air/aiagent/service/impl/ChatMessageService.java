@@ -1,7 +1,7 @@
 package com.air.aiagent.service.impl;
 
 import com.air.aiagent.domain.entity.ChatMessage;
-import com.air.aiagent.mapper.repository.ChatMessageRepository;
+import com.air.aiagent.repository.ChatMessageRepository;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

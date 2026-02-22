@@ -1,8 +1,6 @@
 package com.air.aiagent.common;
 
 import lombok.Data;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestParam;
 
 /**
  * @author WyH524

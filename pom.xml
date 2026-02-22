@@ -281,6 +281,13 @@
             <artifactId>knife4j-openapi3-jakarta-spring-boot-starter</artifactId>
             <version>4.5.0</version>
         </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-mongodb</artifactId>
+            <!-- Spring Boot项目无需指定版本，会继承parent的版本 -->
+            <!-- 若需手动指定，推荐和Spring Boot版本匹配：如3.3.8对应3.3.5 -->
+            <!-- <version>3.3.5</version> -->
+        </dependency>
     </dependencies>
 
 

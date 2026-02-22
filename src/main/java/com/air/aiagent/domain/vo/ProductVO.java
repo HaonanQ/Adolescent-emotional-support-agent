@@ -1,6 +1,7 @@
 package com.air.aiagent.domain.vo;
 
 import lombok.Data;
+
 import java.math.BigDecimal;
 
 /**
