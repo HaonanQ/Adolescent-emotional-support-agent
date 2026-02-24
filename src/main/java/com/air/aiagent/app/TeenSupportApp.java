@@ -11,13 +11,18 @@ import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.memory.InMemoryChatMemory;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.model.ChatResponse;
+import org.springframework.ai.document.Document;
 import org.springframework.ai.tool.ToolCallback;
 import org.springframework.ai.tool.ToolCallbackProvider;
+import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 import com.air.aiagent.utils.SessionIdGenerator;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static org.springframework.ai.chat.client.advisor.AbstractChatMemoryAdvisor.CHAT_MEMORY_CONVERSATION_ID_KEY;
 import static org.springframework.ai.chat.client.advisor.AbstractChatMemoryAdvisor.CHAT_MEMORY_RETRIEVE_SIZE_KEY;
@@ -121,11 +126,54 @@ public class TeenSupportApp {
 
     //RAG 知识库进行对话
     public Flux<String> doChatWithRagAndTools(String message, String chatId){
+        // 1. 首先从向量数据库中检索相关文档
+        List<Document> relevantDocs = pgVectorVectorStore.similaritySearch(
+            SearchRequest.builder()
+                .query(message)
+                .topK(5)
+                .build()
+        );
+        
+        // 2. 去重处理，避免重复的文档
+        List<Document> uniqueDocs = new ArrayList<>();
+        Set<String> seenContents = new HashSet<>();
+        
+        for (Document doc : relevantDocs) {
+            String content = doc.getText();
+            if (!seenContents.contains(content)) {
+                seenContents.add(content);
+                uniqueDocs.add(doc);
+                // 最多保留3条不同的文档
+                if (uniqueDocs.size() >= 3) {
+                    break;
+                }
+            }
+        }
+        
+        // 3. 构建上下文信息
+        StringBuilder contextBuilder = new StringBuilder();
+        if (!uniqueDocs.isEmpty()) {
+            contextBuilder.append("以下是相关的参考资料：\n\n");
+            for (int i = 0; i < uniqueDocs.size(); i++) {
+                Document doc = uniqueDocs.get(i);
+                contextBuilder.append("资料 ").append(i + 1).append(":\n");
+                contextBuilder.append(doc.getText()).append("\n\n");
+            }
+            contextBuilder.append("请根据以上参考资料回答用户的问题。\n\n");
+        }
+        
+        // 4. 将上下文和用户消息组合
+        String finalMessage = contextBuilder.toString() + "用户问题：" + message;
+        
+        log.info("RAG 检索到 {} 条相关文档，去重后剩余 {} 条", relevantDocs.size(), uniqueDocs.size());
+        if (!uniqueDocs.isEmpty()) {
+            log.info("上下文内容：{}", contextBuilder.toString());
+        }
+        
         return chatClient.prompt()
-                .user("userId = "+chatId+","+message)
+                .user(finalMessage)
                 .advisors(spec -> spec.param(CHAT_MEMORY_CONVERSATION_ID_KEY, chatId)
                         .param(CHAT_MEMORY_RETRIEVE_SIZE_KEY, 10))
-                .advisors(new QuestionAnswerAdvisor(pgVectorVectorStore))
                 .tools(allTools)
                 .stream()
                 .content();

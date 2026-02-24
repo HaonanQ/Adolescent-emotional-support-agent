@@ -1,0 +1,117 @@
+version: '3.8'
+
+services:
+  # PostgreSQL 数据库（用于 Spring AI PgVector 向量存储）
+  postgres:
+    image: postgres:14-alpine
+    container_name: postgres-ai-agent
+    environment:
+      POSTGRES_DB: teen_emotion_rag
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123456
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis 缓存（用于会话存储）
+  redis:
+    image: redis:7-alpine
+    container_name: redis-ai-agent
+    environment:
+      REDIS_PASSWORD: 123456
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # MongoDB 数据库（用于数据存储）
+  mongodb:
+    image: mongo:6.0
+    container_name: mongodb-ai-agent
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: root
+      MONGO_INITDB_DATABASE: loveai
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+      - mongo_config:/data/configdb
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "mongo --eval 'db.adminCommand(\"ping\")' --quiet"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # MinIO 对象存储
+  minio:
+    image: minio/minio:latest
+    container_name: minio-ai-agent
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: admin
+      MINIO_ROOT_PASSWORD: 123456ad
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  # 后端服务（暂时注释，先启动其他服务）
+  # backend:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   container_name: backend-ai-agent
+  #   ports:
+  #     - "8123:8123"
+  #   environment:
+  #     # 数据库配置 - MySQL（用户使用本地MySQL）
+  #     SPRING_DATASOURCE_DRIVER_CLASS_NAME: com.mysql.cj.jdbc.Driver
+  #     SPRING_DATASOURCE_URL: jdbc:mysql://host.docker.internal:3308/loveai
+  #     SPRING_DATASOURCE_USERNAME: root
+  #     SPRING_DATASOURCE_PASSWORD: 123456qhnan
+  #     # PostgreSQL配置
+  #     SPRING_DATASOURCE_PG_DRIVER_CLASS_NAME: org.postgresql.Driver
+  #     SPRING_DATASOURCE_PG_URL: jdbc:postgresql://postgres:5432/teen_emotion_rag
+  #     SPRING_DATASOURCE_PG_USERNAME: postgres
+  #     SPRING_DATASOURCE_PG_PASSWORD: 123456
+  #     # Redis配置
+  #     SPRING_DATA_REDIS_HOST: redis
+  #     SPRING_DATA_REDIS_PORT: 6379
+  #     SPRING_DATA_REDIS_PASSWORD: 123456
+  #     SPRING_DATA_REDIS_DATABASE: 0
+  #     # MongoDB配置
+  #     SPRING_DATA_MONGODB_URI: mongodb://root:root@mongodb:27017/loveai?authSource=admin
+  #   depends_on:
+  #     - postgres
+  #     - redis
+  #     - mongodb
+  #   restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
+  mongo_data:
+  mongo_config:
+  minio_data:
