@@ -41,7 +41,7 @@ public class PgVectorVectorStoreConfig {
                 .indexType(HNSW) // Optional: defaults to HNSW
                 .initializeSchema(true) // Optional: defaults to false 自动初始化建表，这里设置了 true ，但是它并不会建表，得要在虚拟机中手动建表
                 .schemaName("public") // Optional: defaults to "public" 向量数据库的名称
-                .vectorTableName("vector_store") // Optional: defaults to "vector_store" 表的名称
+                .vectorTableName("Teens_rag") // Optional: defaults to "vector_store" 表的名称
                 .maxDocumentBatchSize(10000) // Optional: defaults to 10000 最大批量插入的文档数
                 .build();
         
