@@ -322,4 +322,67 @@ public class TeenSupportController {
             return ResultUtils.success(true);
         }
     }
+    /**
+     * 以下注释为备用接口，不能删除或改动！
+     */
+    // POST http://localhost:8123/api/love/game/emo
+    // 请求体：{ message: 用户输入, chatId: '23034480211' }
+    // @PostMapping("/game/emo")
+    // public String gameEmo(@RequestBody ChatRequest request) {
+    // log.info("收到判断情绪请求: {}", request);
+    // UserContext.setUserId(request.getChatId());
+    // return loveApp.doChatWithEmo(request.getMessage(), request.getChatId());
+    // }
+    // 这个接口返回的是一个情绪
+    // 你现在添加一个逻辑，在进入游戏页面之前可以有一个符合当前主题的弹窗可以给用户输入女朋友不开心的原因，然后后端会返回的是一个情绪
+    // 你根据返回的情绪渲染不同的颜色效果的游戏界面
+
+    // /**
+    // * 工具调用对话接口
+    // */
+    // @ClearContext //方法执行后清理内存中 ThreadLocal ，防止内存泄露
+    // @PostMapping("/chat/tools")
+    // public ChatResponse chatWithTools(@RequestBody ChatRequest request) {
+    // log.info("收到工具调用对话请求: {}", request);
+    // UserContext.setUserId(request.getChatId());
+    // String response = loveApp.doChatWithTools(request.getMessage(),
+    // request.getChatId());
+    // return new ChatResponse(response);
+    // }
+    //
+    //
+    //
+    // /**
+    // * 基础对话接口
+    // */
+    // @PostMapping("/chat")
+    // public ChatResponse chat(@RequestBody ChatRequest request) {
+    // log.info("收到对话请求: {}", request);
+    // String response = loveApp.doChat(request.getMessage(), request.getChatId());
+    // return new ChatResponse(response);
+    // }
+    //
+    //
+    // /**
+    // * 恋爱报告生成接口
+    // */
+    // @PostMapping("/report")
+    // public LoveReportResponse generateReport(@RequestBody ChatRequest request) {
+    // log.info("收到恋爱报告生成请求: {}", request);
+    // LoveApp.LoveReport report = loveApp.doChatWithReport(request.getMessage(),
+    // request.getChatId());
+    // return new LoveReportResponse(report.title(), report.suggestions());
+    // }
+    //
+    //
+    // /**
+    // * MCP服务调用接口
+    // */
+    // @PostMapping("/chat/mcp")
+    // public ChatResponse chatWithMCP(@RequestBody ChatRequest request) {
+    // log.info("收到MCP服务调用请求: {}", request);
+    // String response = loveApp.doChatWithMCP(request.getMessage(),
+    // request.getChatId());
+    // return new ChatResponse(response);
+    // }
 }
