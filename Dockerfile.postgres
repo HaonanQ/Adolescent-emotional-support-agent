@@ -1,0 +1,19 @@
+FROM postgres:14-alpine
+
+# 安装构建工具和依赖
+RUN apk add --no-cache --virtual .build-deps \
+    build-base \
+    git
+
+# 克隆并构建pgvector - 禁用LLVM bitcode
+RUN git clone https://github.com/pgvector/pgvector.git /pgvector \
+    && cd /pgvector \
+    && echo 'override WITH_LLVM = no' >> Makefile \
+    && make \
+    && make install
+
+# 清理构建依赖
+RUN apk del .build-deps
+
+# 启用扩展
+ENV POSTGRES_DB=teen_emotion_rag
