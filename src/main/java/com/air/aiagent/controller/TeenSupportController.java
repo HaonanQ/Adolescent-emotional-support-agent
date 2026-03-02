@@ -11,10 +11,7 @@ import com.air.aiagent.domain.dto.ChatRequest;
 import com.air.aiagent.domain.entity.ChatMessage;
 import com.air.aiagent.domain.entity.ChatSession;
 import com.air.aiagent.domain.entity.User;
-import com.air.aiagent.domain.vo.ChatHistory;
-import com.air.aiagent.domain.vo.ChatMessageVO;
-import com.air.aiagent.domain.vo.ChatSessionVO;
-import com.air.aiagent.domain.vo.UserFileVO;
+import com.air.aiagent.domain.vo.*;
 import com.air.aiagent.exception.BusinessException;
 import com.air.aiagent.exception.ErrorCode;
 import com.air.aiagent.service.UserFileService;
@@ -337,18 +334,18 @@ public class TeenSupportController {
     // 你现在添加一个逻辑，在进入游戏页面之前可以有一个符合当前主题的弹窗可以给用户输入女朋友不开心的原因，然后后端会返回的是一个情绪
     // 你根据返回的情绪渲染不同的颜色效果的游戏界面
 
-    // /**
-    // * 工具调用对话接口
-    // */
-    // @ClearContext //方法执行后清理内存中 ThreadLocal ，防止内存泄露
-    // @PostMapping("/chat/tools")
-    // public ChatResponse chatWithTools(@RequestBody ChatRequest request) {
-    // log.info("收到工具调用对话请求: {}", request);
-    // UserContext.setUserId(request.getChatId());
-    // String response = loveApp.doChatWithTools(request.getMessage(),
-    // request.getChatId());
-    // return new ChatResponse(response);
-    // }
+     /**
+     * 工具调用对话接口
+     */
+//     @ClearContext //方法执行后清理内存中 ThreadLocal ，防止内存泄露
+//     @PostMapping("/chat/tools")
+//     public ChatResponse chatWithTools(@RequestBody ChatRequest request) {
+//     log.info("收到工具调用对话请求: {}", request);
+//     UserContext.setUserId(request.getChatId());
+//     String response = TeenSupportApp.doChatWithTools(request.getMessage(),
+//     request.getChatId());
+//     return new ChatResponse(response);
+//     }
     //
     //
     //

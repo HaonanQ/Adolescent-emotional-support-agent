@@ -21,20 +21,20 @@ public class ToolRegistration {
 
     @Bean
     public ToolCallback[] allTools() {
-        //FileOperationTool fileOperationTool = new FileOperationTool();
+        FileOperationTool fileOperationTool = new FileOperationTool();
         //WebSearchTool webSearchTool = new WebSearchTool(searchApiKey);
         //WebScrapingTool webScrapingTool = new WebScrapingTool();
-        //ResourceDownloadTool resourceDownloadTool = new ResourceDownloadTool();
-        //TerminalOperationTool terminalOperationTool = new TerminalOperationTool();
-        //TerminateTool terminateTool = new TerminateTool();
+        ResourceDownloadTool resourceDownloadTool = new ResourceDownloadTool();
+        TerminalOperationTool terminalOperationTool = new TerminalOperationTool();
+        TerminateTool terminateTool = new TerminateTool();
         return ToolCallbacks.from(
-//            fileOperationTool,
+            fileOperationTool,
 //            webSearchTool,
 //            webScrapingTool,
-//            resourceDownloadTool,
-//            terminalOperationTool,
-            pdfGenerationTool
-//                terminateTool
+            resourceDownloadTool,
+            terminalOperationTool,
+                pdfGenerationTool,
+                terminateTool
         );
     }
 }
