@@ -58,6 +58,39 @@ public class MinioManage {
                 .credentials(accessKey, secretKey)
                 .endpoint(endPoint)
                 .build();
+        
+        try {
+            boolean bucketExists = minioClient.bucketExists(BucketExistsArgs.builder()
+                    .bucket(bucketName)
+                    .build());
+            
+            if (!bucketExists) {
+                minioClient.makeBucket(MakeBucketArgs.builder()
+                        .bucket(bucketName)
+                        .build());
+                log.info("创建存储桶成功: {}", bucketName);
+            }
+            
+            String policy = "{\n" +
+                    "    \"Version\": \"2012-10-17\",\n" +
+                    "    \"Statement\": [\n" +
+                    "        {\n" +
+                    "            \"Effect\": \"Allow\",\n" +
+                    "            \"Principal\": \"*\",\n" +
+                    "            \"Action\": [\"s3:GetObject\"],\n" +
+                    "            \"Resource\": [\"arn:aws:s3:::" + bucketName + "/*\"]\n" +
+                    "        }\n" +
+                    "    ]\n" +
+                    "}";
+            
+            minioClient.setBucketPolicy(SetBucketPolicyArgs.builder()
+                    .bucket(bucketName)
+                    .config(policy)
+                    .build());
+            log.info("设置存储桶公开访问策略成功: {}", bucketName);
+        } catch (Exception e) {
+            log.warn("设置存储桶策略失败: {}", e.getMessage());
+        }
     }
 
 
@@ -99,12 +132,12 @@ public class MinioManage {
     }
 
     /**
-     * 获取长期有效的 PDF文件 的URL
+     * 获取 PDF文件 的URL
      * @param objectPath 文件存储路径
      * @return 文件URL
      */
     public String getPDFUrl(String objectPath){
-        return endPoint+"/"+bucketName+"/"+ objectPath ;
+        return endPoint + "/" + bucketName + "/" + objectPath;
     }
 
 

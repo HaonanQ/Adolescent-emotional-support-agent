@@ -140,4 +140,11 @@ export const deleteChatSessionBySessionId = (sessionId, chatId) => {
   });
 };
 
+// 获取用户文件列表
+export const getUserFileList = (chatId) => {
+  return api.post('/support/getUserFile', {
+    chatId,
+  });
+};
+
 export default api;

@@ -132,10 +132,15 @@ public class TeenSupportController {
                     .content(chatMessage.getContent())
                     .isAiResponse(chatMessage.getIsAiResponse())
                     .build();
-            if(chatMessage.getMetadata() != null
-                    && chatMessage.getMetadata().getRecommendedProductIds() != null
-                    && !chatMessage.getMetadata().getRecommendedProductIds().isEmpty()){
-                chatMessageVO.setRecommendedProducts(productRecommendService.getProductVOsByIds(chatMessage.getMetadata().getRecommendedProductIds()));
+            if(chatMessage.getMetadata() != null) {
+                if(chatMessage.getMetadata().getRecommendedProductIds() != null
+                        && !chatMessage.getMetadata().getRecommendedProductIds().isEmpty()){
+                    chatMessageVO.setRecommendedProducts(productRecommendService.getProductVOsByIds(chatMessage.getMetadata().getRecommendedProductIds()));
+                }
+                if(chatMessage.getMetadata().getPdfFileUrl() != null){
+                    chatMessageVO.setPdfFileUrl(chatMessage.getMetadata().getPdfFileUrl());
+                    chatMessageVO.setPdfFileName(chatMessage.getMetadata().getPdfFileName());
+                }
             }
             return chatMessageVO;
         }).toList();
@@ -172,9 +177,9 @@ public class TeenSupportController {
         // 5.存在最新的会话，设置会话Id
         chatHistory.setSessionId(chatSession.getId());
 
-        // 6.根据会话Id 查找该记录中的聊天历史，包含最新消息在内的最近10条记录，转换成 VO
+        // 6.根据会话Id 查找该记录中的聊天历史，包含最新消息在内的最近100条记录，转换成 VO
         List<ChatMessage> latestChatMessageList = chatMessageService
-                .findHistoryExcludingLatest(chatSession.getId(), 10, 0);
+                .findHistoryExcludingLatest(chatSession.getId(), 100, 0);
         List<ChatMessageVO> latestChatMessageVOList = latestChatMessageList.stream().map(chatMessage -> {
             ChatMessageVO chatMessageVO = ChatMessageVO.builder()
                     .id(chatMessage.getId())
@@ -183,10 +188,15 @@ public class TeenSupportController {
                     .content(chatMessage.getContent())
                     .isAiResponse(chatMessage.getIsAiResponse())
                     .build();
-            if(chatMessage.getMetadata() != null
-                    && chatMessage.getMetadata().getRecommendedProductIds() != null
-                    && !chatMessage.getMetadata().getRecommendedProductIds().isEmpty()){
-                chatMessageVO.setRecommendedProducts(productRecommendService.getProductVOsByIds(chatMessage.getMetadata().getRecommendedProductIds()));
+            if(chatMessage.getMetadata() != null) {
+                if(chatMessage.getMetadata().getRecommendedProductIds() != null
+                        && !chatMessage.getMetadata().getRecommendedProductIds().isEmpty()){
+                    chatMessageVO.setRecommendedProducts(productRecommendService.getProductVOsByIds(chatMessage.getMetadata().getRecommendedProductIds()));
+                }
+                if(chatMessage.getMetadata().getPdfFileUrl() != null){
+                    chatMessageVO.setPdfFileUrl(chatMessage.getMetadata().getPdfFileUrl());
+                    chatMessageVO.setPdfFileName(chatMessage.getMetadata().getPdfFileName());
+                }
             }
             return chatMessageVO;
         }).toList();

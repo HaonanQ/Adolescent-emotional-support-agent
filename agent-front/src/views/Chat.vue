@@ -28,28 +28,54 @@
 
     <div class="chat-main">
       <aside class="sidebar">
-        <div class="sidebar-header">
-          <h3>历史会话</h3>
-          <button @click="createNewSession" class="new-session-btn" title="新建会话">
-            ➕
-          </button>
-        </div>
-        <div class="session-list">
-          <div 
-            v-for="session in sessions" 
-            :key="session.id"
-            :class="['session-item', { active: currentSessionId === session.id }]"
-            @click="selectSession(session.id)"
-          >
-            <div class="session-title">{{ session.sessionName || '新会话' }}</div>
-            <div class="session-time">{{ formatDate(session.updatedAt) }}</div>
-            <button 
-              @click.stop="deleteSession(session.id)"
-              class="delete-session-btn"
-              title="删除会话"
-            >
-              🗑️
+        <div class="sidebar-section">
+          <div class="sidebar-header">
+            <h3>历史会话</h3>
+            <button @click="createNewSession" class="new-session-btn" title="新建会话">
+              ➕
             </button>
+          </div>
+          <div class="session-list">
+            <div 
+              v-for="session in sessions" 
+              :key="session.id"
+              :class="['session-item', { active: currentSessionId === session.id }]"
+              @click="selectSession(session.id)"
+            >
+              <div class="session-title">{{ session.sessionName || '新会话' }}</div>
+              <div class="session-time">{{ formatDate(session.updatedAt) }}</div>
+              <button 
+                @click.stop="deleteSession(session.id)"
+                class="delete-session-btn"
+                title="删除会话"
+              >
+                🗑️
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <div class="sidebar-section">
+          <div class="sidebar-header">
+            <h3>我的文档</h3>
+          </div>
+          <div class="file-list">
+            <div v-if="userFiles.length === 0" class="empty-files">
+              <span class="empty-files-icon">📄</span>
+              <span class="empty-files-text">暂无文档</span>
+            </div>
+            <div 
+              v-for="file in userFiles" 
+              :key="file.id"
+              class="file-item"
+            >
+              <a :href="file.fileUrl" target="_blank" download class="file-download-link">
+                <span class="file-icon">📄</span>
+                <span class="file-name">{{ file.fileName }}</span>
+                <span class="file-download-icon">⬇️</span>
+              </a>
+              <div class="file-time">{{ formatDate(file.createTime) }}</div>
+            </div>
           </div>
         </div>
       </aside>
@@ -79,6 +105,13 @@
                     <div v-if="product.description" class="product-desc">{{ product.description }}</div>
                   </div>
                 </div>
+              </div>
+              <div v-if="message.pdfFileUrl" class="pdf-container">
+                <div class="pdf-title">📄 生成的文档：</div>
+                <a :href="message.pdfFileUrl" target="_blank" download class="pdf-download-btn">
+                  <span class="pdf-icon">⬇️</span>
+                  <span class="pdf-name">{{ message.pdfFileName || '下载PDF' }}</span>
+                </a>
               </div>
             </div>
           </div>
@@ -120,7 +153,8 @@ import {
   createChatSession,
   chatWithRagStream,
   deleteChatSession,
-  logout 
+  logout,
+  getUserFileList
 } from '../api';
 
 const router = useRouter();
@@ -130,6 +164,7 @@ const chatId = String(user.value.id);
 const sessions = ref([]);
 const currentSessionId = ref(null);
 const messages = ref([]);
+const userFiles = ref([]);
 const inputMessage = ref('');
 const isLoading = ref(false);
 const messagesContainer = ref(null);
@@ -178,6 +213,17 @@ const loadSessions = async () => {
     }
   } catch (error) {
     console.error('加载会话列表失败:', error);
+  }
+};
+
+const loadUserFiles = async () => {
+  try {
+    const response = await getUserFileList(chatId);
+    if (response.data.code === 0 && response.data.data) {
+      userFiles.value = response.data.data;
+    }
+  } catch (error) {
+    console.error('加载用户文件失败:', error);
   }
 };
 
@@ -259,6 +305,8 @@ const handleSendMessage = async () => {
     content: '',
     isAiResponse: true,
     recommendedProducts: [],
+    pdfFileUrl: null,
+    pdfFileName: null,
   };
   messages.value.push(aiMessage);
 
@@ -272,6 +320,7 @@ const handleSendMessage = async () => {
     });
     
     await loadSessions();
+    await loadUserFiles();
   } catch (error) {
     console.error('发送消息失败:', error);
     const lastMessage = messages.value[messages.value.length - 1];
@@ -296,6 +345,7 @@ const handleLogout = async () => {
 
 onMounted(async () => {
   await loadSessions();
+  await loadUserFiles();
   if (sessions.value.length > 0) {
     const response = await getLatestChatHistory(chatId);
     if (response.data.code === 0 && response.data.data) {
@@ -532,6 +582,21 @@ onMounted(async () => {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
   display: flex;
   flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+}
+
+.sidebar-section {
+  display: flex;
+  flex-direction: column;
+  background: #f8fafc;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.sidebar-section:first-child {
+  flex: 1;
+  min-height: 0;
 }
 
 .sidebar-header {
@@ -627,6 +692,85 @@ onMounted(async () => {
 
 .delete-session-btn:hover {
   background: #fee2e2;
+}
+
+.file-list {
+  padding: 12px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.empty-files {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  color: #94a3b8;
+  gap: 8px;
+}
+
+.empty-files-icon {
+  font-size: 32px;
+}
+
+.empty-files-text {
+  font-size: 13px;
+}
+
+.file-item {
+  background: white;
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 8px;
+  transition: all 0.2s;
+  border: 1px solid #e2e8f0;
+}
+
+.file-item:hover {
+  border-color: #bfdbfe;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
+}
+
+.file-download-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+}
+
+.file-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.file-name {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 500;
+  color: #334155;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.file-download-icon {
+  font-size: 16px;
+  flex-shrink: 0;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+.file-item:hover .file-download-icon {
+  opacity: 1;
+}
+
+.file-time {
+  font-size: 11px;
+  color: #94a3b8;
+  margin-top: 4px;
 }
 
 .chat-area {
@@ -755,6 +899,48 @@ onMounted(async () => {
   padding: 0 8px 8px;
   color: #64748b;
   font-size: 11px;
+}
+
+.pdf-container {
+  margin-top: 12px;
+}
+
+.pdf-title {
+  font-size: 13px;
+  color: #64748b;
+  margin-bottom: 8px;
+}
+
+.pdf-download-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  text-decoration: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);
+}
+
+.pdf-download-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);
+}
+
+.pdf-icon {
+  font-size: 16px;
+}
+
+.pdf-name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
 }
 
 .quick-tags {

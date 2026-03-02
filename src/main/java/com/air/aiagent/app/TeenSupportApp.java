@@ -135,7 +135,7 @@ public class TeenSupportApp {
         saveUserMessage(request);
 
         List<ChatMessage> historyMessages = chatMessageService
-                .findHistoryExcludingLatest(request.getSessionId(), 10, 1);
+                .findHistoryExcludingLatest(request.getSessionId(), 50, 1);
         log.info("获取用户，id={}，历史上下文，数量={}", request.getChatId(), historyMessages.size());
 
         if (historyMessages.isEmpty()) {
@@ -171,13 +171,13 @@ public class TeenSupportApp {
 
         StringBuilder contextBuilder = new StringBuilder();
         if (!uniqueDocs.isEmpty()) {
-            contextBuilder.append("以下是相关的参考资料：\n\n");
+            contextBuilder.append("以下是相关的参考资料（仅作参考，请优先基于对话历史回答）：\n\n");
             for (int i = 0; i < uniqueDocs.size(); i++) {
                 Document doc = uniqueDocs.get(i);
                 contextBuilder.append("资料 ").append(i + 1).append(":\n");
                 contextBuilder.append(doc.getText()).append("\n\n");
             }
-            contextBuilder.append("请根据以上参考资料回答用户的问题。\n\n");
+            contextBuilder.append("请根据以上参考资料回答用户的问题。如果参考资料与用户相关的话题没有关联度，则不参考资料，直接回答\n\n");
         }
 
         String finalMessage = contextBuilder.toString() + "用户问题：" + request.getMessage();
@@ -188,9 +188,17 @@ public class TeenSupportApp {
         StringBuilder aiResponseBuilder = new StringBuilder();
         String aiMessageId = UUID.randomUUID().toString();
         long startTime = System.currentTimeMillis();
-
+        /**
+         * 修复说明：
+         *
+         * - 之前的代码没有设置对话记忆的会话ID参数
+         * - 现在使用 sessionId 作为对话记忆的key（而不是chatId）
+         * - 设置每次获取最近10条历史记录
+         */
         return chatClient.prompt()
                 .user("userId = " + request.getChatId() + "," + finalMessage)
+                .advisors(spec -> spec.param(CHAT_MEMORY_CONVERSATION_ID_KEY, request.getSessionId())
+                        .param(CHAT_MEMORY_RETRIEVE_SIZE_KEY, 50))
                 .advisors(new QuestionAnswerAdvisor(pgVectorVectorStore))
                 .tools(allTools)
                 .tools(toolCallbackProvider)

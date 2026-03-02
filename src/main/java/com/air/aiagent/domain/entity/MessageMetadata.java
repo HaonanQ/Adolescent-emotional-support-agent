@@ -30,4 +30,14 @@ public class MessageMetadata {
      * 推荐的商品ID列表
      */
     private List<Long> recommendedProductIds;
+
+    /**
+     * 生成的PDF文件URL
+     */
+    private String pdfFileUrl;
+
+    /**
+     * PDF文件名
+     */
+    private String pdfFileName;
 }
