@@ -1,9 +1,29 @@
 version: '3.8'
 
 services:
+  # MySQL 数据库（用于 MyBatis）
+  mysql:
+    image: mysql:8.0.43
+    container_name: mysql-ai-agent
+    environment:
+      MYSQL_ROOT_PASSWORD: 123456qhnan
+      MYSQL_DATABASE: loveai
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./loveai_backup.sql:/docker-entrypoint-initdb.d/loveai_backup.sql
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p123456qhnan"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    command: --default-authentication-plugin=mysql_native_password
+
   # PostgreSQL 数据库（用于 Spring AI PgVector 向量存储）
   postgres:
-    image: postgres:14-alpine
+    image: pgvector/pgvector:pg17
     container_name: postgres-ai-agent
     environment:
       POSTGRES_DB: teen_emotion_rag
@@ -24,8 +44,6 @@ services:
   redis:
     image: redis:7-alpine
     container_name: redis-ai-agent
-    environment:
-      REDIS_PASSWORD: 123456
     ports:
       - "6379:6379"
     volumes:
@@ -36,10 +54,11 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    command: redis-server --requirepass 123456
 
   # MongoDB 数据库（用于数据存储）
   mongodb:
-    image: mongo:6.0
+    image: mongo:7
     container_name: mongodb-ai-agent
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
@@ -48,11 +67,10 @@ services:
     ports:
       - "27017:27017"
     volumes:
-      - mongo_data:/data/db
-      - mongo_config:/data/configdb
+      - mongodb_data:/data/db
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "mongo --eval 'db.adminCommand(\"ping\")' --quiet"]
+      test: ["CMD-SHELL", "mongosh --eval 'db.adminCommand(\"ping\")' --quiet"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -110,8 +128,8 @@ services:
   #   restart: unless-stopped
 
 volumes:
+  mysql_data:
   postgres_data:
   redis_data:
-  mongo_data:
-  mongo_config:
+  mongodb_data:
   minio_data:

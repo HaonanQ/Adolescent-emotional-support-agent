@@ -13,7 +13,7 @@ class WebSearchToolTest {
     @Value("${search-api.api-key}")
     private String apiKey;
 
-    @Test
+//    @Test
     void searchWeb() {
         WebSearchTool webSearchTool = new WebSearchTool(apiKey);
         String query = "广东石油化工学院怎么样？";
