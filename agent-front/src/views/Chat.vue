@@ -117,20 +117,12 @@
           </div>
         </div>
 
-        <div class="quick-tags">
-          <span class="tag">新会话</span>
-          <span class="tag">焦虑</span>
-          <span class="tag">睡眠</span>
-          <span class="tag">情绪低落</span>
-          <span class="tag">人际</span>
-        </div>
-
         <div class="input-area">
           <textarea 
             v-model="inputMessage"
             placeholder="请输入您的问题..."
             @keydown.enter.prevent="handleSendMessage"
-            rows="1"
+            rows="3"
           ></textarea>
           <button @click="handleSendMessage" :disabled="isLoading || !inputMessage.trim()" class="send-btn">
             发送
@@ -943,47 +935,25 @@ onMounted(async () => {
   max-width: 200px;
 }
 
-.quick-tags {
-  display: flex;
-  gap: 10px;
-  padding: 12px 24px;
-  border-top: 1px solid #e2e8f0;
-}
-
-.tag {
-  padding: 6px 14px;
-  background: #f8fafc;
-  color: #64748b;
-  border: 1px solid #e2e8f0;
-  border-radius: 16px;
-  font-size: 13px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.tag:hover {
-  background: #eff6ff;
-  color: #3b82f6;
-  border-color: #bfdbfe;
-}
-
 .input-area {
   display: flex;
   gap: 12px;
-  padding: 16px 24px 24px;
+  padding: 20px 24px 24px;
   border-top: 1px solid #e2e8f0;
 }
 
 .input-area textarea {
   flex: 1;
-  padding: 12px 16px;
+  padding: 16px 20px;
   border: 1px solid #d1d5db;
-  border-radius: 12px;
+  border-radius: 16px;
   font-size: 15px;
-  resize: none;
-  max-height: 120px;
+  resize: vertical;
+  min-height: 80px;
+  max-height: 200px;
   font-family: inherit;
   transition: border-color 0.2s, box-shadow 0.2s;
+  line-height: 1.6;
 }
 
 .input-area textarea:focus {
