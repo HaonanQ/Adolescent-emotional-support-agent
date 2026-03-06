@@ -142,7 +142,7 @@ public class TeenSupportApp {
             boolean success = chatSessionService.updateSessionName(request.getSessionId(),
                     request.getChatId(), request.getMessage());
             if (success) {
-                log.info("会话名称已更新为: {}", request.getMessage());
+                log.info("会话名称已更新为：{}", request.getMessage());
             } else {
                 log.warn("会话名称更新失败，sessionId: {}", request.getSessionId());
             }
@@ -183,7 +183,7 @@ public class TeenSupportApp {
         String finalMessage = contextBuilder.toString() + "用户问题：" + request.getMessage();
 
         log.info("RAG 检索到 {} 条相关文档，去重后剩余 {} 条", relevantDocs.size(), uniqueDocs.size());
-        log.info("用户id={}，完整提示词构建完成，长度={}", request.getChatId(), finalMessage.length());
+        log.info("用户 id={}，完整提示词构建完成，长度={}", request.getChatId(), finalMessage.length());
 
         StringBuilder aiResponseBuilder = new StringBuilder();
         String aiMessageId = UUID.randomUUID().toString();
@@ -191,9 +191,9 @@ public class TeenSupportApp {
         /**
          * 修复说明：
          *
-         * - 之前的代码没有设置对话记忆的会话ID参数
-         * - 现在使用 sessionId 作为对话记忆的key（而不是chatId）
-         * - 设置每次获取最近10条历史记录
+         * - 之前的代码没有设置对话记忆的会话 ID 参数
+         * - 现在使用 sessionId 作为对话记忆的 key（而不是 chatId）
+         * - 设置每次获取最近 10 条历史记录
          */
         return chatClient.prompt()
                 .user("userId = " + request.getChatId() + "," + finalMessage)
@@ -221,11 +221,11 @@ public class TeenSupportApp {
                                     .build())
                             .build();
                     chatMessageService.save(aiMessage);
-                    log.info("AI消息已保存，sessionId={}, 长度={}", request.getSessionId(), aiContent.length());
+                    log.info("AI 消息已保存，sessionId={}, 长度={}", request.getSessionId(), aiContent.length());
                     chatSessionService.incrementMessageCount(request.getSessionId());
                 })
                 .doOnError(error -> {
-                    log.error("AI流式输出异常，sessionId={}", request.getSessionId(), error);
+                    log.error("AI 流式输出异常，sessionId={}", request.getSessionId(), error);
                     if (aiResponseBuilder.length() > 0) {
                         String errorContent = aiResponseBuilder.toString() + "\n[流式输出中断]";
                         ChatMessage errorMessage = ChatMessage.builder()
@@ -237,7 +237,7 @@ public class TeenSupportApp {
                                 .isAiResponse(true)
                                 .build();
                         chatMessageService.save(errorMessage);
-                        log.warn("AI错误消息已保存，sessionId={}, 长度={}", request.getSessionId(), errorContent.length());
+                        log.warn("AI 错误消息已保存，sessionId={}, 长度={}", request.getSessionId(), errorContent.length());
                         chatSessionService.incrementMessageCount(request.getSessionId());
                     }
                 });

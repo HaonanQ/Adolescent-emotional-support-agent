@@ -40,4 +40,24 @@ public class MessageMetadata {
      * PDF文件名
      */
     private String pdfFileName;
+
+    /**
+     * 图片文件URL
+     */
+    private String imageFileUrl;
+
+    /**
+     * 图片文件名
+     */
+    private String imageFileName;
+
+    /**
+     * 语音文件URL
+     */
+    private String audioFileUrl;
+
+    /**
+     * 语音文件名
+     */
+    private String audioFileName;
 }

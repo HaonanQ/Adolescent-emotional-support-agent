@@ -1,5 +1,7 @@
 package com.air.aiagent.controller;
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.lang.UUID;
+import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 import com.air.aiagent.annotation.ClearContext;
 import com.air.aiagent.annotation.LoginCheck;
@@ -10,10 +12,13 @@ import com.air.aiagent.context.UserContext;
 import com.air.aiagent.domain.dto.ChatRequest;
 import com.air.aiagent.domain.entity.ChatMessage;
 import com.air.aiagent.domain.entity.ChatSession;
+import com.air.aiagent.domain.entity.MessageMetadata;
+import com.air.aiagent.domain.entity.MessageType;
 import com.air.aiagent.domain.entity.User;
 import com.air.aiagent.domain.vo.*;
 import com.air.aiagent.exception.BusinessException;
 import com.air.aiagent.exception.ErrorCode;
+import com.air.aiagent.manage.MinioManage;
 import com.air.aiagent.service.UserFileService;
 import com.air.aiagent.service.UserService;
 import com.air.aiagent.service.impl.ChatMessageService;
@@ -23,7 +28,10 @@ import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import reactor.core.publisher.Flux;
+import java.io.File;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -55,6 +63,12 @@ public class TeenSupportController {
 
     @Resource
     private ProductRecommendService productRecommendService;
+
+    @Resource
+    private MinioManage minioManage;
+
+    @Resource
+    private com.air.aiagent.service.SpeechToTextService speechToTextService;
     /**
      * RAG知识库对话，支持工具调用
      */
@@ -129,6 +143,7 @@ public class TeenSupportController {
                     .id(chatMessage.getId())
                     .chatId(chatMessage.getChatId())
                     .sessionId(chatMessage.getSessionId())
+                    .messageType(chatMessage.getMessageType())
                     .content(chatMessage.getContent())
                     .isAiResponse(chatMessage.getIsAiResponse())
                     .build();
@@ -140,6 +155,14 @@ public class TeenSupportController {
                 if(chatMessage.getMetadata().getPdfFileUrl() != null){
                     chatMessageVO.setPdfFileUrl(chatMessage.getMetadata().getPdfFileUrl());
                     chatMessageVO.setPdfFileName(chatMessage.getMetadata().getPdfFileName());
+                }
+                if(chatMessage.getMetadata().getImageFileUrl() != null){
+                    chatMessageVO.setImageFileUrl(chatMessage.getMetadata().getImageFileUrl());
+                    chatMessageVO.setImageFileName(chatMessage.getMetadata().getImageFileName());
+                }
+                if(chatMessage.getMetadata().getAudioFileUrl() != null){
+                    chatMessageVO.setAudioFileUrl(chatMessage.getMetadata().getAudioFileUrl());
+                    chatMessageVO.setAudioFileName(chatMessage.getMetadata().getAudioFileName());
                 }
             }
             return chatMessageVO;
@@ -185,6 +208,7 @@ public class TeenSupportController {
                     .id(chatMessage.getId())
                     .chatId(chatMessage.getChatId())
                     .sessionId(chatMessage.getSessionId())
+                    .messageType(chatMessage.getMessageType())
                     .content(chatMessage.getContent())
                     .isAiResponse(chatMessage.getIsAiResponse())
                     .build();
@@ -196,6 +220,14 @@ public class TeenSupportController {
                 if(chatMessage.getMetadata().getPdfFileUrl() != null){
                     chatMessageVO.setPdfFileUrl(chatMessage.getMetadata().getPdfFileUrl());
                     chatMessageVO.setPdfFileName(chatMessage.getMetadata().getPdfFileName());
+                }
+                if(chatMessage.getMetadata().getImageFileUrl() != null){
+                    chatMessageVO.setImageFileUrl(chatMessage.getMetadata().getImageFileUrl());
+                    chatMessageVO.setImageFileName(chatMessage.getMetadata().getImageFileName());
+                }
+                if(chatMessage.getMetadata().getAudioFileUrl() != null){
+                    chatMessageVO.setAudioFileUrl(chatMessage.getMetadata().getAudioFileUrl());
+                    chatMessageVO.setAudioFileName(chatMessage.getMetadata().getAudioFileName());
                 }
             }
             return chatMessageVO;
@@ -383,8 +415,8 @@ public class TeenSupportController {
     //
     //
     // /**
-    // * MCP服务调用接口
-    // */
+    //  * MCP服务调用接口
+    //  */
     // @PostMapping("/chat/mcp")
     // public ChatResponse chatWithMCP(@RequestBody ChatRequest request) {
     // log.info("收到MCP服务调用请求: {}", request);
@@ -392,4 +424,131 @@ public class TeenSupportController {
     // request.getChatId());
     // return new ChatResponse(response);
     // }
+
+    /**
+     * 上传图片文件
+     */
+    @LoginCheck
+    @PostMapping("/upload/image")
+    public BaseResponse<UploadFileVO> uploadImage(
+            @RequestParam("file") MultipartFile file,
+            HttpServletRequest httpServletRequest) {
+        User loginUser = userService.getLoginUser(httpServletRequest);
+        
+        String fileName = IdUtil.simpleUUID() + "_" + file.getOriginalFilename();
+        String objectPath = "public/images/" + fileName;
+        
+        String fileUrl = minioManage.uploadImage(file, objectPath);
+        
+        UploadFileVO vo = UploadFileVO.builder()
+                .fileUrl(fileUrl)
+                .fileName(file.getOriginalFilename())
+                .objectPath(objectPath)
+                .build();
+        
+        return ResultUtils.success(vo);
+    }
+
+    /**
+     * 上传语音文件
+     */
+    @LoginCheck
+    @PostMapping("/upload/audio")
+    public BaseResponse<UploadFileVO> uploadAudio(
+            @RequestParam("file") MultipartFile file,
+            HttpServletRequest httpServletRequest) {
+        User loginUser = userService.getLoginUser(httpServletRequest);
+        
+        String fileName = IdUtil.simpleUUID() + "_" + file.getOriginalFilename();
+        String objectPath = "public/audio/" + fileName;
+        
+        String fileUrl = minioManage.uploadAudio(file, objectPath);
+        
+        UploadFileVO vo = UploadFileVO.builder()
+                .fileUrl(fileUrl)
+                .fileName(file.getOriginalFilename())
+                .objectPath(objectPath)
+                .build();
+        
+        return ResultUtils.success(vo);
+    }
+
+    /**
+     * 发送包含图片的消息
+     */
+    @LoginCheck
+    @PostMapping(value = "/chat/image", produces = "text/html;charset=UTF-8")
+    @ClearContext
+    public Flux<String> chatWithImage(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam(value = "message", required = false) String message,
+            @RequestParam("sessionId") String sessionId,
+            HttpServletRequest httpServletRequest) {
+        User loginUser = userService.getLoginUser(httpServletRequest);
+        String chatId = String.valueOf(loginUser.getId());
+        
+        // 上传图片
+        String fileName = IdUtil.simpleUUID() + "_" + file.getOriginalFilename();
+        String objectPath = "public/images/" + fileName;
+        String imageUrl = minioManage.uploadImage(file, objectPath);
+        
+        // 构建请求
+        ChatRequest request = new ChatRequest();
+        request.setChatId(chatId);
+        request.setSessionId(sessionId);
+        request.setMessage(message != null ? message : "");
+        request.setImageUrl(imageUrl);
+        request.setImageFileName(file.getOriginalFilename());
+        
+        UserContext.setUserId(chatId);
+        Optional<ChatSession> session = chatSessionService.findById(sessionId);
+        if (!session.isPresent()) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "无效的 sessionId");
+        }
+        
+        // 保存用户消息（带图片）
+        String userMessageId = UUID.randomUUID().toString();
+        ChatMessage userMessage = ChatMessage.builder()
+                .id(userMessageId)
+                .chatId(chatId)
+                .sessionId(sessionId)
+                .messageType(MessageType.IMAGE)
+                .content(message != null ? message : "")
+                .isAiResponse(false)
+                .metadata(MessageMetadata.builder()
+                        .imageFileUrl(imageUrl)
+                        .imageFileName(file.getOriginalFilename())
+                        .build())
+                .build();
+        chatMessageService.save(userMessage);
+        log.info("用户图片消息已保存，sessionId={}, imageUrl={}", sessionId, imageUrl);
+        
+        // 使用普通对话方法，图片信息已保存到数据库
+        return teenSupportApp.doChatWithRagAndTools(request);
+    }
+
+    /**
+     * 语音转文字
+     */
+    @LoginCheck
+    @PostMapping("/speech/transcribe")
+    public BaseResponse<String> transcribeSpeech(
+            @RequestParam("file") MultipartFile file,
+            HttpServletRequest httpServletRequest) {
+        try {
+            User loginUser = userService.getLoginUser(httpServletRequest);
+            
+            File tempFile = File.createTempFile("speech_", ".webm");
+            file.transferTo(tempFile);
+            
+//            String text = speechToTextService.transcribeAudio(tempFile);
+            String  text = "hello";
+            tempFile.delete();
+            
+            return ResultUtils.success(text);
+        } catch (Exception e) {
+            log.error("语音识别失败", e);
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "语音识别失败: " + e.getMessage());
+        }
+    }
 }

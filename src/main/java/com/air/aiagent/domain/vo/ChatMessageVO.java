@@ -1,4 +1,5 @@
 package com.air.aiagent.domain.vo;
+import com.air.aiagent.domain.entity.MessageType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -32,6 +33,11 @@ public class ChatMessageVO {
     private String sessionId;
 
     /**
+     * 消息类型
+     */
+    private MessageType messageType;
+
+    /**
      * 消息内容
      */
     private String content;
@@ -57,4 +63,24 @@ public class ChatMessageVO {
      * PDF文件名
      */
     private String pdfFileName;
+
+    /**
+     * 图片文件URL
+     */
+    private String imageFileUrl;
+
+    /**
+     * 图片文件名
+     */
+    private String imageFileName;
+
+    /**
+     * 语音文件URL
+     */
+    private String audioFileUrl;
+
+    /**
+     * 语音文件名
+     */
+    private String audioFileName;
 }

@@ -22,4 +22,14 @@ public class ChatRequest {
      */
     private String sessionId;
 
+    /**
+     * 图片URL（用于多模态对话）
+     */
+    private String imageUrl;
+
+    /**
+     * 图片文件名
+     */
+    private String imageFileName;
+
 }

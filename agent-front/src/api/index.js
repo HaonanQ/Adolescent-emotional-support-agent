@@ -147,4 +147,77 @@ export const getUserFileList = (chatId) => {
   });
 };
 
+// 上传图片
+export const uploadImage = (file) => {
+  const formData = new FormData();
+  formData.append('file', file);
+  return api.post('/support/upload/image', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+};
+
+// 上传语音
+export const uploadAudio = (file) => {
+  const formData = new FormData();
+  formData.append('file', file);
+  return api.post('/support/upload/audio', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+};
+
+// 发送包含图片的消息（流式响应）
+export const chatWithImage = async (file, message, chatId, sessionId, onChunk) => {
+  const formData = new FormData();
+  formData.append('file', file);
+  if (message) {
+    formData.append('message', message);
+  }
+  formData.append('sessionId', sessionId);
+  
+  try {
+    const response = await fetch(`${API_BASE_URL}/support/chat/image`, {
+      method: 'POST',
+      credentials: 'include',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let fullText = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      
+      const chunk = decoder.decode(value, { stream: true });
+      fullText += chunk;
+      onChunk(fullText);
+    }
+
+    return fullText;
+  } catch (error) {
+    console.error('发送图片消息错误:', error);
+    throw error;
+  }
+};
+
+// 语音转文字
+export const transcribeSpeech = (file) => {
+  const formData = new FormData();
+  formData.append('file', file);
+  return api.post('/support/speech/transcribe', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+};
+
 export default api;

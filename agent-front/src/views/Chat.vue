@@ -95,7 +95,10 @@
               {{ message.isAiResponse ? '🤖' : '👤' }}
             </div>
             <div class="message-content">
-              <div class="message-text markdown-content" v-html="formatMessage(message.content)"></div>
+              <div v-if="message.imageFileUrl" class="image-container">
+                <img :src="message.imageFileUrl" :alt="message.imageFileName || '图片'" class="message-image" />
+              </div>
+              <div v-if="message.content" class="message-text markdown-content" v-html="formatMessage(message.content)"></div>
               <div v-if="message.recommendedProducts && message.recommendedProducts.length > 0" class="products-container">
                 <div class="products-title">推荐内容：</div>
                 <div class="products-list">
@@ -118,13 +121,42 @@
         </div>
 
         <div class="input-area">
-          <textarea 
-            v-model="inputMessage"
-            placeholder="请输入您的问题..."
-            @keydown.enter.prevent="handleSendMessage"
-            rows="3"
-          ></textarea>
-          <button @click="handleSendMessage" :disabled="isLoading || !inputMessage.trim()" class="send-btn">
+          <div class="input-tools">
+            <input 
+              type="file" 
+              ref="imageInput" 
+              accept="image/*" 
+              style="display: none"
+              @change="handleImageSelect"
+            />
+            <button @click="handleImageClick" class="tool-btn" title="上传图片">
+              📷
+            </button>
+            <button 
+              @click="handleAudioClick" 
+              :class="['tool-btn', { recording: isRecording }]" 
+              :title="isRecording ? '停止录音' : '语音输入'"
+            >
+              🎤
+            </button>
+          </div>
+          <div class="input-main">
+            <div v-if="selectedImage" class="selected-image-preview">
+              <img :src="selectedImage.preview" :alt="selectedImage.name" class="preview-image" />
+              <button @click="removeSelectedImage" class="remove-image-btn">×</button>
+            </div>
+            <textarea 
+              v-model="inputMessage"
+              placeholder="请输入您的问题..."
+              @keydown.enter.prevent="handleSendMessage"
+              rows="3"
+            ></textarea>
+          </div>
+          <button 
+            @click="handleSendMessage" 
+            :disabled="isLoading || (!inputMessage.trim() && !selectedImage)" 
+            class="send-btn"
+          >
             发送
           </button>
         </div>
@@ -146,7 +178,9 @@ import {
   chatWithRagStream,
   deleteChatSession,
   logout,
-  getUserFileList
+  getUserFileList,
+  chatWithImage,
+  transcribeSpeech
 } from '../api';
 
 const router = useRouter();
@@ -160,6 +194,9 @@ const userFiles = ref([]);
 const inputMessage = ref('');
 const isLoading = ref(false);
 const messagesContainer = ref(null);
+const selectedImage = ref(null);
+const isRecording = ref(false);
+const imageInput = ref(null);
 
 const formatDate = (dateStr) => {
   if (!dateStr) return '';
@@ -270,14 +307,100 @@ const deleteSession = async (sessionId) => {
   }
 };
 
+const handleImageClick = () => {
+  imageInput.value.click();
+};
+
+const handleImageSelect = (event) => {
+  const file = event.target.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      selectedImage.value = {
+        file: file,
+        preview: e.target.result,
+        name: file.name,
+      };
+    };
+    reader.readAsDataURL(file);
+  }
+};
+
+const removeSelectedImage = () => {
+  selectedImage.value = null;
+  if (imageInput.value) {
+    imageInput.value.value = '';
+  }
+};
+
+let mediaRecorder = null;
+let audioChunks = [];
+
+const handleAudioClick = async () => {
+  if (isRecording.value) {
+    stopRecording();
+  } else {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaRecorder = new MediaRecorder(stream);
+      audioChunks = [];
+      
+      mediaRecorder.ondataavailable = (event) => {
+        audioChunks.push(event.data);
+      };
+      
+      mediaRecorder.onstop = async () => {
+        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+        const audioFile = new File([audioBlob], 'audio.webm', { type: 'audio/webm' });
+        
+        try {
+          inputMessage.value = '正在识别语音...';
+          const response = await transcribeSpeech(audioFile);
+          if (response.data.code === 0 && response.data.data) {
+            inputMessage.value = response.data.data;
+          } else {
+            inputMessage.value = '语音识别失败，请重试';
+          }
+        } catch (error) {
+          console.error('语音识别失败:', error);
+          inputMessage.value = '语音识别失败，请重试';
+        }
+        
+        stream.getTracks().forEach(track => track.stop());
+      };
+      
+      mediaRecorder.start();
+      isRecording.value = true;
+    } catch (error) {
+      console.error('无法访问麦克风:', error);
+      alert('无法访问麦克风，请检查权限设置');
+    }
+  }
+};
+
+const stopRecording = () => {
+  if (mediaRecorder && isRecording.value) {
+    mediaRecorder.stop();
+    isRecording.value = false;
+  }
+};
+
 const handleSendMessage = async () => {
-  if (!inputMessage.value.trim() || isLoading.value) return;
+  if ((!inputMessage.value.trim() && !selectedImage.value) || isLoading.value) return;
   
   if (!currentSessionId.value) {
     await createNewSession();
     if (!currentSessionId.value) return;
   }
 
+  if (selectedImage.value) {
+    await handleSendImageMessage();
+  } else {
+    await handleSendTextMessage();
+  }
+};
+
+const handleSendTextMessage = async () => {
   const userMessage = {
     id: Date.now().toString(),
     content: inputMessage.value,
@@ -315,6 +438,58 @@ const handleSendMessage = async () => {
     await loadUserFiles();
   } catch (error) {
     console.error('发送消息失败:', error);
+    const lastMessage = messages.value[messages.value.length - 1];
+    if (lastMessage && lastMessage.id === aiMessageId) {
+      lastMessage.content = '抱歉，发生了一些错误，请稍后再试。';
+    }
+  } finally {
+    isLoading.value = false;
+    scrollToBottom();
+  }
+};
+
+const handleSendImageMessage = async () => {
+  const userMessage = {
+    id: Date.now().toString(),
+    content: inputMessage.value,
+    imageFileUrl: selectedImage.value.preview,
+    isAiResponse: false,
+  };
+  
+  messages.value.push(userMessage);
+  const messageToSend = inputMessage.value;
+  inputMessage.value = '';
+  const imageFile = selectedImage.value.file;
+  removeSelectedImage();
+  scrollToBottom();
+  
+  isLoading.value = true;
+
+  const aiMessageId = (Date.now() + 1).toString();
+  const aiMessage = {
+    id: aiMessageId,
+    content: '',
+    isAiResponse: true,
+    recommendedProducts: [],
+    pdfFileUrl: null,
+    pdfFileName: null,
+  };
+  messages.value.push(aiMessage);
+
+  try {
+    await chatWithImage(imageFile, messageToSend, chatId, currentSessionId.value, (chunk) => {
+      const lastMessage = messages.value[messages.value.length - 1];
+      if (lastMessage && lastMessage.id === aiMessageId) {
+        lastMessage.content = chunk;
+        scrollToBottom();
+      }
+    });
+    
+    await loadSessions();
+    await loadUserFiles();
+    await loadMessages(currentSessionId.value);
+  } catch (error) {
+    console.error('发送图片消息失败:', error);
     const lastMessage = messages.value[messages.value.length - 1];
     if (lastMessage && lastMessage.id === aiMessageId) {
       lastMessage.content = '抱歉，发生了一些错误，请稍后再试。';
@@ -935,33 +1110,6 @@ onMounted(async () => {
   max-width: 200px;
 }
 
-.input-area {
-  display: flex;
-  gap: 12px;
-  padding: 20px 24px 24px;
-  border-top: 1px solid #e2e8f0;
-}
-
-.input-area textarea {
-  flex: 1;
-  padding: 16px 20px;
-  border: 1px solid #d1d5db;
-  border-radius: 16px;
-  font-size: 15px;
-  resize: vertical;
-  min-height: 80px;
-  max-height: 200px;
-  font-family: inherit;
-  transition: border-color 0.2s, box-shadow 0.2s;
-  line-height: 1.6;
-}
-
-.input-area textarea:focus {
-  outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-
 .send-btn {
   padding: 12px 28px;
   background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
@@ -984,5 +1132,141 @@ onMounted(async () => {
   opacity: 0.5;
   cursor: not-allowed;
   transform: none;
+}
+
+.input-area {
+  display: flex;
+  gap: 12px;
+  padding: 20px 24px 24px;
+  border-top: 1px solid #e2e8f0;
+  align-items: flex-end;
+}
+
+.input-area textarea {
+  flex: 1;
+  padding: 16px 20px;
+  border: 1px solid #d1d5db;
+  border-radius: 16px;
+  font-size: 15px;
+  resize: vertical;
+  min-height: 80px;
+  max-height: 200px;
+  font-family: inherit;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  line-height: 1.6;
+}
+
+.input-area textarea:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.input-tools {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.tool-btn {
+  width: 44px;
+  height: 44px;
+  border: 1px solid #d1d5db;
+  background: white;
+  border-radius: 12px;
+  font-size: 20px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tool-btn:hover {
+  background: #f1f5f9;
+  border-color: #3b82f6;
+  transform: translateY(-1px);
+}
+
+.tool-btn.recording {
+  background: #fef2f2;
+  border-color: #dc2626;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(220, 38, 38, 0);
+  }
+}
+
+.input-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.selected-image-preview {
+  position: relative;
+  display: inline-block;
+}
+
+.preview-image {
+  max-width: 200px;
+  max-height: 150px;
+  border-radius: 12px;
+  border: 2px solid #e2e8f0;
+  object-fit: contain;
+}
+
+.remove-image-btn {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #dc2626;
+  color: white;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  padding: 0;
+}
+
+.remove-image-btn:hover {
+  background: #b91c1c;
+}
+
+.image-container {
+  margin-bottom: 12px;
+}
+
+.message-image {
+  max-width: 100%;
+  max-height: 400px;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.message-image:hover {
+  transform: scale(1.02);
+}
+
+.user-message .message-image {
+  border-bottom-right-radius: 4px;
+}
+
+.ai-message .message-image {
+  border-bottom-left-radius: 4px;
 }
 </style>

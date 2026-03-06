@@ -140,6 +140,75 @@ public class MinioManage {
         return endPoint + "/" + bucketName + "/" + objectPath;
     }
 
+    /**
+     * 上传图片文件到 MinIO 中
+     * @param file 上传的 MultipartFile
+     * @param objectPath MinIO存储路径
+     * @return 上传后的文件URL
+     */
+    public String uploadImage(MultipartFile file, String objectPath) {
+        try {
+            String contentType = file.getContentType();
+            if (contentType == null || !contentType.startsWith("image/")) {
+                contentType = "image/jpeg";
+            }
+            
+            minioClient.putObject(
+                PutObjectArgs.builder()
+                    .bucket(bucketName)
+                    .object(objectPath)
+                    .stream(file.getInputStream(), file.getSize(), -1)
+                    .contentType(contentType)
+                    .build()
+            );
+            
+            log.info("图片上传成功: {} (大小: {} bytes)", objectPath, file.getSize());
+            return endPoint + "/" + bucketName + "/" + objectPath;
+        } catch (Exception e) {
+            log.error("图片上传失败: {}", objectPath, e);
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "图片上传失败");
+        }
+    }
+
+    /**
+     * 上传语音文件到 MinIO 中
+     * @param file 上传的 MultipartFile
+     * @param objectPath MinIO存储路径
+     * @return 上传后的文件URL
+     */
+    public String uploadAudio(MultipartFile file, String objectPath) {
+        try {
+            String contentType = file.getContentType();
+            if (contentType == null || !contentType.startsWith("audio/")) {
+                contentType = "audio/mpeg";
+            }
+            
+            minioClient.putObject(
+                PutObjectArgs.builder()
+                    .bucket(bucketName)
+                    .object(objectPath)
+                    .stream(file.getInputStream(), file.getSize(), -1)
+                    .contentType(contentType)
+                    .build()
+            );
+            
+            log.info("语音上传成功: {} (大小: {} bytes)", objectPath, file.getSize());
+            return endPoint + "/" + bucketName + "/" + objectPath;
+        } catch (Exception e) {
+            log.error("语音上传失败: {}", objectPath, e);
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "语音上传失败");
+        }
+    }
+
+    /**
+     * 获取文件URL
+     * @param objectPath 文件存储路径
+     * @return 文件URL
+     */
+    public String getFileUrl(String objectPath) {
+        return endPoint + "/" + bucketName + "/" + objectPath;
+    }
+
 
     /**
      * 安全删除临时文件
