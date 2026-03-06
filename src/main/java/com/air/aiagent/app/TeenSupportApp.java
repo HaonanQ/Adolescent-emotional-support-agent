@@ -131,8 +131,10 @@ public class TeenSupportApp {
         log.info("用户消息已保存，sessionId={}, 内容长度={}", request.getSessionId(), request.getMessage().length());
     }
 
-    public Flux<String> doChatWithRagAndTools(ChatRequest request) {
-        saveUserMessage(request);
+    public Flux<String> doChatWithRagAndTools(ChatRequest request, MessageType type) {
+        if (type == MessageType.TEXT) {
+            saveUserMessage(request);
+        }
 
         List<ChatMessage> historyMessages = chatMessageService
                 .findHistoryExcludingLatest(request.getSessionId(), 50, 1);

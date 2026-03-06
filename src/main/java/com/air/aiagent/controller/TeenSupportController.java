@@ -31,7 +31,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import reactor.core.publisher.Flux;
 import java.io.File;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -83,7 +82,7 @@ public class TeenSupportController {
             // 2.如果该 session 不存在，抛异常
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "无效的 sessionId");
         }
-        return teenSupportApp.doChatWithRagAndTools(request);
+        return teenSupportApp.doChatWithRagAndTools(request, MessageType.TEXT);
     }
 
     @LoginCheck
@@ -524,7 +523,7 @@ public class TeenSupportController {
         log.info("用户图片消息已保存，sessionId={}, imageUrl={}", sessionId, imageUrl);
         
         // 使用普通对话方法，图片信息已保存到数据库
-        return teenSupportApp.doChatWithRagAndTools(request);
+        return teenSupportApp.doChatWithRagAndTools(request,MessageType.IMAGE);
     }
 
     /**

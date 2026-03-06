@@ -176,6 +176,7 @@ export const chatWithImage = async (file, message, chatId, sessionId, onChunk) =
   if (message) {
     formData.append('message', message);
   }
+  formData.append('chatId', chatId);
   formData.append('sessionId', sessionId);
   
   try {
