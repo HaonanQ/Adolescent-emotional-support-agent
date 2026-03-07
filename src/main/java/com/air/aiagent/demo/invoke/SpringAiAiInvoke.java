@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
  * 可以实现一个CommandLineRunner接口，实现一个单次执行的方法，项目启动时，spring会扫描这个Bean，发现它有实现CommandLineRunner接口
  * 就会自动注入依赖，并且执行run方法了
  */
-@Component
+//@Component
 public class SpringAiAiInvoke implements CommandLineRunner {
 
     /**

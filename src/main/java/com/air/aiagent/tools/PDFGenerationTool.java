@@ -2,7 +2,7 @@ package com.air.aiagent.tools;
 import cn.hutool.core.lang.UUID;
 import com.air.aiagent.context.UserContext;
 import com.air.aiagent.domain.entity.UserFile;
-import com.air.aiagent.manage.MinioManage;
+import com.air.aiagent.manage.CosManager;
 import com.air.aiagent.service.UserFileService;
 import com.air.aiagent.service.impl.AsyncTaskService;
 import com.itextpdf.io.font.FontProgram;
@@ -50,7 +50,7 @@ import java.nio.charset.StandardCharsets;
 public class PDFGenerationTool {
 
     @Resource
-    private MinioManage minioManage;
+    private CosManager cosManager;
 
     @Resource
     private AsyncTaskService asyncTaskService;
@@ -165,9 +165,9 @@ public class PDFGenerationTool {
                 parseMarkdownAndRender(document, cleanedContent, mainFont, boldFont, emojiFont);
             } // try writer/pdf/document
 
-            // 上传到 MinIO（调用你原来的逻辑）
-            if (minioManage.uploadPDFFile(filePath, pdfFile)) {
-                String pdfUrl = minioManage.getPDFUrl(filePath);
+            // 上传到 COS（调用你原来的逻辑）
+            if (cosManager.uploadPDFFile(filePath, pdfFile)) {
+                String pdfUrl = cosManager.getPDFUrl(filePath);
                 asyncTaskService.executeAsyncTask(() -> {
                     UserFile userFile = UserFile.builder()
                             .fileUrl(pdfUrl)
@@ -184,8 +184,8 @@ public class PDFGenerationTool {
         } catch (IOException e) {
             throw new RuntimeException("Error generating PDF: " + e.getMessage(), e);
         } finally {
-            // 删除临时文件（由你的 minioManage 实现）
-            minioManage.deleteTempFile(pdfFile);
+            // 删除临时文件（由你的 cosManager 实现）
+            cosManager.deleteTempFile(pdfFile);
         }
     }
 

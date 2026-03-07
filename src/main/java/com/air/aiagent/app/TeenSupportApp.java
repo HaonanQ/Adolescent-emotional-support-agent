@@ -9,6 +9,7 @@ import com.air.aiagent.domain.entity.MessageMetadata;
 import com.air.aiagent.domain.entity.MessageType;
 import com.air.aiagent.service.impl.ChatMessageService;
 import com.air.aiagent.service.impl.ChatSessionService;
+import com.air.aiagent.utils.ImageRecognizer;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
@@ -51,12 +52,16 @@ public class TeenSupportApp {
 
     @Resource
     private ChatMessageService chatMessageService;
-
+    /**
+     * 图像识别器
+     */
+    @Resource
+    private ImageRecognizer imageRecognizer;
     @Resource
     private VectorStore teenSupportVectorStore;
-
-    @Resource
-    private Advisor teenSupportRagCloudAdvisor;
+    //云知识库
+//    @Resource
+//    private Advisor teenSupportRagCloudAdvisor;
 
     @Resource
     private VectorStore pgVectorVectorStore;
@@ -130,12 +135,20 @@ public class TeenSupportApp {
         chatMessageService.save(userMessage);
         log.info("用户消息已保存，sessionId={}, 内容长度={}", request.getSessionId(), request.getMessage().length());
     }
+    /**
+     * 智能对话入口 - 根据意图选择是否推荐商品
+     */
+    public Flux<String> smartChat(ChatRequest request ,MessageType type) {
 
-    public Flux<String> doChatWithRagAndTools(ChatRequest request, MessageType type) {
         if (type == MessageType.TEXT) {
-            saveUserMessage(request);
+            log.info("文字对话模式");
+            return doChatWithRagAndTools(request);
+        } else {
+            log.info("图像理解");
+            return imageRecognizer.recognizeScene(request);
         }
-
+    }
+    public Flux<String> doChatWithRagAndTools(ChatRequest request) {
         List<ChatMessage> historyMessages = chatMessageService
                 .findHistoryExcludingLatest(request.getSessionId(), 50, 1);
         log.info("获取用户，id={}，历史上下文，数量={}", request.getChatId(), historyMessages.size());

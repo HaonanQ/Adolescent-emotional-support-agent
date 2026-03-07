@@ -22,27 +22,27 @@ import java.util.Map;
  * @since 2025/8/1 下午8:49
  * 自定义基于阿里云知识库云服务的 RAG 增强 Advisor
  */
-@Configuration
-@Slf4j
-public class TeenSupportRagCloudAdvisorConfig {
-    @Value("${spring.ai.dashscope.api-key}")
-    private String dashScopeApiKey;
-
-    @Bean
-    public Advisor teenSupportRagCloudAdvisor() {
-        DashScopeApi dashScopeApi = new DashScopeApi(dashScopeApiKey);
-
-        final String KNOWLEDGE_INDEX = "青少年情感陪伴";
-
-        DashScopeDocumentRetriever dashScopeDocumentRetriever = new DashScopeDocumentRetriever(dashScopeApi,
-                DashScopeDocumentRetrieverOptions.builder()
-                        .withIndexName(KNOWLEDGE_INDEX)
-                        .build());
-
-        RetrievalAugmentationAdvisor retrievalAugmentationAdvisor = RetrievalAugmentationAdvisor.builder()
-                .documentRetriever(dashScopeDocumentRetriever)
-                .build();
-
-        return retrievalAugmentationAdvisor;
-    }
-}
+//@Configuration
+//@Slf4j
+//public class TeenSupportRagCloudAdvisorConfig {
+//    @Value("${spring.ai.dashscope.api-key}")
+//    private String dashScopeApiKey;
+//
+//    @Bean
+//    public Advisor teenSupportRagCloudAdvisor() {
+//        DashScopeApi dashScopeApi = new DashScopeApi(dashScopeApiKey);
+//
+//        final String KNOWLEDGE_INDEX = "青少年情感陪伴";
+//
+//        DashScopeDocumentRetriever dashScopeDocumentRetriever = new DashScopeDocumentRetriever(dashScopeApi,
+//                DashScopeDocumentRetrieverOptions.builder()
+//                        .withIndexName(KNOWLEDGE_INDEX)
+//                        .build());
+//
+//        RetrievalAugmentationAdvisor retrievalAugmentationAdvisor = RetrievalAugmentationAdvisor.builder()
+//                .documentRetriever(dashScopeDocumentRetriever)
+//                .build();
+//
+//        return retrievalAugmentationAdvisor;
+//    }
+//}

@@ -8,20 +8,20 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * 意图识别专用模型配置
+ * 图像识别专用模型配置
  */
 @Configuration
-public class IntentChatClientConfig {
+public class ImageChatClientConfig {
 
     @Value("${spring.ai.dashscope.api-key}")
     private String apiKey;
 
     /**
-     * 创建意图识别专用的 ChatModel Bean
+     * 创建图像识别专用的 ChatModel Bean
      * 注意：这里只创建了 ChatModel 实例，具体使用哪个模型在调用时指定
      */
-    @Bean("intentChatModel")
-    public ChatModel intentChatModel() {
+    @Bean("imageChatModel")
+    public ChatModel imageChatModel() {
         // 创建 DashScope API
         DashScopeApi dashScopeApi = new DashScopeApi(apiKey);
 

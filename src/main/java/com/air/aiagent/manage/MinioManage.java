@@ -9,10 +9,13 @@ import io.minio.messages.Item;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.binary.Base64;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
-
+import io.minio.GetObjectArgs;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -257,8 +260,121 @@ public class MinioManage {
         }
         return files;
     }
+    /**
+     * 新增：从MinIO读取图片并转换为Base64编码（解决本地图片外网无法访问问题）
+     * @param objectPath MinIO中的图片路径（如 "public/images/xxx.jpg"）
+     * @return Base64编码字符串（带data:image/jpeg;base64,前缀）
+     */
+    public String getImageBase64(String objectPath) {
+        // 参数校验
+        if (objectPath == null || objectPath.isEmpty()) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "图片路径不能为空");
+        }
 
+        try (InputStream inputStream = minioClient.getObject(
+                GetObjectArgs.builder()
+                        .bucket(bucketName)
+                        .object(objectPath)
+                        .build());
+             ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
 
+            // 读取图片字节
+            byte[] buffer = new byte[1024];
+            int len;
+            while ((len = inputStream.read(buffer)) != -1) {
+                outputStream.write(buffer, 0, len);
+            }
+            byte[] imageBytes = outputStream.toByteArray();
+
+            // 转换为Base64（带MIME前缀，模型可直接识别）
+            String base64Prefix = "data:image/jpeg;base64,";
+            // 兼容png格式
+            if (objectPath.endsWith(".png")) {
+                base64Prefix = "data:image/png;base64,";
+            }
+            return base64Prefix + Base64.encodeBase64String(imageBytes);
+
+        } catch (ErrorResponseException e) {
+            log.error("图片不存在: {}", objectPath, e);
+            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "图片不存在");
+        } catch (Exception e) {
+            log.error("读取图片并转Base64失败: {}", objectPath, e);
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "图片解析失败");
+        }
+    }
+
+    /**
+     * 新增：从完整URL中提取MinIO对象路径（辅助方法）
+     * 示例：http://localhost:9000/teenai-docs/public/images/xxx.jpg → public/images/xxx.jpg
+     */
+    public String extractMinioObjectName(String fullImageUrl) {
+        if (fullImageUrl == null || !fullImageUrl.startsWith(endPoint)) {
+            return fullImageUrl; // 本身就是对象路径，直接返回
+        }
+        // 剥离 endPoint + "/" + bucketName + "/" 前缀
+        String prefix = endPoint + "/" + bucketName + "/";
+        return fullImageUrl.substring(prefix.length());
+    }
+    /**
+     * 创建临时目录（与jar包同级的tmpimage文件夹）
+     * @return 临时目录路径
+     */
+    private File createTmpImageDir() {
+        // 获取当前jar包运行目录 + tmpimage
+        String jarPath = System.getProperty("user.dir");
+        File tmpDir = new File(jarPath, "tmpimage");
+
+        if (!tmpDir.exists()) {
+            boolean mkdirSuccess = tmpDir.mkdirs();
+            if (mkdirSuccess) {
+                log.info("创建临时图片目录成功: {}", tmpDir.getAbsolutePath());
+            } else {
+                log.error("创建临时图片目录失败: {}", tmpDir.getAbsolutePath());
+                throw new BusinessException(ErrorCode.SYSTEM_ERROR, "创建临时图片目录失败");
+            }
+        }
+        return tmpDir;
+    }
+    /**
+     * 从MinIO下载图片到本地tmpimage临时目录
+     * @param objectPath MinIO中的图片路径（如 "public/images/xxx.jpg"）
+     * @return 本地临时文件对象
+     */
+    public File downloadImageToTmp(String objectPath) {
+        // 1. 参数校验
+        if (objectPath == null || objectPath.isEmpty()) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "图片路径不能为空");
+        }
+
+        // 2. 创建临时目录
+        File tmpDir = createTmpImageDir();
+
+        // 3. 提取文件名，构建本地临时文件路径
+        String fileName = objectPath.substring(objectPath.lastIndexOf("/") + 1);
+        File tmpFile = new File(tmpDir, fileName);
+
+        // 4. 从MinIO下载文件到本地
+        try (InputStream inputStream = minioClient.getObject(
+                GetObjectArgs.builder()
+                        .bucket(bucketName)
+                        .object(objectPath)
+                        .build())) {
+
+            // 写入本地文件
+            Files.copy(inputStream, tmpFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            log.info("图片下载到临时目录成功: {}", tmpFile.getAbsolutePath());
+            return tmpFile;
+
+        } catch (ErrorResponseException e) {
+            log.error("图片不存在: {}", objectPath, e);
+            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "图片不存在");
+        } catch (Exception e) {
+            log.error("下载图片到临时目录失败: {}", objectPath, e);
+            // 清理无效临时文件
+            deleteTempFile(tmpFile);
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "图片下载失败");
+        }
+    }
     @PreDestroy
     public void shutdown() throws Exception {
         if (minioClient != null) {

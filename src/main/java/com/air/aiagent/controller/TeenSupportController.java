@@ -18,7 +18,7 @@ import com.air.aiagent.domain.entity.User;
 import com.air.aiagent.domain.vo.*;
 import com.air.aiagent.exception.BusinessException;
 import com.air.aiagent.exception.ErrorCode;
-import com.air.aiagent.manage.MinioManage;
+import com.air.aiagent.manage.CosManager;
 import com.air.aiagent.service.UserFileService;
 import com.air.aiagent.service.UserService;
 import com.air.aiagent.service.impl.ChatMessageService;
@@ -64,7 +64,7 @@ public class TeenSupportController {
     private ProductRecommendService productRecommendService;
 
     @Resource
-    private MinioManage minioManage;
+    private CosManager cosManager;
 
     @Resource
     private com.air.aiagent.service.SpeechToTextService speechToTextService;
@@ -82,7 +82,7 @@ public class TeenSupportController {
             // 2.如果该 session 不存在，抛异常
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "无效的 sessionId");
         }
-        return teenSupportApp.doChatWithRagAndTools(request, MessageType.TEXT);
+        return teenSupportApp.smartChat(request, MessageType.TEXT);
     }
 
     @LoginCheck
@@ -437,7 +437,7 @@ public class TeenSupportController {
         String fileName = IdUtil.simpleUUID() + "_" + file.getOriginalFilename();
         String objectPath = "public/images/" + fileName;
         
-        String fileUrl = minioManage.uploadImage(file, objectPath);
+        String fileUrl = cosManager.uploadImage(file, objectPath);
         
         UploadFileVO vo = UploadFileVO.builder()
                 .fileUrl(fileUrl)
@@ -461,7 +461,7 @@ public class TeenSupportController {
         String fileName = IdUtil.simpleUUID() + "_" + file.getOriginalFilename();
         String objectPath = "public/audio/" + fileName;
         
-        String fileUrl = minioManage.uploadAudio(file, objectPath);
+        String fileUrl = cosManager.uploadAudio(file, objectPath);
         
         UploadFileVO vo = UploadFileVO.builder()
                 .fileUrl(fileUrl)
@@ -489,7 +489,7 @@ public class TeenSupportController {
         // 上传图片
         String fileName = IdUtil.simpleUUID() + "_" + file.getOriginalFilename();
         String objectPath = "public/images/" + fileName;
-        String imageUrl = minioManage.uploadImage(file, objectPath);
+        String imageUrl = cosManager.uploadImage(file, objectPath);
         
         // 构建请求
         ChatRequest request = new ChatRequest();
@@ -522,8 +522,8 @@ public class TeenSupportController {
         chatMessageService.save(userMessage);
         log.info("用户图片消息已保存，sessionId={}, imageUrl={}", sessionId, imageUrl);
         
-        // 使用普通对话方法，图片信息已保存到数据库
-        return teenSupportApp.doChatWithRagAndTools(request,MessageType.IMAGE);
+        // 使用图像对话方法，图片信息已保存到数据库
+        return teenSupportApp.smartChat(request,MessageType.IMAGE);
     }
 
     /**
