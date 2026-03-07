@@ -210,6 +210,21 @@ const formatDate = (dateStr) => {
   return date.toLocaleDateString();
 };
 
+// /**
+//  * 格式化消息内容，支持Markdown渲染
+//  * @param {string} content - 原始消息内容
+//  * @returns {string} 渲染后的HTML内容
+//  */
+// const formatMessage = (content) => {
+//   if (!content) return '';
+//   try {
+//     const htmlContent = marked.parse(content);
+//     return DOMPurify.sanitize(htmlContent);
+//   } catch (error) {
+//     console.error('Markdown渲染错误:', error);
+//     return content.replace(/\n/g, '<br>');
+//   }
+// };
 /**
  * 格式化消息内容，支持Markdown渲染
  * @param {string} content - 原始消息内容
@@ -218,10 +233,17 @@ const formatDate = (dateStr) => {
 const formatMessage = (content) => {
   if (!content) return '';
   try {
+    // 关键修改：配置 marked 解析选项
+    marked.setOptions({
+      breaks: true, // 解析 \n 为 <br> 换行符
+      gfm: true,   // 支持 GitHub Flavored Markdown（如表格、任务列表等）
+      smartypants: true // 自动转换引号为智能引号，优化排版
+    });
     const htmlContent = marked.parse(content);
     return DOMPurify.sanitize(htmlContent);
   } catch (error) {
     console.error('Markdown渲染错误:', error);
+    // 降级处理：至少保证换行生效
     return content.replace(/\n/g, '<br>');
   }
 };
