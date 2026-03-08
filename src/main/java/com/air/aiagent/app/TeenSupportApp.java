@@ -10,6 +10,9 @@ import com.air.aiagent.domain.entity.MessageType;
 import com.air.aiagent.service.impl.ChatMessageService;
 import com.air.aiagent.service.impl.ChatSessionService;
 import com.air.aiagent.utils.ImageRecognizer;
+import com.air.aiagent.utils.IntentRecognizer;
+import com.alibaba.cloud.ai.dashscope.chat.DashScopeChatOptions;
+import org.springframework.beans.factory.annotation.Value;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
@@ -46,7 +49,9 @@ public class TeenSupportApp {
     private final ChatMemory gameMemory;
     private final ChatMemory emoMemory;
     private final ChatClient emoClient;
-
+    // 新增：联网搜索开关（可配置化）
+    @Value("${spring.ai.dashscope.chat.options.enable-search}")
+    private boolean enableSearch;
     @Resource
     private ChatSessionService chatSessionService;
 
@@ -57,6 +62,12 @@ public class TeenSupportApp {
      */
     @Resource
     private ImageRecognizer imageRecognizer;
+
+    /**
+     * 意图识别器
+     */
+    @Resource
+    private IntentRecognizer intentRecognizer;
     @Resource
     private VectorStore teenSupportVectorStore;
     //云知识库
@@ -136,7 +147,7 @@ public class TeenSupportApp {
         log.info("用户消息已保存，sessionId={}, 内容长度={}", request.getSessionId(), request.getMessage().length());
     }
     /**
-     * 智能对话入口 - 根据意图选择是否推荐商品
+     * 智能对话入口
      */
     public Flux<String> smartChat(ChatRequest request ,MessageType type) {
 
@@ -144,11 +155,15 @@ public class TeenSupportApp {
             log.info("文字对话模式");
             return doChatWithRagAndTools(request);
         } else {
-            log.info("图像理解");
+            log.info("图像理解模式");
             return imageRecognizer.recognizeScene(request);
         }
     }
     public Flux<String> doChatWithRagAndTools(ChatRequest request) {
+        saveUserMessage(request);
+        // 1. 意图识别：判断是否需要使用 RAG 知识库
+        boolean needRag = intentRecognizer.needKnowledgeBase(request.getMessage());
+
         List<ChatMessage> historyMessages = chatMessageService
                 .findHistoryExcludingLatest(request.getSessionId(), 50, 1);
         log.info("获取用户，id={}，历史上下文，数量={}", request.getChatId(), historyMessages.size());
@@ -163,46 +178,59 @@ public class TeenSupportApp {
             }
         }
 
-        List<Document> relevantDocs = pgVectorVectorStore.similaritySearch(
-            SearchRequest.builder()
-                .query(request.getMessage())
-                .topK(5)
-                .build()
-        );
+        String finalMessage;
+        if (needRag) {
+            log.info("启用 RAG 知识库检索...");
+            List<Document> relevantDocs = pgVectorVectorStore.similaritySearch(
+                SearchRequest.builder()
+                    .query(request.getMessage())
+                    .topK(5)
+                    .build()
+            );
 
-        List<Document> uniqueDocs = new ArrayList<>();
-        Set<String> seenContents = new HashSet<>();
+            List<Document> uniqueDocs = new ArrayList<>();
+            Set<String> seenContents = new HashSet<>();
 
-        for (Document doc : relevantDocs) {
-            String content = doc.getText();
-            if (!seenContents.contains(content)) {
-                seenContents.add(content);
-                uniqueDocs.add(doc);
-                if (uniqueDocs.size() >= 3) {
-                    break;
+            for (Document doc : relevantDocs) {
+                String content = doc.getText();
+                if (!seenContents.contains(content)) {
+                    seenContents.add(content);
+                    uniqueDocs.add(doc);
+                    if (uniqueDocs.size() >= 3) {
+                        break;
+                    }
                 }
             }
-        }
 
-        StringBuilder contextBuilder = new StringBuilder();
-        if (!uniqueDocs.isEmpty()) {
-            contextBuilder.append("以下是相关的参考资料（仅作参考，请优先基于对话历史回答）：\n\n");
-            for (int i = 0; i < uniqueDocs.size(); i++) {
-                Document doc = uniqueDocs.get(i);
-                contextBuilder.append("资料 ").append(i + 1).append(":\n");
-                contextBuilder.append(doc.getText()).append("\n\n");
+            StringBuilder contextBuilder = new StringBuilder();
+            if (!uniqueDocs.isEmpty()) {
+                contextBuilder.append("以下是相关的参考资料（仅作参考，请优先基于对话历史回答）：\n\n");
+                for (int i = 0; i < uniqueDocs.size(); i++) {
+                    Document doc = uniqueDocs.get(i);
+                    contextBuilder.append("资料 ").append(i + 1).append(":\n");
+                    contextBuilder.append(doc.getText()).append("\n\n");
+                }
+                contextBuilder.append("请根据以上参考资料回答用户的问题。如果参考资料与用户相关的话题没有关联度，则不参考资料，直接回答\n\n");
             }
-            contextBuilder.append("请根据以上参考资料回答用户的问题。如果参考资料与用户相关的话题没有关联度，则不参考资料，直接回答\n\n");
+
+            finalMessage = contextBuilder.toString() + "用户问题：" + request.getMessage();
+            log.info("RAG 检索到 {} 条相关文档，去重后剩余 {} 条", relevantDocs.size(), uniqueDocs.size());
+        } else {
+            log.info("不启用 RAG 知识库，直接使用用户消息对话");
+            finalMessage = "用户问题：" + request.getMessage();
         }
 
-        String finalMessage = contextBuilder.toString() + "用户问题：" + request.getMessage();
-
-        log.info("RAG 检索到 {} 条相关文档，去重后剩余 {} 条", relevantDocs.size(), uniqueDocs.size());
         log.info("用户 id={}，完整提示词构建完成，长度={}", request.getChatId(), finalMessage.length());
 
         StringBuilder aiResponseBuilder = new StringBuilder();
         String aiMessageId = UUID.randomUUID().toString();
         long startTime = System.currentTimeMillis();
+        // ========== 新增：构建联网搜索配置 ==========
+        log.info("联网搜索是否开启：" + enableSearch);
+        DashScopeChatOptions chatOptions = DashScopeChatOptions.builder()
+                .withEnableSearch(enableSearch) // 核心：开启联网搜索
+                .build();
+
         /**
          * 修复说明：
          *
@@ -210,13 +238,20 @@ public class TeenSupportApp {
          * - 现在使用 sessionId 作为对话记忆的 key（而不是 chatId）
          * - 设置每次获取最近 10 条历史记录
          */
-        return chatClient.prompt()
+        var promptBuilder = chatClient.prompt()
                 .user("userId = " + request.getChatId() + "," + finalMessage)
                 .advisors(spec -> spec.param(CHAT_MEMORY_CONVERSATION_ID_KEY, request.getSessionId())
                         .param(CHAT_MEMORY_RETRIEVE_SIZE_KEY, 50))
-                .advisors(new QuestionAnswerAdvisor(pgVectorVectorStore))
                 .tools(allTools)
                 .tools(toolCallbackProvider)
+                .options(chatOptions); // 关键：传入联网搜索配置
+
+        // 只有在需要 RAG 时才添加 QuestionAnswerAdvisor
+        if (needRag) {
+            promptBuilder = promptBuilder.advisors(new QuestionAnswerAdvisor(pgVectorVectorStore));
+        }
+
+        return promptBuilder
                 .stream()
                 .content()
                 .doOnNext(chunk -> aiResponseBuilder.append(chunk))

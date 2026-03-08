@@ -1,13 +1,9 @@
-package com.air.aiagent.service;
+package com.air.aiagent.utils;
 
-import com.alibaba.dashscope.audio.asr.transcription.Transcription;
-import com.alibaba.dashscope.audio.asr.transcription.TranscriptionParam;
 import com.alibaba.dashscope.exception.ApiException;
-import com.alibaba.dashscope.exception.InputRequiredException;
-import com.alibaba.dashscope.exception.NoApiKeyException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -17,8 +13,8 @@ import java.nio.file.Files;
  * 使用通义千问语音识别API
  */
 @Slf4j
-@Service
-public class SpeechToTextService {
+@Component
+public class SpeechToText {
 
     @Value("${spring.ai.dashscope.api-key}")
     private String apiKey;

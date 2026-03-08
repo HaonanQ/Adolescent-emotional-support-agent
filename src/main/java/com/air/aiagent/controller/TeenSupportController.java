@@ -24,6 +24,7 @@ import com.air.aiagent.service.UserService;
 import com.air.aiagent.service.impl.ChatMessageService;
 import com.air.aiagent.service.impl.ChatSessionService;
 import com.air.aiagent.service.impl.ProductRecommendService;
+import com.air.aiagent.utils.SpeechToText;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -67,7 +68,7 @@ public class TeenSupportController {
     private CosManager cosManager;
 
     @Resource
-    private com.air.aiagent.service.SpeechToTextService speechToTextService;
+    private SpeechToText speechToText;
     /**
      * RAG知识库对话，支持工具调用
      */

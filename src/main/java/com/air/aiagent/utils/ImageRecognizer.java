@@ -131,6 +131,7 @@ public class ImageRecognizer {
                         .apiKey(apiKey)                  // 阿里云API Key
                         .model(imageModel)               // 多模态模型（必须是qwen3-vl-plus/qwen-vl-plus）
                         .message(userMsg)                // 图片URL + 文本消息
+                        .enableSearch(true)              // 开启联网搜索
                         .temperature(temperature)        // 温度系数
                         .maxTokens(maxTokens)            // 最大令牌数
                         .incrementalOutput(true)         // 启用增量输出（流式）
