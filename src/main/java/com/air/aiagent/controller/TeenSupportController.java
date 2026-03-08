@@ -67,8 +67,6 @@ public class TeenSupportController {
     @Resource
     private CosManager cosManager;
 
-    @Resource
-    private SpeechToText speechToText;
     /**
      * RAG知识库对话，支持工具调用
      */
@@ -428,50 +426,50 @@ public class TeenSupportController {
     /**
      * 上传图片文件
      */
-    @LoginCheck
-    @PostMapping("/upload/image")
-    public BaseResponse<UploadFileVO> uploadImage(
-            @RequestParam("file") MultipartFile file,
-            HttpServletRequest httpServletRequest) {
-        User loginUser = userService.getLoginUser(httpServletRequest);
-        
-        String fileName = IdUtil.simpleUUID() + "_" + file.getOriginalFilename();
-        String objectPath = "public/images/" + fileName;
-        
-        String fileUrl = cosManager.uploadImage(file, objectPath);
-        
-        UploadFileVO vo = UploadFileVO.builder()
-                .fileUrl(fileUrl)
-                .fileName(file.getOriginalFilename())
-                .objectPath(objectPath)
-                .build();
-        
-        return ResultUtils.success(vo);
-    }
+//    @LoginCheck
+//    @PostMapping("/upload/image")
+//    public BaseResponse<UploadFileVO> uploadImage(
+//            @RequestParam("file") MultipartFile file,
+//            HttpServletRequest httpServletRequest) {
+//        User loginUser = userService.getLoginUser(httpServletRequest);
+//
+//        String fileName = IdUtil.simpleUUID() + "_" + file.getOriginalFilename();
+//        String objectPath = "public/images/" + fileName;
+//
+//        String fileUrl = cosManager.uploadImage(file, objectPath);
+//
+//        UploadFileVO vo = UploadFileVO.builder()
+//                .fileUrl(fileUrl)
+//                .fileName(file.getOriginalFilename())
+//                .objectPath(objectPath)
+//                .build();
+//
+//        return ResultUtils.success(vo);
+//    }
 
     /**
      * 上传语音文件
      */
-    @LoginCheck
-    @PostMapping("/upload/audio")
-    public BaseResponse<UploadFileVO> uploadAudio(
-            @RequestParam("file") MultipartFile file,
-            HttpServletRequest httpServletRequest) {
-        User loginUser = userService.getLoginUser(httpServletRequest);
-        
-        String fileName = IdUtil.simpleUUID() + "_" + file.getOriginalFilename();
-        String objectPath = "public/audio/" + fileName;
-        
-        String fileUrl = cosManager.uploadAudio(file, objectPath);
-        
-        UploadFileVO vo = UploadFileVO.builder()
-                .fileUrl(fileUrl)
-                .fileName(file.getOriginalFilename())
-                .objectPath(objectPath)
-                .build();
-        
-        return ResultUtils.success(vo);
-    }
+//    @LoginCheck
+//    @PostMapping("/upload/audio")
+//    public BaseResponse<UploadFileVO> uploadAudio(
+//            @RequestParam("file") MultipartFile file,
+//            HttpServletRequest httpServletRequest) {
+//        User loginUser = userService.getLoginUser(httpServletRequest);
+//
+//        String fileName = IdUtil.simpleUUID() + "_" + file.getOriginalFilename();
+//        String objectPath = "public/audio/" + fileName;
+//
+//        String fileUrl = cosManager.uploadAudio(file, objectPath);
+//
+//        UploadFileVO vo = UploadFileVO.builder()
+//                .fileUrl(fileUrl)
+//                .fileName(file.getOriginalFilename())
+//                .objectPath(objectPath)
+//                .build();
+//
+//        return ResultUtils.success(vo);
+//    }
 
     /**
      * 发送包含图片的消息
@@ -530,25 +528,98 @@ public class TeenSupportController {
     /**
      * 语音转文字
      */
+//    @LoginCheck
+//    @PostMapping("/speech/transcribe")
+//    public BaseResponse<String> transcribeSpeech(
+//            @RequestParam("file") MultipartFile file,
+//            HttpServletRequest httpServletRequest) {
+//        try {
+//            User loginUser = userService.getLoginUser(httpServletRequest);
+//
+//            // 1. 定义临时文件存储目录（jar包同级的tmpaudio文件夹）
+//            String tempDirPath = System.getProperty("user.dir") + File.separator + "tmpaudio";
+//            File tempDir = new File(tempDirPath);
+//            // 2. 确保目录存在，不存在则创建
+//            if (!tempDir.exists()) {
+//                boolean mkdirSuccess = tempDir.mkdirs(); // 递归创建目录
+//                if (!mkdirSuccess) {
+//                    throw new BusinessException(ErrorCode.SYSTEM_ERROR, "创建临时目录失败");
+//                }
+//            }
+//
+//            // 3. 在指定目录下创建临时文件（前缀+后缀，指定目录）
+//            File tempFile = File.createTempFile("speech_", ".mp3", tempDir);
+//            file.transferTo(tempFile);
+//
+//            // 4. 语音转文字（保留你的业务逻辑）
+//            String text = speechToText.transcribeAudio(tempFile);
+//            // text = "hello"; // 测试用代码，可注释
+//
+//            // 5. 用完删除临时文件（可选：也可定时清理，避免文件堆积）
+////            tempFile.deleteOnExit(); // JVM退出时删除，兜底保障
+////            boolean deleteSuccess = tempFile.delete();
+////            if (!deleteSuccess) {
+////                log.warn("临时文件删除失败，路径：{}", tempFile.getAbsolutePath());
+////            }
+//
+//            return ResultUtils.success(text);
+//        } catch (Exception e) {
+//            log.error("语音识别失败", e);
+//            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "语音识别失败: " + e.getMessage());
+//        }
+//    }
+
+    /**
+     * 发送包含音频的消息
+     */
     @LoginCheck
-    @PostMapping("/speech/transcribe")
-    public BaseResponse<String> transcribeSpeech(
+    @PostMapping(value = "/chat/audio", produces = "text/html;charset=UTF-8")
+    @ClearContext
+    public Flux<String> chatWithAudio(
             @RequestParam("file") MultipartFile file,
+            @RequestParam(value = "message", required = false) String message,
+            @RequestParam("sessionId") String sessionId,
             HttpServletRequest httpServletRequest) {
-        try {
-            User loginUser = userService.getLoginUser(httpServletRequest);
-            
-            File tempFile = File.createTempFile("speech_", ".webm");
-            file.transferTo(tempFile);
-            
-//            String text = speechToTextService.transcribeAudio(tempFile);
-            String  text = "hello";
-            tempFile.delete();
-            
-            return ResultUtils.success(text);
-        } catch (Exception e) {
-            log.error("语音识别失败", e);
-            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "语音识别失败: " + e.getMessage());
+        User loginUser = userService.getLoginUser(httpServletRequest);
+        String chatId = String.valueOf(loginUser.getId());
+        
+        // 上传音频
+        String fileName = IdUtil.simpleUUID() + "_" + file.getOriginalFilename();
+        String objectPath = "public/audio/" + fileName;
+        String audioUrl = cosManager.uploadAudio(file, objectPath);
+        
+        // 构建请求
+        ChatRequest request = new ChatRequest();
+        request.setChatId(chatId);
+        request.setSessionId(sessionId);
+        request.setMessage(message != null ? message : "");
+        request.setAudioUrl(audioUrl);
+        request.setAudioFileName(file.getOriginalFilename());
+        
+        UserContext.setUserId(chatId);
+        Optional<ChatSession> session = chatSessionService.findById(sessionId);
+        if (!session.isPresent()) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "无效的 sessionId");
         }
+        
+        // 保存用户消息（带音频）
+        String userMessageId = UUID.randomUUID().toString();
+        ChatMessage userMessageObj = ChatMessage.builder()
+                .id(userMessageId)
+                .chatId(chatId)
+                .sessionId(sessionId)
+                .messageType(MessageType.AUDIO)
+                .content(message != null ? message : "")
+                .isAiResponse(false)
+                .metadata(MessageMetadata.builder()
+                        .audioFileUrl(audioUrl)
+                        .audioFileName(fileName)
+                        .build())
+                .build();
+        chatMessageService.save(userMessageObj);
+        log.info("用户音频消息已保存，sessionId={}, audioUrl={}", sessionId, audioUrl);
+        
+        // 使用音频对话方法，音频信息已保存到数据库
+        return teenSupportApp.smartChat(request, MessageType.AUDIO);
     }
 }

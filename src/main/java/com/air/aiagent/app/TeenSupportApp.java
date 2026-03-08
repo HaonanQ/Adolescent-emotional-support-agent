@@ -9,6 +9,7 @@ import com.air.aiagent.domain.entity.MessageMetadata;
 import com.air.aiagent.domain.entity.MessageType;
 import com.air.aiagent.service.impl.ChatMessageService;
 import com.air.aiagent.service.impl.ChatSessionService;
+import com.air.aiagent.utils.AudioRecognizer;
 import com.air.aiagent.utils.ImageRecognizer;
 import com.air.aiagent.utils.IntentRecognizer;
 import com.alibaba.cloud.ai.dashscope.chat.DashScopeChatOptions;
@@ -62,6 +63,12 @@ public class TeenSupportApp {
      */
     @Resource
     private ImageRecognizer imageRecognizer;
+
+    /**
+     * 音频识别器
+     */
+    @Resource
+    private AudioRecognizer audioRecognizer;
 
     /**
      * 意图识别器
@@ -154,9 +161,15 @@ public class TeenSupportApp {
         if (type == MessageType.TEXT) {
             log.info("文字对话模式");
             return doChatWithRagAndTools(request);
-        } else {
+        } else if (type == MessageType.IMAGE) {
             log.info("图像理解模式");
             return imageRecognizer.recognizeScene(request);
+        } else if (type == MessageType.AUDIO) {
+            log.info("音频理解模式");
+            return audioRecognizer.recognizeAudio(request);
+        } else {
+            log.warn("未知的消息类型: {}", type);
+            return Flux.just("不支持的消息类型");
         }
     }
     public Flux<String> doChatWithRagAndTools(ChatRequest request) {

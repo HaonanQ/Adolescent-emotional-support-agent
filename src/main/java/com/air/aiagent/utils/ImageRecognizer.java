@@ -46,7 +46,6 @@ import reactor.core.publisher.Sinks;
 @Slf4j
 public class ImageRecognizer {
 
-    private final ChatClient imageClient;
     @Resource
     private ChatMessageService chatMessageService;
     @Resource
@@ -64,15 +63,7 @@ public class ImageRecognizer {
     private String apiKey;
     @Autowired // 注入已有的 CosManager
     private CosManager cosManager;
-    /**
-     * 注入图像识别专用的 ChatModel
-     */
-    public ImageRecognizer(@Qualifier("imageChatModel") ChatModel imageChatModel) {
-        this.imageClient = ChatClient
-                .builder(imageChatModel)
-                .defaultAdvisors(new MyLoggerAdvisor())
-                .build();
-    }
+
     /**
      *
      * 改造点：直接使用腾讯云COS可访问URL，无需Base64编码
@@ -131,7 +122,7 @@ public class ImageRecognizer {
                         .apiKey(apiKey)                  // 阿里云API Key
                         .model(imageModel)               // 多模态模型（必须是qwen3-vl-plus/qwen-vl-plus）
                         .message(userMsg)                // 图片URL + 文本消息
-                        .enableSearch(true)              // 开启联网搜索
+                        .enableSearch(false)              // 开启联网搜索
                         .temperature(temperature)        // 温度系数
                         .maxTokens(maxTokens)            // 最大令牌数
                         .incrementalOutput(true)         // 启用增量输出（流式）

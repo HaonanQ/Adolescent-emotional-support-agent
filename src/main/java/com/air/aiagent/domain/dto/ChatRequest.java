@@ -32,4 +32,14 @@ public class ChatRequest {
      */
     private String imageFileName;
 
+    /**
+     * 语音URL（用于语音对话）
+     */
+    private String audioUrl;
+
+    /**
+     * 语音文件名
+     */
+    private String audioFileName;
+
 }

@@ -211,14 +211,57 @@ export const chatWithImage = async (file, message, chatId, sessionId, onChunk) =
 };
 
 // 语音转文字
-export const transcribeSpeech = (file) => {
+export const transcribeSpeech = (file, chatId, sessionId) => {
   const formData = new FormData();
   formData.append('file', file);
+  formData.append('chatId', chatId);
+  formData.append('sessionId', sessionId);
   return api.post('/support/speech/transcribe', formData, {
     headers: {
       'Content-Type': 'multipart/form-data',
     },
   });
+};
+
+// 发送包含音频的消息（流式响应）
+export const chatWithAudio = async (file, message, chatId, sessionId, onChunk) => {
+  const formData = new FormData();
+  formData.append('file', file);
+  if (message) {
+    formData.append('message', message);
+  }
+  formData.append('chatId', chatId);
+  formData.append('sessionId', sessionId);
+  
+  try {
+    const response = await fetch(`${API_BASE_URL}/support/chat/audio`, {
+      method: 'POST',
+      credentials: 'include',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let fullText = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      
+      const chunk = decoder.decode(value, { stream: true });
+      fullText += chunk;
+      onChunk(fullText);
+    }
+
+    return fullText;
+  } catch (error) {
+    console.error('发送音频消息错误:', error);
+    throw error;
+  }
 };
 
 export default api;

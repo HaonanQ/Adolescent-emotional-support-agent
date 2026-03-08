@@ -31,7 +31,7 @@ import java.util.concurrent.TimeUnit;
  * @author WyH524
  * @since 2025/9/27 20:47
  */
-@Component
+//@Component
 @Slf4j
 public class MinioManage {
 

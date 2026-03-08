@@ -98,6 +98,9 @@
               <div v-if="message.imageFileUrl" class="image-container">
                 <img :src="message.imageFileUrl" :alt="message.imageFileName || '图片'" class="message-image" />
               </div>
+              <div v-if="message.audioFileUrl" class="audio-container">
+                <audio :src="message.audioFileUrl" controls class="message-audio"></audio>
+              </div>
               <div v-if="message.content" class="message-text markdown-content" v-html="formatMessage(message.content)"></div>
               <div v-if="message.recommendedProducts && message.recommendedProducts.length > 0" class="products-container">
                 <div class="products-title">推荐内容：</div>
@@ -180,7 +183,8 @@ import {
   logout,
   getUserFileList,
   chatWithImage,
-  transcribeSpeech
+  transcribeSpeech,
+  chatWithAudio
 } from '../api';
 
 const router = useRouter();
@@ -357,6 +361,7 @@ const removeSelectedImage = () => {
 
 let mediaRecorder = null;
 let audioChunks = [];
+let recordedAudioUrl = null;
 
 const handleAudioClick = async () => {
   if (isRecording.value) {
@@ -372,21 +377,11 @@ const handleAudioClick = async () => {
       };
       
       mediaRecorder.onstop = async () => {
-        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-        const audioFile = new File([audioBlob], 'audio.webm', { type: 'audio/webm' });
+        const audioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
+        const audioFile = new File([audioBlob], 'audio.mp3', { type: 'audio/mp3' });
+        recordedAudioUrl = URL.createObjectURL(audioBlob);
         
-        try {
-          inputMessage.value = '正在识别语音...';
-          const response = await transcribeSpeech(audioFile);
-          if (response.data.code === 0 && response.data.data) {
-            inputMessage.value = response.data.data;
-          } else {
-            inputMessage.value = '语音识别失败，请重试';
-          }
-        } catch (error) {
-          console.error('语音识别失败:', error);
-          inputMessage.value = '语音识别失败，请重试';
-        }
+        await handleSendAudioMessage(audioFile, recordedAudioUrl);
         
         stream.getTracks().forEach(track => track.stop());
       };
@@ -397,6 +392,61 @@ const handleAudioClick = async () => {
       console.error('无法访问麦克风:', error);
       alert('无法访问麦克风，请检查权限设置');
     }
+  }
+};
+
+const handleSendAudioMessage = async (audioFile, audioPreviewUrl) => {
+  console.log('开始发送音频消息，预览URL:', audioPreviewUrl);
+  if (!currentSessionId.value) {
+    await createNewSession();
+    if (!currentSessionId.value) return;
+  }
+
+  const userMessage = {
+    id: Date.now().toString(),
+    content: '',
+    audioFileUrl: audioPreviewUrl,
+    isAiResponse: false,
+  };
+  
+  console.log('创建用户音频消息:', userMessage);
+  messages.value.push(userMessage);
+  inputMessage.value = '';
+  scrollToBottom();
+  
+  isLoading.value = true;
+
+  const aiMessageId = (Date.now() + 1).toString();
+  const aiMessage = {
+    id: aiMessageId,
+    content: '',
+    isAiResponse: true,
+    recommendedProducts: [],
+    pdfFileUrl: null,
+    pdfFileName: null,
+  };
+  messages.value.push(aiMessage);
+
+  try {
+    await chatWithAudio(audioFile, '', chatId, currentSessionId.value, (chunk) => {
+      const lastMessage = messages.value[messages.value.length - 1];
+      if (lastMessage && lastMessage.id === aiMessageId) {
+        lastMessage.content = chunk;
+        scrollToBottom();
+      }
+    });
+    
+    await loadSessions();
+    await loadUserFiles();
+  } catch (error) {
+    console.error('发送音频消息失败:', error);
+    const lastMessage = messages.value[messages.value.length - 1];
+    if (lastMessage && lastMessage.id === aiMessageId) {
+      lastMessage.content = '抱歉，发生了一些错误，请稍后再试。';
+    }
+  } finally {
+    isLoading.value = false;
+    scrollToBottom();
   }
 };
 
@@ -509,7 +559,6 @@ const handleSendImageMessage = async () => {
     
     await loadSessions();
     await loadUserFiles();
-    await loadMessages(currentSessionId.value);
   } catch (error) {
     console.error('发送图片消息失败:', error);
     const lastMessage = messages.value[messages.value.length - 1];
@@ -989,13 +1038,20 @@ onMounted(async () => {
   margin-bottom: 16px;
 }
 
+/* .message {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 24px;
+  align-items: flex-start;
+} */
+/* 1. 基础消息容器改为相对定位，为头像绝对定位做准备 */
 .message {
   display: flex;
   gap: 16px;
   margin-bottom: 24px;
   align-items: flex-start;
+  position: relative; /* 新增：相对定位 */
 }
-
 .message-avatar {
   width: 44px;
   height: 44px;
@@ -1024,21 +1080,68 @@ onMounted(async () => {
   display: inline-block;
 }
 
+/* .user-message {
+  flex-direction: row-reverse;
+} */
+/* 3. 用户消息布局调整（内容居右，头像在右下方） */
 .user-message {
   flex-direction: row-reverse;
+  justify-content: flex-start; /* 确保内容靠右对齐 */
+  margin-bottom: 16px;
+  padding-bottom: 20px;
+}
+/* 4. 用户头像绝对定位到右下方 */
+.user-message .message-avatar {
+  position: absolute;
+  bottom: 0; /* 贴底 */
+  right: 0; /* 靠右 */
+  margin-left: 0;
+  margin-right: 0;
+  /* 可选：缩小头像，避免占用过多空间 */
+  /* width: 36px;
+  height: 36px;
+  font-size: 18px; */
 }
 
+/* .user-message .message-content {
+  align-items: flex-end;
+} */
+/* 5. 调整用户消息内容的右边距，避免被头像遮挡 */
 .user-message .message-content {
   align-items: flex-end;
+  margin-right: 58px; /* 留出头像宽度+间距（36px+12px） */
 }
-
 .user-message .message-text {
   background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
   color: white;
   border-bottom-right-radius: 8px;
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
 }
-
+/* 7. 修复音频/图片消息与头像的间距问题 */
+.user-message .audio-container,
+.user-message .image-container {
+  margin-right: 0;
+}
+/* 6. 保持AI头像原有样式（左侧上方） */
+.ai-message .message-avatar {
+  position: absolute; /* 取消绝对定位 */
+  width: 44px;
+  height: 44px;
+  font-size: 22px;
+  bottom: 0; /* 贴底 */
+  left: 0; /* 靠右 */
+  margin-left: 0;
+  margin-right: 0;
+}
+.ai-message {
+  flex-direction: row;
+  margin-bottom: 12px;
+  padding-bottom: 20px;
+}
+.ai-message .message-content {
+  align-items: flex-end;
+  margin-left: 58px; /* 留出头像宽度+间距（36px+12px） */
+}
 .ai-message .message-text {
   background: #ffffff;
   color: #334155;
@@ -1269,7 +1372,7 @@ onMounted(async () => {
 }
 
 .image-container {
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
 .message-image {
@@ -1290,5 +1393,51 @@ onMounted(async () => {
 
 .ai-message .message-image {
   border-bottom-left-radius: 4px;
+}
+
+/* 音频容器样式 - 适配聊天布局 */
+.audio-container {
+  margin-bottom: 10px;
+  display: block;
+  width: 100%;
+  max-width: 400px;
+}
+/* 通用音频播放器基础样式 */
+.message-audio {
+  width: 100%;
+  min-width: 400px;
+  height: 48px;
+  border-radius: 24px;
+  border: none;
+  outline: none;
+  transition: all 0.3s ease;
+  display: block;
+}
+/* 用户消息的音频播放器（和用户文字消息同渐变配色） */
+.user-message .message-audio {
+  background: #f2f2f2;
+  border-bottom-right-radius: 8px; /* 和用户消息气泡圆角统一 */
+}
+/* 悬浮动效 - 放大+阴影加深 */
+.message-audio:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+}
+/* 隐藏浏览器默认控件的多余样式（部分浏览器适配） */
+.message-audio::-webkit-media-controls-panel {
+  background: transparent !important;
+  color: white !important;
+  border-radius: 24px;
+}
+.user-message .message-audio::-webkit-media-controls-panel {
+  color: white !important;
+}
+.ai-message .message-audio::-webkit-media-controls-panel {
+  color: #334155 !important;
+}
+/* 适配Firefox浏览器 */
+.message-audio::-moz-media-controls-panel {
+  background: transparent !important;
+  border-radius: 24px;
 }
 </style>
