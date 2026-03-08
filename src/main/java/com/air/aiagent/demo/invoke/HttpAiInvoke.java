@@ -8,7 +8,7 @@ import cn.hutool.json.JSONUtil;
 import org.springframework.beans.factory.annotation.Value;
 
 /**
- * @author WyH524
+ * @author Qiuhaonan
  * @since 2025/6/16 下午3:34
  */
 public class HttpAiInvoke {

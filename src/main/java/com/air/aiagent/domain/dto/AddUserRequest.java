@@ -3,7 +3,7 @@ package com.air.aiagent.domain.dto;
 import lombok.Data;
 
 /**
- * @author WyH524
+ * @author Qiuhaonan
  * @since 2025/9/12 下午1:09
  * 注册用户请求类
  */

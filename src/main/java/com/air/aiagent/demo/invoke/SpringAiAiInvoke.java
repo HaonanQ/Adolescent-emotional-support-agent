@@ -7,7 +7,7 @@ import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 /**
- * @author WyH524
+ * @author Qiuhaonan
  * @since 2025/6/16 下午4:35
  * SpringAI 框架调用大模型
  * 我们怎么去启动一个spring项目，可以单次去测试这个ai调用是否成功呢？

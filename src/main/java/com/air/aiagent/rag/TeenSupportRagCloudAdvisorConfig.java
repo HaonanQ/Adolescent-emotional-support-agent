@@ -18,7 +18,7 @@ import org.springframework.context.annotation.Configuration;
 import java.util.Map;
 
 /**
- * @author WyH524
+ * @author Qiuhaonan
  * @since 2025/8/1 下午8:49
  * 自定义基于阿里云知识库云服务的 RAG 增强 Advisor
  */

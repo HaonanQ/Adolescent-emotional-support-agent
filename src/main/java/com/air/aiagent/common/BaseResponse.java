@@ -4,7 +4,7 @@ import com.air.aiagent.exception.ErrorCode;
 import lombok.Data;
 
 /**
- * @author WyH524
+ * @author Qiuhaonan
  * @since 2025/9/12 下午1:02
  * 统一响应类
  */

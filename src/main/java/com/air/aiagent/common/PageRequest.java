@@ -3,7 +3,7 @@ package com.air.aiagent.common;
 import lombok.Data;
 
 /**
- * @author WyH524
+ * @author Qiuhaonan
  * @since 2025/10/14 18:48
  */
 @Data

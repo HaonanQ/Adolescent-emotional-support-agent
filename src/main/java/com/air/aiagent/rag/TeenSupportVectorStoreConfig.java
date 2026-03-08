@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Configuration;
 import java.util.List;
 
 /**
- * @author WyH524
+ * @author Qiuhaonan
  * @since 2025/8/1 下午3:27
  * 向量数据库配置（初始化基于内存的向量数据库Bean）
  */

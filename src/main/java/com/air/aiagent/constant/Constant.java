@@ -3,7 +3,7 @@ package com.air.aiagent.constant;
 import java.util.List;
 
 /**
- * @author WyH524
+ * @author Qiuhaonan
  * @since 2025/9/30 13:12
  */
 public interface Constant {

@@ -1,7 +1,7 @@
 package com.air.aiagent.exception;
 
 /**
- * @author WyH524
+ * @author Qiuhaonan
  * @since 2025/8/26 下午3:43
  * 异常处理工具类
  */

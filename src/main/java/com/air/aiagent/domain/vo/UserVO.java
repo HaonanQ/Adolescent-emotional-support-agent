@@ -5,7 +5,7 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import lombok.Data;
 
 /**
- * @author WyH524
+ * @author Qiuhaonan
  * @since 2025/9/27 13:17
  * 添加用户响应类
  */

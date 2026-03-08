@@ -7,7 +7,7 @@ import org.aspectj.lang.annotation.Aspect;
 import org.springframework.stereotype.Component;
 
 /**
- * @author WyH524
+ * @author Qiuhaonan
  * @since 2025/9/9 下午1:13
  */
 @Aspect

@@ -4,7 +4,7 @@ import com.air.aiagent.exception.ErrorCode;
 import java.io.Serializable;
 
 /**
- * @author WyH524
+ * @author Qiuhaonan
  * @since 2025/8/26 下午3:43
  * 响应工具类
  */

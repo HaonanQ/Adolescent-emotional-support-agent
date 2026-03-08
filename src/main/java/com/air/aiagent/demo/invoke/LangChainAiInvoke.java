@@ -4,7 +4,7 @@ import dev.langchain4j.community.model.dashscope.QwenChatModel;
 import dev.langchain4j.model.chat.ChatLanguageModel;
 
 /**
- * @author WyH524
+ * @author Qiuhaonan
  * @since 2025/6/16 下午5:11
  */
 public class LangChainAiInvoke {

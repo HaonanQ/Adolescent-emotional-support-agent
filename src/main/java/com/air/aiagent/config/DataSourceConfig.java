@@ -18,7 +18,7 @@ import javax.sql.DataSource;
  * MySQL - 主数据源，供MyBatis使用
  * PostgreSQL - 次数据源，供Spring AI PgVector使用
  * 
- * @author WyH524
+ * @author Qiuhaonan
  */
 @Configuration
 public class DataSourceConfig {

@@ -40,7 +40,7 @@ import static org.springframework.ai.chat.client.advisor.AbstractChatMemoryAdvis
 import static org.springframework.ai.chat.client.advisor.AbstractChatMemoryAdvisor.CHAT_MEMORY_RETRIEVE_SIZE_KEY;
 
 /**
- * @author WyH524
+ * @author Qiuhaonan
  * @since 2025/7/24 上午10:48
  */
 @Slf4j

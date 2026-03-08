@@ -15,7 +15,7 @@ import static org.springframework.ai.vectorstore.pgvector.PgVectorStore.PgIndexT
 import java.util.List;
 
 /**
- * @author WyH524
+ * @author Qiuhaonan
  * @since 2025/8/11 下午8:45
  */
 @Slf4j
