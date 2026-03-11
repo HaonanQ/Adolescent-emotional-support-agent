@@ -264,4 +264,24 @@ export const chatWithAudio = async (file, message, chatId, sessionId, onChunk) =
   }
 };
 
+// 添加情绪日记
+export const addEmotionDiary = (data) => {
+  return api.post('/support/emotionDiary/add', data);
+};
+
+// 获取情绪日记列表
+export const getEmotionDiaryList = () => {
+  return api.post('/support/emotionDiary/list');
+};
+
+// 获取单条情绪日记
+export const getEmotionDiaryById = (id) => {
+  return api.post('/support/emotionDiary/getById', { id });
+};
+
+// 删除情绪日记
+export const deleteEmotionDiary = (data) => {
+  return api.post('/support/emotionDiary/delete', data);
+};
+
 export default api;

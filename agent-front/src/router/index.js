@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router';
 import Home from '../views/Home.vue';
 import Login from '../views/Login.vue';
 import Chat from '../views/Chat.vue';
+import EmotionDiary from '../views/EmotionDiary.vue';
 
 const routes = [
   {
@@ -18,6 +19,12 @@ const routes = [
     path: '/chat',
     name: 'Chat',
     component: Chat,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/emotion-diary',
+    name: 'EmotionDiary',
+    component: EmotionDiary,
     meta: { requiresAuth: true },
   },
 ];

@@ -8,7 +8,7 @@
       <div class="nav-center">
         <!-- <span class="nav-item">首页</span> -->
         <span class="nav-item active">情感陪伴</span>
-        <span class="nav-item">情绪日记</span>
+        <span class="nav-item" @click="goToEmotionDiary">情绪日记</span>
         <!-- 以下菜单项暂时隐藏 -->
         <!-- <span class="nav-item">心理FM</span>
         <span class="nav-item">心理学堂</span>
@@ -586,6 +586,13 @@ const handleLogout = async () => {
  */
 const goToHome = () => {
   router.push('/');
+};
+
+/**
+ * 跳转到情绪日记页面
+ */
+const goToEmotionDiary = () => {
+  router.push('/emotion-diary');
 };
 
 onMounted(async () => {

@@ -5,6 +5,7 @@ import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 import com.air.aiagent.annotation.ClearContext;
 import com.air.aiagent.annotation.LoginCheck;
+import com.air.aiagent.annotation.CheckLoginwithChat;
 import com.air.aiagent.app.TeenSupportApp;
 import com.air.aiagent.common.BaseResponse;
 import com.air.aiagent.common.ResultUtils;
@@ -21,17 +22,20 @@ import com.air.aiagent.exception.ErrorCode;
 import com.air.aiagent.manage.CosManager;
 import com.air.aiagent.service.UserFileService;
 import com.air.aiagent.service.UserService;
+import com.air.aiagent.service.EmotionDiaryService;
+import com.air.aiagent.domain.dto.EmotionDiaryAddRequest;
+import com.air.aiagent.domain.dto.EmotionDiaryQueryRequest;
+import com.air.aiagent.domain.vo.EmotionDiaryVO;
 import com.air.aiagent.service.impl.ChatMessageService;
 import com.air.aiagent.service.impl.ChatSessionService;
 import com.air.aiagent.service.impl.ProductRecommendService;
-import com.air.aiagent.utils.SpeechToText;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import reactor.core.publisher.Flux;
-import java.io.File;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -67,10 +71,13 @@ public class TeenSupportController {
     @Resource
     private CosManager cosManager;
 
+    @Resource
+    private EmotionDiaryService emotionDiaryService;
+
     /**
      * RAG知识库对话，支持工具调用
      */
-    @LoginCheck
+    @CheckLoginwithChat
     @PostMapping(value = "/chat/rag", produces = "text/html;charset=UTF-8")
     @ClearContext
     public Flux<String> chatWithRag(@RequestBody ChatRequest request) {
@@ -84,7 +91,7 @@ public class TeenSupportController {
         return teenSupportApp.smartChat(request, MessageType.TEXT);
     }
 
-    @LoginCheck
+    @CheckLoginwithChat
     @PostMapping("/game/emo")
     public String gameEmo(@RequestBody ChatRequest request) {
         log.info("收到判断情绪请求: {}", request);
@@ -92,7 +99,7 @@ public class TeenSupportController {
         return teenSupportApp.doChatWithEmo(request.getMessage(), request.getChatId());
     }
 
-    @LoginCheck
+    @CheckLoginwithChat
     @PostMapping(value = "/game/chat", produces = "text/html;charset=UTF-8")
     public Flux<String> gameChat(@RequestBody ChatRequest request) {
         log.info("收到游戏请求: {}", request);
@@ -103,7 +110,7 @@ public class TeenSupportController {
     /**
      * 获取用户文件
      */
-    @LoginCheck
+    @CheckLoginwithChat
     @PostMapping("/getUserFile")
     public BaseResponse<List<UserFileVO>> getUserFileList(@RequestBody ChatRequest request, HttpServletRequest httpServletRequest){
         User loginUser = userService.getLoginUser(httpServletRequest);
@@ -114,7 +121,7 @@ public class TeenSupportController {
     /**
      * 查询最新的会话历史，也就是进入聊天页面之后，默认进行展示的聊天历史
      */
-    @LoginCheck
+    @CheckLoginwithChat
     @PostMapping("/getLatestChatHistory")
     public BaseResponse<ChatHistory> getLatestChatSession(@RequestBody ChatRequest request, HttpServletRequest httpServletRequest) {
         // 1.获取当前登录用户
@@ -175,7 +182,7 @@ public class TeenSupportController {
     /**
      * 根据 sessionId 查询该会话的聊天记录
      */
-    @LoginCheck
+    @CheckLoginwithChat
     @PostMapping("/getChatMessageBySessionId")
     public BaseResponse<ChatHistory> getChatMessageBySessionId(@RequestBody ChatRequest request,
             HttpServletRequest httpServletRequest) {
@@ -240,7 +247,7 @@ public class TeenSupportController {
     /**
      * 创建会话返回 sessionId ，并将会话记录保存到数据库中，之后的用户发送的消息必须携带这个生成的 sessionId
      */
-    @LoginCheck
+    @CheckLoginwithChat
     @PostMapping("/createChatSession")
     public BaseResponse<String> createChatSession(@RequestBody ChatRequest request, HttpServletRequest httpServletRequest) {
         // 1.获取当前登录用户
@@ -266,7 +273,7 @@ public class TeenSupportController {
      * 查询用户的所有会话历史，返回 sessionList ，用于在页面左侧列表展示会话历史
      * 后面可以完善一下，例如只查询一些比较活跃的 session
      */
-    @LoginCheck
+    @CheckLoginwithChat
     @PostMapping("/getChatSessionList")
     public BaseResponse<List<ChatSessionVO>> getChatSessionList(@RequestBody ChatRequest request,
                                                                 HttpServletRequest httpServletRequest) {
@@ -285,7 +292,7 @@ public class TeenSupportController {
     /**
      * 删除会话（包括会话记录和所有聊天消息）
      */
-    @LoginCheck
+    @CheckLoginwithChat
     @PostMapping("/deleteChatSession")
     public BaseResponse<Boolean> deleteChatSession(@RequestBody ChatRequest request,
             HttpServletRequest httpServletRequest) {
@@ -327,7 +334,7 @@ public class TeenSupportController {
     /**
      * 清空会话中的所有聊天记录（保留会话本身）
      */
-    @LoginCheck
+    @CheckLoginwithChat
     @PostMapping("/deleteChatSessionBySessionId")
     public BaseResponse<Boolean> deleteChatSessionBySessionId(@RequestBody ChatRequest request,
             HttpServletRequest httpServletRequest) {
@@ -426,26 +433,26 @@ public class TeenSupportController {
     /**
      * 上传图片文件
      */
-//    @LoginCheck
-//    @PostMapping("/upload/image")
-//    public BaseResponse<UploadFileVO> uploadImage(
-//            @RequestParam("file") MultipartFile file,
-//            HttpServletRequest httpServletRequest) {
-//        User loginUser = userService.getLoginUser(httpServletRequest);
-//
-//        String fileName = IdUtil.simpleUUID() + "_" + file.getOriginalFilename();
-//        String objectPath = "public/images/" + fileName;
-//
-//        String fileUrl = cosManager.uploadImage(file, objectPath);
-//
-//        UploadFileVO vo = UploadFileVO.builder()
-//                .fileUrl(fileUrl)
-//                .fileName(file.getOriginalFilename())
-//                .objectPath(objectPath)
-//                .build();
-//
-//        return ResultUtils.success(vo);
-//    }
+    @LoginCheck
+    @PostMapping("/upload/image")
+    public BaseResponse<UploadFileVO> uploadImage(
+            @RequestParam("file") MultipartFile file,
+            HttpServletRequest httpServletRequest) {
+        User loginUser = userService.getLoginUser(httpServletRequest);
+
+        String fileName = IdUtil.simpleUUID() + "_" + file.getOriginalFilename();
+        String objectPath = "public/images/" + fileName;
+
+        String fileUrl = cosManager.uploadImage(file, objectPath);
+
+        UploadFileVO vo = UploadFileVO.builder()
+                .fileUrl(fileUrl)
+                .fileName(file.getOriginalFilename())
+                .objectPath(objectPath)
+                .build();
+
+        return ResultUtils.success(vo);
+    }
 
     /**
      * 上传语音文件
@@ -474,7 +481,7 @@ public class TeenSupportController {
     /**
      * 发送包含图片的消息
      */
-    @LoginCheck
+    @CheckLoginwithChat
     @PostMapping(value = "/chat/image", produces = "text/html;charset=UTF-8")
     @ClearContext
     public Flux<String> chatWithImage(
@@ -572,7 +579,7 @@ public class TeenSupportController {
     /**
      * 发送包含音频的消息
      */
-    @LoginCheck
+    @CheckLoginwithChat
     @PostMapping(value = "/chat/audio", produces = "text/html;charset=UTF-8")
     @ClearContext
     public Flux<String> chatWithAudio(
@@ -621,5 +628,50 @@ public class TeenSupportController {
         
         // 使用音频对话方法，音频信息已保存到数据库
         return teenSupportApp.smartChat(request, MessageType.AUDIO);
+    }
+
+    /**
+     * 添加情绪日记
+     */
+    @LoginCheck
+    @PostMapping("/emotionDiary/add")
+    public BaseResponse<Long> addEmotionDiary(@RequestBody EmotionDiaryAddRequest request, HttpServletRequest httpServletRequest) {
+        User loginUser = userService.getLoginUser(httpServletRequest);
+        request.setUserId(loginUser.getId());
+        Long diaryId = emotionDiaryService.addEmotionDiary(request);
+        return ResultUtils.success(diaryId);
+    }
+
+    /**
+     * 查询单条情绪日记（需验证userId）
+     */
+    @LoginCheck
+    @PostMapping("/emotionDiary/getById")
+    public BaseResponse<EmotionDiaryVO> getEmotionDiaryById(@RequestBody EmotionDiaryQueryRequest request, HttpServletRequest httpServletRequest) {
+        User loginUser = userService.getLoginUser(httpServletRequest);
+        EmotionDiaryVO diaryVO = emotionDiaryService.getEmotionDiaryById(request.getId(), loginUser.getId());
+        return ResultUtils.success(diaryVO);
+    }
+
+    /**
+     * 查询用户的所有情绪日记
+     */
+    @LoginCheck
+    @PostMapping("/emotionDiary/list")
+    public BaseResponse<List<EmotionDiaryVO>> getEmotionDiaryList(HttpServletRequest httpServletRequest) {
+        User loginUser = userService.getLoginUser(httpServletRequest);
+        List<EmotionDiaryVO> list = emotionDiaryService.getEmotionDiaryListByUserId(loginUser.getId());
+        return ResultUtils.success(list);
+    }
+
+    /**
+     * 删除情绪日记
+     */
+    @LoginCheck
+    @PostMapping("/emotionDiary/delete")
+    public BaseResponse<Boolean> deleteEmotionDiary(@RequestBody EmotionDiaryQueryRequest request, HttpServletRequest httpServletRequest) {
+        User loginUser = userService.getLoginUser(httpServletRequest);
+        Boolean result = emotionDiaryService.deleteEmotionDiary(request.getId(), loginUser.getId());
+        return ResultUtils.success(result);
     }
 }

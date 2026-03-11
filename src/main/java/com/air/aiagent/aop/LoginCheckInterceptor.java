@@ -57,6 +57,7 @@
 //}
 package com.air.aiagent.aop;
 
+import com.air.aiagent.annotation.CheckLoginwithChat;
 import com.air.aiagent.annotation.LoginCheck;
 import com.air.aiagent.domain.dto.ChatRequest;
 import com.air.aiagent.domain.entity.User;
@@ -100,10 +101,10 @@ public class LoginCheckInterceptor {
      * 执行拦截，用户登录了才可以访问，且前端传来的 userId 与 session 存的 userId 一致
      *
      * @param joinPoint 切入点
-     * @param loginCheck 自定义注解
+     * @param checkLoginwithChat 自定义注解
      */
-    @Around("@annotation(loginCheck)")
-    public Object checkLogin(ProceedingJoinPoint joinPoint, LoginCheck loginCheck) throws Throwable {
+    @Around("@annotation(checkLoginwithChat)")
+    public Object checkLoginwithChat(ProceedingJoinPoint joinPoint, CheckLoginwithChat checkLoginwithChat) throws Throwable {
         // 1. 获取当前 HTTP 请求对象
         RequestAttributes requestAttributes = RequestContextHolder.currentRequestAttributes();
         HttpServletRequest request = ((ServletRequestAttributes) requestAttributes).getRequest();
@@ -134,6 +135,26 @@ public class LoginCheckInterceptor {
         return joinPoint.proceed();
     }
 
+    /**
+     *
+     * @param joinPoint 切入点
+     * @param loginCheck 不需要用到ai对话的登录检查
+     */
+    @Around("@annotation(loginCheck)")
+    public Object checkLogin(ProceedingJoinPoint joinPoint, LoginCheck loginCheck) throws Throwable {
+        // 1. 获取当前 HTTP 请求对象
+        RequestAttributes requestAttributes = RequestContextHolder.currentRequestAttributes();
+        HttpServletRequest request = ((ServletRequestAttributes) requestAttributes).getRequest();
+
+        // 2. 获取登录用户信息
+        User loginUser = userService.getLoginUser(request);
+        if (loginUser == null) {
+            throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR, "用户未登录");
+        }
+
+        // 5. 放行，执行原方法
+        return joinPoint.proceed();
+    }
     /**
      * 从请求中灵活提取 chatId
      * 兼容场景：
