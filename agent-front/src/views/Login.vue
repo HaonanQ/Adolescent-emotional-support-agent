@@ -1,10 +1,13 @@
 <template>
   <div class="login-container">
+    <div class="back-home" @click="goToHome">
+      ← 返回首页
+    </div>
     <div class="login-card">
       <div class="logo">
         <span class="heart-icon">❤️</span>
         <h1>心灵港湾</h1>
-        <p>心理健康预约与测试服务平台</p>
+        <p>青少年情感陪伴智能体</p>
       </div>
       
       <div class="tabs">
@@ -112,16 +115,45 @@ const handleSubmit = async () => {
     loading.value = false;
   }
 };
+
+/**
+ * 跳转到首页
+ */
+const goToHome = () => {
+  router.push('/');
+};
 </script>
 
 <style scoped>
 .login-container {
   min-height: 100vh;
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
   background: linear-gradient(135deg, #f0f4f8 0%, #d9e2ec 100%);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  position: relative;
+}
+
+.back-home {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  padding: 8px 16px;
+  background: white;
+  color: #3b82f6;
+  border: 2px solid #3b82f6;
+  border-radius: 20px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-weight: 500;
+}
+
+.back-home:hover {
+  background: #3b82f6;
+  color: white;
 }
 
 .login-card {

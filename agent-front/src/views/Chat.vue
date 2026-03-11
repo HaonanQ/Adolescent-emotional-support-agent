@@ -1,12 +1,12 @@
 <template>
   <div class="chat-container">
     <nav class="navbar">
-      <div class="nav-left">
+      <div class="nav-left" @click="goToHome" style="cursor: pointer;">
         <span class="nav-logo">❤️</span>
         <span class="nav-title">青少年情感陪伴智能体</span>
       </div>
       <div class="nav-center">
-        <span class="nav-item">首页</span>
+        <!-- <span class="nav-item">首页</span> -->
         <span class="nav-item active">情感陪伴</span>
         <span class="nav-item">情绪日记</span>
         <!-- 以下菜单项暂时隐藏 -->
@@ -578,7 +578,14 @@ const handleLogout = async () => {
     console.error('登出失败:', error);
   }
   localStorage.removeItem('user');
-  router.push('/login');
+  router.push('/');
+};
+
+/**
+ * 跳转到首页
+ */
+const goToHome = () => {
+  router.push('/');
 };
 
 onMounted(async () => {

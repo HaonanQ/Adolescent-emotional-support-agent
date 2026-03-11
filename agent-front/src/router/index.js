@@ -1,11 +1,13 @@
 import { createRouter, createWebHistory } from 'vue-router';
+import Home from '../views/Home.vue';
 import Login from '../views/Login.vue';
 import Chat from '../views/Chat.vue';
 
 const routes = [
   {
     path: '/',
-    redirect: '/login',
+    name: 'Home',
+    component: Home,
   },
   {
     path: '/login',
@@ -30,8 +32,6 @@ router.beforeEach((to, from, next) => {
   const user = JSON.parse(localStorage.getItem('user'));
   if (to.meta.requiresAuth && !user) {
     next('/login');
-  } else if (to.path === '/login' && user) {
-    next('/chat');
   } else {
     next();
   }
