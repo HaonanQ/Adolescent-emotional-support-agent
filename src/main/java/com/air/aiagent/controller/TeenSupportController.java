@@ -29,6 +29,7 @@ import com.air.aiagent.domain.vo.EmotionDiaryVO;
 import com.air.aiagent.service.impl.ChatMessageService;
 import com.air.aiagent.service.impl.ChatSessionService;
 import com.air.aiagent.service.impl.ProductRecommendService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -49,6 +50,7 @@ import com.air.aiagent.utils.SessionIdGenerator;
 @Slf4j
 @RestController
 @RequestMapping("/support")
+@Tag(name = "智能体对话接口", description = "用于用大模型对话")
 public class TeenSupportController {
 
     @Resource
@@ -71,8 +73,6 @@ public class TeenSupportController {
     @Resource
     private CosManager cosManager;
 
-    @Resource
-    private EmotionDiaryService emotionDiaryService;
 
     /**
      * RAG知识库对话，支持工具调用
@@ -630,48 +630,5 @@ public class TeenSupportController {
         return teenSupportApp.smartChat(request, MessageType.AUDIO);
     }
 
-    /**
-     * 添加情绪日记
-     */
-    @LoginCheck
-    @PostMapping("/emotionDiary/add")
-    public BaseResponse<Long> addEmotionDiary(@RequestBody EmotionDiaryAddRequest request, HttpServletRequest httpServletRequest) {
-        User loginUser = userService.getLoginUser(httpServletRequest);
-        request.setUserId(loginUser.getId());
-        Long diaryId = emotionDiaryService.addEmotionDiary(request);
-        return ResultUtils.success(diaryId);
-    }
 
-    /**
-     * 查询单条情绪日记（需验证userId）
-     */
-    @LoginCheck
-    @PostMapping("/emotionDiary/getById")
-    public BaseResponse<EmotionDiaryVO> getEmotionDiaryById(@RequestBody EmotionDiaryQueryRequest request, HttpServletRequest httpServletRequest) {
-        User loginUser = userService.getLoginUser(httpServletRequest);
-        EmotionDiaryVO diaryVO = emotionDiaryService.getEmotionDiaryById(request.getId(), loginUser.getId());
-        return ResultUtils.success(diaryVO);
-    }
-
-    /**
-     * 查询用户的所有情绪日记
-     */
-    @LoginCheck
-    @PostMapping("/emotionDiary/list")
-    public BaseResponse<List<EmotionDiaryVO>> getEmotionDiaryList(HttpServletRequest httpServletRequest) {
-        User loginUser = userService.getLoginUser(httpServletRequest);
-        List<EmotionDiaryVO> list = emotionDiaryService.getEmotionDiaryListByUserId(loginUser.getId());
-        return ResultUtils.success(list);
-    }
-
-    /**
-     * 删除情绪日记
-     */
-    @LoginCheck
-    @PostMapping("/emotionDiary/delete")
-    public BaseResponse<Boolean> deleteEmotionDiary(@RequestBody EmotionDiaryQueryRequest request, HttpServletRequest httpServletRequest) {
-        User loginUser = userService.getLoginUser(httpServletRequest);
-        Boolean result = emotionDiaryService.deleteEmotionDiary(request.getId(), loginUser.getId());
-        return ResultUtils.success(result);
-    }
 }

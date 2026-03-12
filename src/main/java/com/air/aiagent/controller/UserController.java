@@ -22,7 +22,7 @@ import static com.air.aiagent.constant.Constant.LOGIN_USER;
  * @since 2025/9/12 下午12:59
  */
 @RestController
-@RequestMapping("/loveai/user")
+@RequestMapping("/emotionagent/user")
 @Tag(name = "用户接口", description = "用于用户登陆相关的基础接口")
 public class UserController {
 

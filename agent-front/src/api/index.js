@@ -13,7 +13,7 @@ const api = axios.create({
 
 // 用户登录
 export const login = (username, password) => {
-  return api.post('/loveai/user/login', {
+  return api.post('/emotionagent/user/login', {
     username,
     password,
   });
@@ -21,7 +21,7 @@ export const login = (username, password) => {
 
 // 用户注册
 export const register = (username, password) => {
-  return api.post('/loveai/user/register', {
+  return api.post('/emotionagent/user/register', {
     username,
     password,
   });
@@ -29,12 +29,12 @@ export const register = (username, password) => {
 
 // 用户登出
 export const logout = () => {
-  return api.get('/loveai/user/logout');
+  return api.get('/emotionagent/user/logout');
 };
 
 // 获取当前登录用户
 export const getLoginUser = () => {
-  return api.get('/loveai/user/getLoginUser');
+  return api.get('/emotionagent/user/getLoginUser');
 };
 
 // 创建聊天会话
@@ -266,22 +266,22 @@ export const chatWithAudio = async (file, message, chatId, sessionId, onChunk) =
 
 // 添加情绪日记
 export const addEmotionDiary = (data) => {
-  return api.post('/support/emotionDiary/add', data);
+  return api.post('/emotionDiary/add', data);
 };
 
 // 获取情绪日记列表
 export const getEmotionDiaryList = () => {
-  return api.post('/support/emotionDiary/list');
+  return api.post('/emotionDiary/list');
 };
 
 // 获取单条情绪日记
 export const getEmotionDiaryById = (id) => {
-  return api.post('/support/emotionDiary/getById', { id });
+  return api.post('/emotionDiary/getById', { id });
 };
 
 // 删除情绪日记
 export const deleteEmotionDiary = (data) => {
-  return api.post('/support/emotionDiary/delete', data);
+  return api.post('/emotionDiary/delete', data);
 };
 
 export default api;
