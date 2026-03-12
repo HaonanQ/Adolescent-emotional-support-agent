@@ -193,6 +193,9 @@ const formData = ref({
   imageUrl: ''
 });
 
+// 本地存储待上传的图片文件
+const pendingImageFile = ref(null);
+
 const getMoodColor = (mood) => {
   const colors = {
     '开心': '#fbbf24',
@@ -276,52 +279,131 @@ const resetForm = () => {
     content: '',
     imageUrl: ''
   };
+  // 清空待上传的图片文件
+  pendingImageFile.value = null;
+  if (imageInput.value) {
+    imageInput.value.value = '';
+  }
 };
 
 const handleImageClick = () => {
   imageInput.value.click();
 };
 
-const handleImageSelect = async (event) => {
+/**
+ * 处理图片选择 - 仅本地预览，不立即上传
+ * 只有保存日记时才真正上传到云存储
+ */
+const handleImageSelect = (event) => {
   const file = event.target.files[0];
-  if (file) {
-    try {
-      const response = await uploadImage(file);
-      if (response.data.code === 0 && response.data.data) {
-        formData.value.imageUrl = response.data.data.fileUrl;
-      }
-    } catch (error) {
-      console.error('上传图片失败:', error);
-      alert('图片上传失败，请重试');
+  if (!file) return;
+
+  // 校验文件类型
+  if (!file.type.startsWith('image/')) {
+    alert('只能上传图片文件');
+    if (imageInput.value) {
+      imageInput.value.value = '';
     }
+    return;
   }
+
+  // 校验文件大小（限制10MB）
+  const maxSize = 10 * 1024 * 1024;
+  if (file.size > maxSize) {
+    alert('图片大小不能超过10MB');
+    if (imageInput.value) {
+      imageInput.value.value = '';
+    }
+    return;
+  }
+
+  // 存储文件到本地，生成预览URL
+  pendingImageFile.value = file;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    formData.value.imageUrl = e.target.result;
+  };
+  reader.readAsDataURL(file);
 };
 
 const removeImage = () => {
   formData.value.imageUrl = '';
+  pendingImageFile.value = null;
   if (imageInput.value) {
     imageInput.value.value = '';
   }
 };
 
+/**
+ * 检查用户是否已登录
+ * @returns {boolean} 是否已登录
+ */
+const checkLoginStatus = () => {
+  const user = JSON.parse(localStorage.getItem('user'));
+  if (!user || !user.id) {
+    alert('请先登录后再保存日记');
+    router.push('/');
+    return false;
+  }
+  return true;
+};
+
+/**
+ * 保存日记
+ * 1. 检查登录状态
+ * 2. 如有待上传图片，先上传图片
+ * 3. 保存日记数据
+ */
 const saveDiary = async () => {
   if (!formData.value.mood) {
     alert('请选择情绪');
     return;
   }
 
+  // 检查登录状态
+  if (!checkLoginStatus()) {
+    return;
+  }
+
   isSaving.value = true;
+  let uploadedImageUrl = formData.value.imageUrl;
+
   try {
+    // 如果有待上传的图片文件，先上传到云存储
+    if (pendingImageFile.value) {
+      try {
+        const uploadResponse = await uploadImage(pendingImageFile.value);
+        if (uploadResponse.data.code === 0 && uploadResponse.data.data) {
+          uploadedImageUrl = uploadResponse.data.data.fileUrl;
+        } else {
+          alert('图片上传失败：' + (uploadResponse.data.message || '未知错误'));
+          isSaving.value = false;
+          return;
+        }
+      } catch (uploadError) {
+        console.error('图片上传失败:', uploadError);
+        alert('图片上传失败，请检查网络后重试');
+        isSaving.value = false;
+        return;
+      }
+    }
+
+    // 保存日记
     const response = await addEmotionDiary({
       mood: formData.value.mood,
       moodScore: formData.value.moodScore,
       content: formData.value.content,
-      imageUrl: formData.value.imageUrl
+      imageUrl: uploadedImageUrl
     });
+
     if (response.data.code === 0) {
       alert('日记保存成功！');
+      // 清空待上传文件
+      pendingImageFile.value = null;
       await loadDiaryList();
       resetForm();
+    } else {
+      alert('保存失败：' + (response.data.message || '未知错误'));
     }
   } catch (error) {
     console.error('保存日记失败:', error);

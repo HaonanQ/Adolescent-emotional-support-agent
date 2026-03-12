@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 @SpringBootTest
-class PgVectorVectorStoreConfigTest {
+class PgVectorStoreConfigTest {
 
     @Resource
     private VectorStore pgVectorVectorStore;

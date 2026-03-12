@@ -20,7 +20,7 @@ import java.util.List;
  */
 @Slf4j
 @Configuration
-public class PgVectorVectorStoreConfig {
+public class PgVectorStoreConfig {
 
     // 引入文档加载器
     @Resource
@@ -39,7 +39,7 @@ public class PgVectorVectorStoreConfig {
                 .dimensions(1536) // Optional: defaults to model dimensions or 1536
                 .distanceType(COSINE_DISTANCE) // Optional: defaults to COSINE_DISTANCE
                 .indexType(HNSW) // Optional: defaults to HNSW
-                .initializeSchema(true) // Optional: defaults to false 自动初始化建表，这里设置了 true ，但是它并不会建表，得要在虚拟机中手动建表
+                .initializeSchema(false) // Optional: defaults to false 自动初始化建表，这里设置了 true ，但是它并不会建表，得要在虚拟机中手动建表
                 .schemaName("public") // Optional: defaults to "public" 向量数据库的名称
                 .vectorTableName("Teens_rag") // Optional: defaults to "vector_store" 表的名称
                 .maxDocumentBatchSize(10000) // Optional: defaults to 10000 最大批量插入的文档数
