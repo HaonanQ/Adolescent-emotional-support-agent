@@ -8,7 +8,7 @@ import java.util.List;
 
 //自定义基于 token 的切词器（切割效果不好）
 @Component
-class MyTokenTextSplitter {
+public class MyTokenTextSplitter {
 
     //无参构造
     public List<Document> splitDocuments(List<Document> documents) {

@@ -59,6 +59,12 @@ knife4j:
   enable: true
   setting:
     language: zh_cn
+
+# 知识库配置
+knowledge:
+  base:
+    # 默认知识库表名（用于TeenSupportApp的RAG功能）
+    default-table: teens_rag
 mybatis-plus:
   configuration:
     # MyBatis-plus 配置

@@ -14,6 +14,7 @@ public enum ErrorCode {
     NO_AUTH_ERROR(40101, "无权限"),
     NOT_FOUND_ERROR(40400, "请求数据不存在"),
     FORBIDDEN_ERROR(40300, "禁止访问"),
+    OP_RAG_ERROR(40102,"知识库操作失败"),
     /**
      * 系统出现错误异常状态码
      */
