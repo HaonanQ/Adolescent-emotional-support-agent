@@ -123,6 +123,32 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         int index = RandomUtil.randomInt(0, userNickName.size());
         return userNickName.get(index);
     }
+
+    /**
+     * 更新用户昵称
+     */
+    @Override
+    public Boolean updateNickname(Long userId, String nickname){
+        // 1.校验参数
+        if(userId == null){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户ID不能为空");
+        }
+        if(StrUtil.isBlank(nickname)){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "昵称不能为空");
+        }
+        // 2.校验昵称长度
+        if(nickname.length() > 20){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "昵称长度不能超过20个字符");
+        }
+        // 3.查询用户是否存在
+        User user = this.getById(userId);
+        if(user == null){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户不存在");
+        }
+        // 4.更新昵称
+        user.setNickname(nickname);
+        return this.updateById(user);
+    }
 }
 
 

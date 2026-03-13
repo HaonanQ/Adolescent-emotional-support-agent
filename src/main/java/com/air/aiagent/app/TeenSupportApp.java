@@ -252,7 +252,9 @@ public class TeenSupportApp {
          * - 设置每次获取最近 10 条历史记录
          */
         var promptBuilder = chatClient.prompt()
-                .user("userId = " + request.getChatId() + ", sessionId = " + request.getSessionId() + "," + finalMessage)
+                .user("userId = " + request.getChatId() + ", sessionId = " + request.getSessionId() + 
+                      (request.getNickname() != null && !request.getNickname().isEmpty() ? 
+                       ", 用户昵称 = " + request.getNickname() : "") + "," + finalMessage)
                 .advisors(spec -> spec.param(CHAT_MEMORY_CONVERSATION_ID_KEY, request.getSessionId())
                         .param(CHAT_MEMORY_RETRIEVE_SIZE_KEY, 50))
                 .tools(allTools)

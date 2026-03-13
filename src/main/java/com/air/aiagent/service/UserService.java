@@ -37,4 +37,9 @@ public interface UserService extends IService<User> {
      * 获取当前登录用户
      */
     User getLoginUser(HttpServletRequest request);
+
+    /**
+     * 更新用户昵称
+     */
+    Boolean updateNickname(Long userId, String nickname);
 }

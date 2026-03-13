@@ -73,8 +73,9 @@ public class TeenSupportController {
     @CheckLoginwithChat
     @PostMapping(value = "/chat/rag", produces = "text/html;charset=UTF-8")
     @ClearContext
-    public Flux<String> chatWithRag(@RequestBody ChatRequest request) {
+    public Flux<String> chatWithRag(@RequestBody ChatRequest request, HttpServletRequest httpServletRequest) {
         log.info("收到RAG知识库对话请求: {}", request);
+        User loginUser = userService.getLoginUser(httpServletRequest);
         UserContext.setUserId(request.getChatId());
         UserContext.setSessionId(request.getSessionId());
         Optional<ChatSession> session = chatSessionService.findById(request.getSessionId());
@@ -82,11 +83,12 @@ public class TeenSupportController {
             // sessionId 不存在
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "无效的 sessionId");
         }
+        request.setNickname(loginUser.getNickname());
         return teenSupportApp.smartChat(request, MessageType.TEXT);
     }
 
     @CheckLoginwithChat
-    @PostMapping("/game/emo")
+//    @PostMapping("/game/emo")
     public String gameEmo(@RequestBody ChatRequest request) {
         log.info("收到判断情绪请求: {}", request);
         UserContext.setUserId(request.getChatId());
@@ -95,7 +97,7 @@ public class TeenSupportController {
     }
 
     @CheckLoginwithChat
-    @PostMapping(value = "/game/chat", produces = "text/html;charset=UTF-8")
+//    @PostMapping(value = "/game/chat", produces = "text/html;charset=UTF-8")
     public Flux<String> gameChat(@RequestBody ChatRequest request) {
         log.info("收到游戏请求: {}", request);
         UserContext.setUserId(request.getChatId());
@@ -494,6 +496,7 @@ public class TeenSupportController {
         request.setMessage(message != null ? message : "");
         request.setImageUrl(imageUrl);
         request.setImageFileName(file.getOriginalFilename());
+        request.setNickname(loginUser.getNickname());
         
         UserContext.setUserId(chatId);
         UserContext.setSessionId(sessionId);
@@ -593,6 +596,7 @@ public class TeenSupportController {
         request.setMessage(message != null ? message : "");
         request.setAudioUrl(audioUrl);
         request.setAudioFileName(file.getOriginalFilename());
+        request.setNickname(loginUser.getNickname());
         
         UserContext.setUserId(chatId);
         UserContext.setSessionId(sessionId);

@@ -1,8 +1,10 @@
 package com.air.aiagent.controller;
 import cn.hutool.core.util.StrUtil;
+import com.air.aiagent.annotation.LoginCheck;
 import com.air.aiagent.common.BaseResponse;
 import com.air.aiagent.common.ResultUtils;
 import com.air.aiagent.domain.dto.AddUserRequest;
+import com.air.aiagent.domain.dto.UpdateNicknameRequest;
 import com.air.aiagent.domain.dto.UserLoginRequest;
 import com.air.aiagent.domain.entity.User;
 import com.air.aiagent.domain.vo.UserVO;
@@ -85,5 +87,25 @@ public class UserController {
         if(user != null)
             return ResultUtils.success(true);
         return ResultUtils.success(false);
+    }
+
+    /**
+     * 修改用户昵称
+     */
+    @LoginCheck
+    @PostMapping("/updateNickname")
+    public BaseResponse<UserVO> updateNickname(@RequestBody UpdateNicknameRequest request, HttpServletRequest httpServletRequest){
+        // 1.获取当前登录用户
+        User loginUser = userService.getLoginUser(httpServletRequest);
+        // 2.调用更新昵称方法
+        boolean success = userService.updateNickname(loginUser.getId(), request.getNickname());
+        if(!success){
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "修改昵称失败");
+        }
+        // 3.更新session中的用户信息
+        User updatedUser = userService.getById(loginUser.getId());
+        httpServletRequest.getSession().setAttribute(LOGIN_USER, updatedUser);
+        // 4.返回更新后的用户信息
+        return ResultUtils.success(userService.entityToVO(updatedUser));
     }
 }

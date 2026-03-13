@@ -23,6 +23,11 @@ public class UserVO {
     private String username;
 
     /**
+     * 用户昵称
+     */
+    private String nickname;
+
+    /**
      * 恋爱状态：0-单身，1-恋爱中
      */
     private Integer relationshipStatus;

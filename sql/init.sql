@@ -70,13 +70,14 @@ create table user
 (
     id                  bigint auto_increment comment '主键ID'
         primary key,
-    username            varchar(20)                        not null comment '用户名',
-    password            varchar(100)                       null comment '密码（BCrypt加密）',
-    relationship_status tinyint  default 0                 null comment '恋爱状态：0-单身，1-恋爱中',
-    create_time         datetime default CURRENT_TIMESTAMP not null comment '创建时间',
-    update_time         datetime default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
-    is_deleted          tinyint  default 0                 not null comment '逻辑删除：0-未删除，1-已删除',
-    is_admin            int      default 0                 not null comment '是否为管理员，0 -- 不是，1 -- 是，默认不是',
+    username            varchar(20)                           not null comment '用户名',
+    nickname            varchar(20) default '开心麻花'        null comment '用户昵称',
+    password            varchar(100)                          null comment '密码（BCrypt加密）',
+    relationship_status tinyint     default 0                 null comment '恋爱状态：0-单身，1-恋爱中',
+    create_time         datetime    default CURRENT_TIMESTAMP not null comment '创建时间',
+    update_time         datetime    default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
+    is_deleted          tinyint     default 0                 not null comment '逻辑删除：0-未删除，1-已删除',
+    is_admin            int         default 0                 not null comment '是否为管理员，0 -- 不是，1 -- 是，默认不是',
     constraint idx_username
         unique (username)
 )
