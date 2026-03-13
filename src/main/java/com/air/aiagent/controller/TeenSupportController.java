@@ -76,9 +76,10 @@ public class TeenSupportController {
     public Flux<String> chatWithRag(@RequestBody ChatRequest request) {
         log.info("收到RAG知识库对话请求: {}", request);
         UserContext.setUserId(request.getChatId());
+        UserContext.setSessionId(request.getSessionId());
         Optional<ChatSession> session = chatSessionService.findById(request.getSessionId());
         if (!session.isPresent()) {
-            // 2.如果该 session 不存在，抛异常
+            // sessionId 不存在
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "无效的 sessionId");
         }
         return teenSupportApp.smartChat(request, MessageType.TEXT);
@@ -89,6 +90,7 @@ public class TeenSupportController {
     public String gameEmo(@RequestBody ChatRequest request) {
         log.info("收到判断情绪请求: {}", request);
         UserContext.setUserId(request.getChatId());
+        UserContext.setSessionId(request.getSessionId());
         return teenSupportApp.doChatWithEmo(request.getMessage(), request.getChatId());
     }
 
@@ -97,6 +99,7 @@ public class TeenSupportController {
     public Flux<String> gameChat(@RequestBody ChatRequest request) {
         log.info("收到游戏请求: {}", request);
         UserContext.setUserId(request.getChatId());
+        UserContext.setSessionId(request.getSessionId());
         return teenSupportApp.gameStreamChat(request.getMessage(), request.getChatId());
     }
 
@@ -493,6 +496,7 @@ public class TeenSupportController {
         request.setImageFileName(file.getOriginalFilename());
         
         UserContext.setUserId(chatId);
+        UserContext.setSessionId(sessionId);
         Optional<ChatSession> session = chatSessionService.findById(sessionId);
         if (!session.isPresent()) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "无效的 sessionId");
@@ -591,6 +595,7 @@ public class TeenSupportController {
         request.setAudioFileName(file.getOriginalFilename());
         
         UserContext.setUserId(chatId);
+        UserContext.setSessionId(sessionId);
         Optional<ChatSession> session = chatSessionService.findById(sessionId);
         if (!session.isPresent()) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "无效的 sessionId");

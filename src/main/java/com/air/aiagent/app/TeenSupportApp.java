@@ -252,12 +252,12 @@ public class TeenSupportApp {
          * - 设置每次获取最近 10 条历史记录
          */
         var promptBuilder = chatClient.prompt()
-                .user("userId = " + request.getChatId() + "," + finalMessage)
+                .user("userId = " + request.getChatId() + ", sessionId = " + request.getSessionId() + "," + finalMessage)
                 .advisors(spec -> spec.param(CHAT_MEMORY_CONVERSATION_ID_KEY, request.getSessionId())
                         .param(CHAT_MEMORY_RETRIEVE_SIZE_KEY, 50))
                 .tools(allTools)
-                .tools(toolCallbackProvider)
-                .options(chatOptions); // 关键：传入联网搜索配置
+                .tools(toolCallbackProvider);
+//                .options(chatOptions); // 关键：传入联网搜索配置
 
         // 只有在需要 RAG 时才添加 QuestionAnswerAdvisor
         if (needRag) {

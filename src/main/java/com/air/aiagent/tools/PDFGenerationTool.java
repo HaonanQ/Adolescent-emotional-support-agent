@@ -1,10 +1,12 @@
 package com.air.aiagent.tools;
 import cn.hutool.core.lang.UUID;
 import com.air.aiagent.context.UserContext;
-import com.air.aiagent.domain.entity.UserFile;
+import com.air.aiagent.domain.entity.*;
 import com.air.aiagent.manage.CosManager;
 import com.air.aiagent.service.UserFileService;
 import com.air.aiagent.service.impl.AsyncTaskService;
+import com.air.aiagent.service.impl.ChatMessageService;
+import com.air.aiagent.service.impl.ChatSessionService;
 import com.itextpdf.io.font.FontProgram;
 import com.itextpdf.io.font.FontProgramFactory;
 import com.itextpdf.io.font.PdfEncodings;
@@ -57,7 +59,10 @@ public class PDFGenerationTool {
 
     @Resource
     private UserFileService fileService;
-
+    @Resource
+    private ChatSessionService chatSessionService;
+    @Resource
+    private ChatMessageService chatMessageService;
     @Tool(description = """
             Generate a beautifully formatted PDF from Markdown content.
 
@@ -78,12 +83,14 @@ public class PDFGenerationTool {
             - Point 2
             **Important** content here!
             """)
-    public String generatePDFToMinio(
-            @ToolParam(description = "PDF file name (e.g., report.pdf)") String fileName,
+    public String generatePDFToCOS(
+            @ToolParam(description = "PDF file name using Chinese (e.g., 报告.pdf)") String fileName,
             @ToolParam(description = "Content in Markdown format") String content,
-            @ToolParam(description = "User ID for file storage") String userId) throws IOException {
+            @ToolParam(description = "User ID for file storage") String userId,
+            @ToolParam(description = "Current session ID for message association") String sessionId) throws IOException {
 
         String safeUserId = (userId != null && !userId.isEmpty()) ? userId : UserContext.getSafeUserId();
+        String safeSessionId = (sessionId != null && !sessionId.isEmpty()) ? sessionId : UserContext.getSafeSessionId();
         File pdfFile = File.createTempFile(fileName, ".pdf");
 
         String filePrefix = UUID.randomUUID().toString().replace("-", "").substring(0, 10);
@@ -166,6 +173,7 @@ public class PDFGenerationTool {
             } // try writer/pdf/document
 
             // 上传到 COS（调用你原来的逻辑）
+            String aiMessageId = UUID.randomUUID().toString();
             if (cosManager.uploadPDFFile(filePath, pdfFile)) {
                 String pdfUrl = cosManager.getPDFUrl(filePath);
                 asyncTaskService.executeAsyncTask(() -> {
@@ -174,7 +182,19 @@ public class PDFGenerationTool {
                             .userId(Long.parseLong(safeUserId))
                             .fileName(fileName)
                             .build();
+                    ChatMessage aiMessage = ChatMessage.builder()
+                            .id(aiMessageId)
+                            .chatId(safeUserId)
+                            .sessionId(safeSessionId)
+                            .messageType(MessageType.TEXT)
+                            .isAiResponse(true)
+                            .metadata(MessageMetadata.builder()
+                                    .pdfFileName(fileName)
+                                    .pdfFileUrl(pdfUrl)
+                                    .build())
+                            .build();
                     fileService.save(userFile);
+                    chatMessageService.save(aiMessage);
                 }, "userId：" + safeUserId + " => 添加文件信息到数据库成功");
                 return pdfFile.getName() + " generated successfully";
             } else {
