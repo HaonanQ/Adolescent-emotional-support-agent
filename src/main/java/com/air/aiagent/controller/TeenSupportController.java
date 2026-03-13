@@ -22,13 +22,8 @@ import com.air.aiagent.exception.ErrorCode;
 import com.air.aiagent.manage.CosManager;
 import com.air.aiagent.service.UserFileService;
 import com.air.aiagent.service.UserService;
-import com.air.aiagent.service.EmotionDiaryService;
-import com.air.aiagent.domain.dto.EmotionDiaryAddRequest;
-import com.air.aiagent.domain.dto.EmotionDiaryQueryRequest;
-import com.air.aiagent.domain.vo.EmotionDiaryVO;
 import com.air.aiagent.service.impl.ChatMessageService;
 import com.air.aiagent.service.impl.ChatSessionService;
-import com.air.aiagent.service.impl.ProductRecommendService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
@@ -67,8 +62,6 @@ public class TeenSupportController {
     @Resource
     private ChatMessageService chatMessageService;
 
-    @Resource
-    private ProductRecommendService productRecommendService;
 
     @Resource
     private CosManager cosManager;
@@ -153,10 +146,7 @@ public class TeenSupportController {
                     .isAiResponse(chatMessage.getIsAiResponse())
                     .build();
             if(chatMessage.getMetadata() != null) {
-                if(chatMessage.getMetadata().getRecommendedProductIds() != null
-                        && !chatMessage.getMetadata().getRecommendedProductIds().isEmpty()){
-                    chatMessageVO.setRecommendedProducts(productRecommendService.getProductVOsByIds(chatMessage.getMetadata().getRecommendedProductIds()));
-                }
+
                 if(chatMessage.getMetadata().getPdfFileUrl() != null){
                     chatMessageVO.setPdfFileUrl(chatMessage.getMetadata().getPdfFileUrl());
                     chatMessageVO.setPdfFileName(chatMessage.getMetadata().getPdfFileName());
@@ -218,10 +208,7 @@ public class TeenSupportController {
                     .isAiResponse(chatMessage.getIsAiResponse())
                     .build();
             if(chatMessage.getMetadata() != null) {
-                if(chatMessage.getMetadata().getRecommendedProductIds() != null
-                        && !chatMessage.getMetadata().getRecommendedProductIds().isEmpty()){
-                    chatMessageVO.setRecommendedProducts(productRecommendService.getProductVOsByIds(chatMessage.getMetadata().getRecommendedProductIds()));
-                }
+
                 if(chatMessage.getMetadata().getPdfFileUrl() != null){
                     chatMessageVO.setPdfFileUrl(chatMessage.getMetadata().getPdfFileUrl());
                     chatMessageVO.setPdfFileName(chatMessage.getMetadata().getPdfFileName());

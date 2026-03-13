@@ -8,8 +8,6 @@ import java.util.List;
  */
 public interface Constant {
 
-    String VERIFICATIONCODE = "loveai:verificationCode:";
-
     /**
      * 随机用户昵称
      */

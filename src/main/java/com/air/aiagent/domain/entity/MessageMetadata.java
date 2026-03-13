@@ -26,10 +26,6 @@ public class MessageMetadata {
      */
     private Integer responseTimeMs;
 
-    /**
-     * 推荐的商品ID列表
-     */
-    private List<Long> recommendedProductIds;
 
     /**
      * 生成的PDF文件URL

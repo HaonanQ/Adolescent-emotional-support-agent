@@ -42,10 +42,6 @@ public class ChatMessageVO {
      */
     private String content;
 
-    /**
-     * 推荐的商品列表（如果有）
-     */
-    private List<ProductVO> recommendedProducts;
 
     /**
      * 是否为AI回复
