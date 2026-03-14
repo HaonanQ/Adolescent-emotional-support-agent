@@ -101,7 +101,12 @@ public class PgVectorStoreConfig {
 
             if (count == null || count == 0) {
                 log.info("向量表 {} 不存在，开始创建...", tableName);
-
+                // ========== 新增：先创建必要的扩展 ==========
+                // 创建uuid-ossp扩展（解决uuid_generate_v4()函数缺失）
+                pgJdbcTemplate.execute("CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\"");
+                // 创建pgvector扩展（解决vector类型缺失）
+                pgJdbcTemplate.execute("CREATE EXTENSION IF NOT EXISTS vector");
+                log.info("PostgreSQL扩展 uuid-ossp 和 vector 创建/验证成功");
                 // 创建向量表
                 String createSql = String.format(
                     "CREATE TABLE IF NOT EXISTS %s (" +

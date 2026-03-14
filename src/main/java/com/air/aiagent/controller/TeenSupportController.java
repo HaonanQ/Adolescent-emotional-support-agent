@@ -433,7 +433,7 @@ public class TeenSupportController {
         User loginUser = userService.getLoginUser(httpServletRequest);
 
         String fileName = IdUtil.simpleUUID() + "_" + file.getOriginalFilename();
-        String objectPath = "public/images/" + fileName;
+        String objectPath = "public/images/" + loginUser.getId() + '/' + fileName;
 
         String fileUrl = cosManager.uploadImage(file, objectPath);
 
@@ -486,7 +486,7 @@ public class TeenSupportController {
         
         // 上传图片
         String fileName = IdUtil.simpleUUID() + "_" + file.getOriginalFilename();
-        String objectPath = "public/images/" + fileName;
+        String objectPath = "public/images/" + loginUser.getId() + '/' + fileName;
         String imageUrl = cosManager.uploadImage(file, objectPath);
         
         // 构建请求
@@ -586,7 +586,7 @@ public class TeenSupportController {
         
         // 上传音频
         String fileName = IdUtil.simpleUUID() + "_" + file.getOriginalFilename();
-        String objectPath = "public/audio/" + fileName;
+        String objectPath = "public/audio/" + loginUser.getId() + '/' + fileName;
         String audioUrl = cosManager.uploadAudio(file, objectPath);
         
         // 构建请求
