@@ -13,6 +13,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.air.aiagent.domain.entity.User;
 import com.air.aiagent.service.UserService;
 import com.air.aiagent.mapper.UserMapper;
+import com.air.aiagent.utils.BCryptUtils;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.stereotype.Service;
@@ -49,7 +50,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         if(StrUtil.isBlank(request.getPassword())){
             throw new BusinessException(ErrorCode.PARAMS_ERROR,"密码不能为空");
         }
-        if(!request.getPassword().equals(user.getPassword())){
+        if(!BCryptUtils.verify(request.getPassword(), user.getPassword())){
             throw new BusinessException(ErrorCode.PARAMS_ERROR,"密码错误");
         }
         // 4.登录成功，存储登录态到 session 中
@@ -79,10 +80,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "该用户名已注册过账户，请前往登录");
         }
 
-        // 4.创建用户
+        // 4.创建用户，密码使用 BCrypt 加密
+        String encryptedPassword = BCryptUtils.encrypt(request.getPassword());
         user = User.builder()
                 .username(request.getUsername())
-                .password(request.getPassword())
+                .password(encryptedPassword)
                 .build();
         return this.save(user);
     }
