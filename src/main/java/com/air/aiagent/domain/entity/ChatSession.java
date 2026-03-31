@@ -1,5 +1,6 @@
 package com.air.aiagent.domain.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -49,6 +50,7 @@ public class ChatSession {
      */
     @Field("created_at")
     @Builder.Default
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss",timezone = "GMT+8")
     private LocalDateTime createdAt = LocalDateTime.now();
 
     /**
@@ -56,6 +58,7 @@ public class ChatSession {
      */
     @Field("updated_at")
     @Builder.Default
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss",timezone = "GMT+8")
     private LocalDateTime updatedAt = LocalDateTime.now();
 
     /**

@@ -1,5 +1,5 @@
 import os
-
+import datetime  # 用于获取统计时间
 # 排除的目录和文件后缀
 EXCLUDE_DIRS = {'.git', 'target', 'node_modules', 'venv', 'dist', 'build'}
 EXCLUDE_EXTENSIONS = {'.class', '.jar', '.ttf', '.otf', '.exe', '.node', '.pack', '.idx', '.rev', '.original', '.png', '.jpg', '.gif','.yaml','.yml','.json'}
@@ -89,7 +89,40 @@ def count_lines_in_project(directory):
         "backend": (be_code, be_comment, be_empty),
         "total": (total_code, total_comment, total_empty)
     }
+def append_result_to_file(result, file_path):
+    """将统计结果追加写入文件，包含统计时间"""
+    # 获取格式化的统计时间（年-月-日 时:分:秒）
+    stat_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    
+    # 构造写入内容（每个统计结果用分隔线区分，便于阅读）
+    content = f"""
+===============================================================
+项目代码行数统计报告 - {stat_time}
+统计目录：{os.path.abspath('.')}
+===============================================================
+【前端代码统计（JS/Vue/TS/CSS等）】
+  代码行数: {result['frontend'][0]}
+  注释行数: {result['frontend'][1]}
+  空行数: {result['frontend'][2]}
+  前端总行数: {sum(result['frontend'])}
 
+【后端代码统计】
+  代码行数: {result['backend'][0]}
+  注释行数: {result['backend'][1]}
+  空行数: {result['backend'][2]}
+  后端总行数: {sum(result['backend'])}
+
+【项目总统计】
+  总代码行数: {result['total'][0]}
+  总注释行数: {result['total'][1]}
+  总空行数: {result['total'][2]}
+  项目总行数: {sum(result['total'])}
+==============================================================="""
+    
+    # 追加写入文件（a模式，不存在则创建，存在则追加）
+    with open(file_path, 'a', encoding='utf-8') as f:
+        f.write(content)
+        
 if __name__ == "__main__":
     project_directory = "."
     result = count_lines_in_project(project_directory)
@@ -113,3 +146,7 @@ if __name__ == "__main__":
     print(f"  总空行数: {result['total'][2]}")
     print(f"  项目总行数: {sum(result['total'])}")
     print("=" * 60)
+    # 追加写入文件（同一目录下的codecount.txt）
+    output_file = "codecount.txt"
+    append_result_to_file(result, output_file)
+    print(f"\n统计结果已追加写入：{os.path.abspath(output_file)}")

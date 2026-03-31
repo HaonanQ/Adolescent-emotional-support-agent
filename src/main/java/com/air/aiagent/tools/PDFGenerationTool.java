@@ -32,6 +32,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.Date;
 
 /**
  * PDF生成工具 - 支持Markdown格式解析
@@ -181,6 +182,8 @@ public class PDFGenerationTool {
                             .fileUrl(pdfUrl)
                             .userId(Long.parseLong(safeUserId))
                             .fileName(fileName)
+                            .createTime(new Date())
+                            .updateTime(new Date())
                             .build();
                     ChatMessage aiMessage = ChatMessage.builder()
                             .id(aiMessageId)

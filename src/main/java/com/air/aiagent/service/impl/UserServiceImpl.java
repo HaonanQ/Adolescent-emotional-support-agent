@@ -18,6 +18,7 @@ import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.List;
 
 import static com.air.aiagent.constant.Constant.LOGIN_USER;
@@ -85,6 +86,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         user = User.builder()
                 .username(request.getUsername())
                 .password(encryptedPassword)
+                .createTime(new Date())
+                .updateTime(new Date())
                 .build();
         return this.save(user);
     }
@@ -149,6 +152,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         }
         // 4.更新昵称
         user.setNickname(nickname);
+        user.setUpdateTime(new Date());
         return this.updateById(user);
     }
 }

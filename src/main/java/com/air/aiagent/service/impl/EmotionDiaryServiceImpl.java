@@ -12,6 +12,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -50,6 +51,7 @@ public class EmotionDiaryServiceImpl extends ServiceImpl<EmotionDiaryMapper, Emo
                 .moodScore(request.getMoodScore())
                 .content(request.getContent())
                 .imageUrl(request.getImageUrl())
+                .createTime(new Date())
                 .build();
 
         boolean saved = save(emotionDiary);

@@ -14,6 +14,7 @@ import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.TimeZone;
 
 /**
  * 当返回 JSON 数据时，如果对象中的 Long 类型数值过大（超过 JavaScript 的 Number 类型安全范围），会导致前端精度丢失
@@ -50,7 +51,8 @@ public class JacksonConfig {
         // 配置序列化特性
         objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-        
+        objectMapper.setTimeZone(TimeZone.getTimeZone("Asia/Shanghai"));
+
         return objectMapper;
     }
 }

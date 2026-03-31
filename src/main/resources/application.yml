@@ -19,13 +19,13 @@ spring:
   #数据库配置 - MySQL主数据源（MyBatis使用）
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    jdbc-url: jdbc:mysql://101.42.51.131:3306/agent
+    jdbc-url: jdbc:mysql://101.42.51.131:3306/agent?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8
     username: root
     password: 123456qhnan
   #PostgreSQL数据源（Spring AI PgVector使用）
   datasource-pg:
     driver-class-name: org.postgresql.Driver
-    jdbc-url: jdbc:postgresql://101.42.51.131:5432/teen_emotion_rag
+    jdbc-url: jdbc:postgresql://101.42.51.131:5432/teen_emotion_rag?options=-c%20TimeZone%3DAsia%2FShanghai
     username: postgres  # 这个 mydatabase 是数据源，虚拟机中的 mydatabase 安装了 pgvector，如果切换数据源的话也得要安装 pgvector 插件
     password: 123456
   data:
@@ -42,7 +42,10 @@ spring:
           min-idle: 0      # 最小空闲连接
           max-wait: 100ms  # 获取连接的最大等待时间
     mongodb:
-      uri: mongodb://root:root@101.42.51.131:27017/agent?authSource=admin
+      uri: mongodb://root:root@101.42.51.131:27017/agent?authSource=admin&tz_aware=true&timezone=Asia/Shanghai
+  jackson:
+    time-zone: Asia/Shanghai
+    date-format: yyyy-MM-dd HH:mm:ss
 springdoc:
   swagger-ui:
     path: /swagger-ui.html
