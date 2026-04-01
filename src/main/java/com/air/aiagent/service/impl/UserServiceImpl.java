@@ -155,6 +155,97 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         user.setUpdateTime(new Date());
         return this.updateById(user);
     }
+
+    /**
+     * 更新用户密码
+     */
+    @Override
+    public Boolean updatePassword(Long userId, String oldPassword, String newPassword){
+        // 1.校验参数
+        if(userId == null){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户ID不能为空");
+        }
+        if(StrUtil.isBlank(oldPassword)){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "旧密码不能为空");
+        }
+        if(StrUtil.isBlank(newPassword)){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "新密码不能为空");
+        }
+        // 2.查询用户是否存在
+        User user = this.getById(userId);
+        if(user == null){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户不存在");
+        }
+        // 3.验证旧密码
+        if(!BCryptUtils.verify(oldPassword, user.getPassword())){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "旧密码错误");
+        }
+        // 4.更新密码
+        user.setPassword(BCryptUtils.encrypt(newPassword));
+        user.setUpdateTime(new Date());
+        return this.updateById(user);
+    }
+
+    /**
+     * 更新用户头像
+     */
+    @Override
+    public Boolean updateAvatar(Long userId, String avatar){
+        // 1.校验参数
+        if(userId == null){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户ID不能为空");
+        }
+        // 2.查询用户是否存在
+        User user = this.getById(userId);
+        if(user == null){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户不存在");
+        }
+        // 3.更新头像
+        user.setAvatar(avatar);
+        user.setUpdateTime(new Date());
+        return this.updateById(user);
+    }
+
+    /**
+     * 更新用户状态
+     */
+    @Override
+    public Boolean updateStatus(Long userId, Integer relationshipStatus){
+        // 1.校验参数
+        if(userId == null){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户ID不能为空");
+        }
+        if(relationshipStatus == null || (relationshipStatus != 0 && relationshipStatus != 1)){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "状态值无效");
+        }
+        // 2.查询用户是否存在
+        User user = this.getById(userId);
+        if(user == null){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户不存在");
+        }
+        // 3.更新状态
+        user.setRelationshipStatus(relationshipStatus);
+        user.setUpdateTime(new Date());
+        return this.updateById(user);
+    }
+
+    /**
+     * 获取当前登录用户信息
+     */
+    @Override
+    public UserVO getCurrentUserInfo(Long userId){
+        // 1.校验参数
+        if(userId == null){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户ID不能为空");
+        }
+        // 2.查询用户是否存在
+        User user = this.getById(userId);
+        if(user == null){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户不存在");
+        }
+        // 3.返回用户信息
+        return entityToVO(user);
+    }
 }
 
 

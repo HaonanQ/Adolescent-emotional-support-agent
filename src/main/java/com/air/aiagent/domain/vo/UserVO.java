@@ -31,4 +31,9 @@ public class UserVO {
      * 恋爱状态：0-单身，1-恋爱中
      */
     private Integer relationshipStatus;
+
+    /**
+     * 用户头像URL
+     */
+    private String avatar;
 }

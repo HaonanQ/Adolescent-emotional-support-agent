@@ -42,4 +42,24 @@ public interface UserService extends IService<User> {
      * 更新用户昵称
      */
     Boolean updateNickname(Long userId, String nickname);
+
+    /**
+     * 更新用户密码
+     */
+    Boolean updatePassword(Long userId, String oldPassword, String newPassword);
+
+    /**
+     * 更新用户头像
+     */
+    Boolean updateAvatar(Long userId, String avatar);
+
+    /**
+     * 更新用户状态
+     */
+    Boolean updateStatus(Long userId, Integer relationshipStatus);
+
+    /**
+     * 获取当前登录用户信息
+     */
+    UserVO getCurrentUserInfo(Long userId);
 }

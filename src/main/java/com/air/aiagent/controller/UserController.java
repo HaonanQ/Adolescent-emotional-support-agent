@@ -5,6 +5,9 @@ import com.air.aiagent.common.BaseResponse;
 import com.air.aiagent.common.ResultUtils;
 import com.air.aiagent.domain.dto.AddUserRequest;
 import com.air.aiagent.domain.dto.UpdateNicknameRequest;
+import com.air.aiagent.domain.dto.UpdatePasswordRequest;
+import com.air.aiagent.domain.dto.UpdateAvatarRequest;
+import com.air.aiagent.domain.dto.UpdateStatusRequest;
 import com.air.aiagent.domain.dto.UserLoginRequest;
 import com.air.aiagent.domain.entity.User;
 import com.air.aiagent.domain.vo.UserVO;
@@ -107,5 +110,75 @@ public class UserController {
         httpServletRequest.getSession().setAttribute(LOGIN_USER, updatedUser);
         // 4.返回更新后的用户信息
         return ResultUtils.success(userService.entityToVO(updatedUser));
+    }
+
+    /**
+     * 修改用户密码
+     */
+    @LoginCheck
+    @PostMapping("/updatePassword")
+    public BaseResponse<Boolean> updatePassword(@RequestBody UpdatePasswordRequest request, HttpServletRequest httpServletRequest){
+        // 1.获取当前登录用户
+        User loginUser = userService.getLoginUser(httpServletRequest);
+        // 2.调用更新密码方法
+        boolean success = userService.updatePassword(loginUser.getId(), request.getOldPassword(), request.getNewPassword());
+        if(!success){
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "修改密码失败");
+        }
+        return ResultUtils.success(true);
+    }
+
+    /**
+     * 修改用户头像
+     */
+    @LoginCheck
+    @PostMapping("/updateAvatar")
+    public BaseResponse<UserVO> updateAvatar(@RequestBody UpdateAvatarRequest request, HttpServletRequest httpServletRequest){
+        // 1.获取当前登录用户
+        User loginUser = userService.getLoginUser(httpServletRequest);
+        // 2.调用更新头像方法
+        boolean success = userService.updateAvatar(loginUser.getId(), request.getAvatar());
+        if(!success){
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "修改头像失败");
+        }
+        // 3.更新session中的用户信息
+        User updatedUser = userService.getById(loginUser.getId());
+        httpServletRequest.getSession().setAttribute(LOGIN_USER, updatedUser);
+        // 4.返回更新后的用户信息
+        return ResultUtils.success(userService.entityToVO(updatedUser));
+    }
+
+    /**
+     * 修改用户状态
+     */
+    @LoginCheck
+    @PostMapping("/updateStatus")
+    public BaseResponse<UserVO> updateStatus(@RequestBody UpdateStatusRequest request, HttpServletRequest httpServletRequest){
+        // 1.获取当前登录用户
+        User loginUser = userService.getLoginUser(httpServletRequest);
+        // 2.调用更新状态方法
+        boolean success = userService.updateStatus(loginUser.getId(), request.getRelationshipStatus());
+        if(!success){
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "修改状态失败");
+        }
+        // 3.更新session中的用户信息
+        User updatedUser = userService.getById(loginUser.getId());
+        httpServletRequest.getSession().setAttribute(LOGIN_USER, updatedUser);
+        // 4.返回更新后的用户信息
+        return ResultUtils.success(userService.entityToVO(updatedUser));
+    }
+
+    /**
+     * 获取当前登录用户信息
+     */
+    @LoginCheck
+    @GetMapping("/getCurrentUserInfo")
+    public BaseResponse<UserVO> getCurrentUserInfo(HttpServletRequest httpServletRequest){
+        // 1.获取当前登录用户
+        User loginUser = userService.getLoginUser(httpServletRequest);
+        // 2.获取用户信息
+        UserVO userVO = userService.getCurrentUserInfo(loginUser.getId());
+        // 3.返回用户信息
+        return ResultUtils.success(userVO);
     }
 }

@@ -3,6 +3,7 @@ import Home from '../views/Home.vue';
 import Login from '../views/Login.vue';
 import Chat from '../views/Chat.vue';
 import EmotionDiary from '../views/EmotionDiary.vue';
+import Profile from '../views/Profile.vue';
 
 const routes = [
   {
@@ -25,6 +26,12 @@ const routes = [
     path: '/emotion-diary',
     name: 'EmotionDiary',
     component: EmotionDiary,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/profile',
+    name: 'Profile',
+    component: Profile,
     meta: { requiresAuth: true },
   },
 ];

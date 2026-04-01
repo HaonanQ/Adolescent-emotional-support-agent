@@ -16,13 +16,27 @@
         <span class="nav-item">心理论坛</span>
         <span class="nav-item">心理测试</span>
         <span class="nav-item">心理医生</span> -->
-        <span class="nav-item">个人中心</span>
+        <!-- <span class="nav-item" @click="goToProfile">个人中心</span> -->
         <span class="nav-item">反馈与建议</span>
       </div>
       <div class="nav-right">
-        <div class="user-avatar">{{ user.username?.charAt(0) || 'U' }}</div>
-        <span class="user-name">{{ user.username }}</span>
-        <button @click="handleLogout" class="logout-btn">退出</button>
+        <div class="user-dropdown">
+          <div class="user-info" @mouseenter="handleMouseEnter" @mouseleave="handleMouseLeave">
+            <div v-if="user.avatar" class="user-avatar">
+              <img :src="user.avatar" alt="用户头像" class="user-avatar-img" />
+            </div>
+            <div v-else class="user-avatar">
+              {{ user.username?.charAt(0) || 'U' }}
+            </div>
+            <span class="user-name">{{ user.username }}</span>
+          </div>
+          <transition name="dropdown">
+            <div v-if="showDropdown" class="dropdown-menu" @mouseenter="handleMouseEnter" @mouseleave="handleMouseLeave">
+              <div class="dropdown-item" @click="goToProfile">个人中心</div>
+              <div class="dropdown-item" @click="handleLogout">退出登录</div>
+            </div>
+          </transition>
+        </div>
       </div>
     </nav>
 
@@ -92,7 +106,13 @@
             :class="['message', message.isAiResponse ? 'ai-message' : 'user-message']"
           >
             <div class="message-avatar">
-              {{ message.isAiResponse ? '🤖' : '👤' }}
+              <template v-if="message.isAiResponse">
+                🤖
+              </template>
+              <template v-else>
+                <img v-if="user.avatar" :src="user.avatar" alt="用户头像" class="message-avatar-img" />
+                <span v-else>👤</span>
+              </template>
             </div>
             <div class="message-content">
               <div v-if="message.imageFileUrl" class="image-container">
@@ -169,7 +189,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick } from 'vue';
+import { ref, onMounted, onUnmounted, nextTick } from 'vue';
 import { useRouter } from 'vue-router';
 import { marked } from 'marked';
 import DOMPurify from 'dompurify';
@@ -189,6 +209,8 @@ import {
 
 const router = useRouter();
 const user = ref(JSON.parse(localStorage.getItem('user')) || {});
+const showDropdown = ref(false);
+let hideTimeout = null;
 const chatId = String(user.value.id);
 
 const sessions = ref([]);
@@ -201,6 +223,35 @@ const messagesContainer = ref(null);
 const selectedImage = ref(null);
 const isRecording = ref(false);
 const imageInput = ref(null);
+
+/**
+ * 清除定时器
+ */
+onUnmounted(() => {
+  if (hideTimeout) {
+    clearTimeout(hideTimeout);
+  }
+});
+
+/**
+ * 鼠标进入 - 显示下拉框
+ */
+const handleMouseEnter = () => {
+  if (hideTimeout) {
+    clearTimeout(hideTimeout);
+    hideTimeout = null;
+  }
+  showDropdown.value = true;
+};
+
+/**
+ * 鼠标离开 - 延迟隐藏下拉框
+ */
+const handleMouseLeave = () => {
+  hideTimeout = setTimeout(() => {
+    showDropdown.value = false;
+  }, 200);
+};
 
 const formatDate = (dateStr) => {
   if (!dateStr) return '';
@@ -572,6 +623,7 @@ const handleSendImageMessage = async () => {
 };
 
 const handleLogout = async () => {
+  showDropdown.value = false;
   try {
     await logout();
   } catch (error) {
@@ -593,6 +645,14 @@ const goToHome = () => {
  */
 const goToEmotionDiary = () => {
   router.push('/emotion-diary');
+};
+
+/**
+ * 跳转到个人中心
+ */
+const goToProfile = () => {
+  showDropdown.value = false;
+  router.push('/profile');
 };
 
 onMounted(async () => {
@@ -783,7 +843,61 @@ onMounted(async () => {
 .nav-right {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
+  margin-right: 15px; 
+  /* padding-left: 100px; 左侧间距，可根据需要调整数值 */
+}
+
+.user-dropdown {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: 8px;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  min-width: 150px;
+  z-index: 1000;
+  overflow: hidden;
+}
+
+/* 下拉框过渡动画 */
+.dropdown-enter-active,
+.dropdown-leave-active {
+  transition: all 0.2s ease;
+}
+
+.dropdown-enter-from,
+.dropdown-leave-to {
+  opacity: 0;
+  transform: translateX(-50%) translateY(-10px);
+}
+
+.dropdown-item {
+  padding: 0.75rem 1.25rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: #333;
+  font-size: 0.95rem;
+}
+
+.dropdown-item:hover {
+  background: #f0f0f0;
+  color: #3b82f6;
 }
 
 .user-avatar {
@@ -797,26 +911,18 @@ onMounted(async () => {
   justify-content: center;
   font-weight: 600;
   font-size: 16px;
+  overflow: hidden;
+}
+
+.user-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .user-name {
   font-size: 14px;
   color: #334155;
-}
-
-.logout-btn {
-  padding: 6px 16px;
-  background: #fef2f2;
-  color: #dc2626;
-  border: 1px solid #fecaca;
-  border-radius: 6px;
-  font-size: 13px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.logout-btn:hover {
-  background: #fee2e2;
 }
 
 .chat-main {
@@ -1077,6 +1183,13 @@ onMounted(async () => {
   flex-shrink: 0;
   background: #f8fafc;
   border: 2px solid #e2e8f0;
+  overflow: hidden;
+}
+
+.message-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .message-content {

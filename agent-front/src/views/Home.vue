@@ -7,10 +7,24 @@
       </div>
       <div class="nav-right">
         <template v-if="user">
-          <div class="user-avatar">{{ user.username?.charAt(0) || 'U' }}</div>
-          <span class="user-name">{{ user.username }}</span>
-          <button @click="goToChat" class="chat-btn">开始对话</button>
-          <button @click="handleLogout" class="logout-btn">退出</button>
+          <!-- <button @click="goToChat" class="chat-btn">开始对话</button> -->
+          <div class="user-dropdown">
+            <div class="user-info" @mouseenter="handleMouseEnter" @mouseleave="handleMouseLeave">
+              <div v-if="user.avatar" class="user-avatar">
+                <img :src="user.avatar" alt="用户头像" class="user-avatar-img" />
+              </div>
+              <div v-else class="user-avatar">
+                {{ user.username?.charAt(0) || 'U' }}
+              </div>
+              <span class="user-name">{{ user.username }}</span>
+            </div>
+            <transition name="dropdown">
+              <div v-if="showDropdown" class="dropdown-menu" @mouseenter="handleMouseEnter" @mouseleave="handleMouseLeave">
+                <div class="dropdown-item" @click="goToProfile">个人中心</div>
+                <div class="dropdown-item" @click="handleLogout">退出登录</div>
+              </div>
+            </transition>
+          </div>
         </template>
         <template v-else>
           <button @click="goToLogin" class="login-btn">登录</button>
@@ -111,11 +125,13 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 
 const router = useRouter();
 const user = ref(null);
+const showDropdown = ref(false);
+let hideTimeout = null;
 
 /**
  * 初始化用户状态
@@ -126,6 +142,35 @@ onMounted(() => {
     user.value = JSON.parse(storedUser);
   }
 });
+
+/**
+ * 清除定时器
+ */
+onUnmounted(() => {
+  if (hideTimeout) {
+    clearTimeout(hideTimeout);
+  }
+});
+
+/**
+ * 鼠标进入 - 显示下拉框
+ */
+const handleMouseEnter = () => {
+  if (hideTimeout) {
+    clearTimeout(hideTimeout);
+    hideTimeout = null;
+  }
+  showDropdown.value = true;
+};
+
+/**
+ * 鼠标离开 - 延迟隐藏下拉框
+ */
+const handleMouseLeave = () => {
+  hideTimeout = setTimeout(() => {
+    showDropdown.value = false;
+  }, 200);
+};
 
 /**
  * 跳转到登录页面
@@ -142,9 +187,18 @@ const goToChat = () => {
 };
 
 /**
+ * 跳转到个人中心
+ */
+const goToProfile = () => {
+  showDropdown.value = false;
+  router.push('/profile');
+};
+
+/**
  * 处理退出登录
  */
 const handleLogout = () => {
+  showDropdown.value = false;
   localStorage.removeItem('user');
   user.value = null;
   router.push('/');
@@ -188,6 +242,7 @@ const handleLogout = () => {
   display: flex;
   align-items: center;
   gap: 1rem;
+  margin-right: 15px; /* 让整个用户区域向左移动 */
 }
 
 .user-avatar {
@@ -201,11 +256,70 @@ const handleLogout = () => {
   justify-content: center;
   font-weight: 600;
   font-size: 0.9rem;
+  overflow: hidden;
+}
+
+.user-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.user-dropdown {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
 }
 
 .user-name {
   color: #333;
   font-weight: 500;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: 8px;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  min-width: 150px;
+  z-index: 1000;
+  overflow: hidden;
+}
+
+/* 下拉框过渡动画 */
+.dropdown-enter-active,
+.dropdown-leave-active {
+  transition: all 0.2s ease;
+}
+
+.dropdown-enter-from,
+.dropdown-leave-to {
+  opacity: 0;
+  transform: translateX(-50%) translateY(-10px);
+}
+
+.dropdown-item {
+  padding: 0.75rem 1.25rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: #333;
+  font-size: 0.95rem;
+}
+
+.dropdown-item:hover {
+  background: #f0f0f0;
+  color: #667eea;
 }
 
 .login-btn,

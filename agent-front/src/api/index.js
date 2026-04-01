@@ -286,4 +286,29 @@ export const deleteEmotionDiary = (data) => {
   return api.post('/emotionDiary/delete', data);
 };
 
+// 获取当前用户信息
+export const getCurrentUserInfo = () => {
+  return api.get('/emotionagent/user/getCurrentUserInfo');
+};
+
+// 修改用户昵称
+export const updateNickname = (nickname) => {
+  return api.post('/emotionagent/user/updateNickname', { nickname });
+};
+
+// 修改用户密码
+export const updatePassword = (oldPassword, newPassword) => {
+  return api.post('/emotionagent/user/updatePassword', { oldPassword, newPassword });
+};
+
+// 修改用户头像
+export const updateAvatar = (avatar) => {
+  return api.post('/emotionagent/user/updateAvatar', { avatar });
+};
+
+// 修改用户状态
+export const updateStatus = (relationshipStatus) => {
+  return api.post('/emotionagent/user/updateStatus', { relationshipStatus });
+};
+
 export default api;

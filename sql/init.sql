@@ -74,6 +74,7 @@ create table user
     nickname            varchar(20) default '开心麻花'        null comment '用户昵称',
     password            varchar(100)                          null comment '密码（BCrypt加密）',
     relationship_status tinyint     default 0                 null comment '恋爱状态：0-单身，1-恋爱中',
+    avatar              varchar(500)                          null comment '用户头像URL',
     create_time         datetime    default CURRENT_TIMESTAMP not null comment '创建时间',
     update_time         datetime    default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
     is_deleted          tinyint     default 0                 not null comment '逻辑删除：0-未删除，1-已删除',
