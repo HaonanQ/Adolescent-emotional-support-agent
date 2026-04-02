@@ -51,7 +51,7 @@
                 type="danger"
                 text
                 circle
-                size="small"
+                size="large"
                 @click.stop="deleteSession(session.id)"
                 title="删除会话"
                 class="delete-session-btn"
@@ -63,7 +63,7 @@
         </div>
 
         <div class="sidebar-section">
-          <div class="sidebar-header">
+          <div class="sidebar-header2">
             <h3>我的文档</h3>
           </div>
           <div class="file-list">
@@ -710,23 +710,39 @@ onMounted(async () => {
   min-height: 0;
 }
 
+.sidebar-section:last-child {
+  max-height: 300px;
+  min-height: 150px;
+}
+
 .sidebar-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 16px;
+  padding: 10px 14px;
   border-bottom: 1px solid #e2e8f0;
 }
-
+.sidebar-header2 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border-bottom: 1px solid #e2e8f0;
+}
 .sidebar-header h3 {
   margin: 0;
   font-size: 16px;
   color: #334155;
 }
-
+.sidebar-header2 h3 {
+  padding-top: 4px;
+  margin: 0;
+  font-size: 16px;
+  color: #334155;
+}
 .session-list {
   flex: 1;
-  padding: 12px;
+  padding: 8px;
   overflow-y: auto;
 }
 
