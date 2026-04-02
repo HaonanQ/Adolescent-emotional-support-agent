@@ -103,7 +103,13 @@
             </div>
             <div class="message-content">
               <div v-if="message.imageFileUrl" class="image-container">
-                <el-image :src="message.imageFileUrl" :alt="message.imageFileName || '图片'" fit="cover" class="message-image" />
+                <el-image 
+                  :src="message.imageFileUrl" 
+                  :alt="message.imageFileName || '图片'" 
+                  fit="cover" 
+                  class="message-image"
+                  @click="previewImage(message.imageFileUrl)"
+                />
               </div>
               <div v-if="message.audioFileUrl" class="audio-container">
                 <audio :src="message.audioFileUrl" controls class="message-audio"></audio>
@@ -112,7 +118,7 @@
               <div v-if="message.pdfFileUrl" class="pdf-container">
                 <div class="pdf-title">📄 生成的文档：</div>
                 <el-link :href="message.pdfFileUrl" target="_blank" type="success" class="pdf-download-btn">
-                  <el-icon><download /></el-icon>
+                  <!-- <el-icon><download /></el-icon> -->
                   <span>{{ message.pdfFileName || '下载PDF' }}</span>
                 </el-link>
               </div>
@@ -121,7 +127,7 @@
         </div>
 
         <div class="input-area">
-          <div class="input-tools">
+          <div class="input-main">
             <input
               type="file"
               ref="imageInput"
@@ -129,33 +135,36 @@
               style="display: none"
               @change="handleImageSelect"
             />
-            <el-button circle @click="handleImageClick" title="上传图片">
-              <el-icon><picture /></el-icon>
-            </el-button>
-            <el-button
-              circle
-              :type="isRecording ? 'danger' : 'default'"
-              @click="handleAudioClick"
-              :title="isRecording ? '停止录音' : '语音输入'"
-            >
-              <el-icon><microphone /></el-icon>
-            </el-button>
-          </div>
-          <div class="input-main">
             <div v-if="selectedImage" class="selected-image-preview">
               <el-image :src="selectedImage.preview" :alt="selectedImage.name" fit="cover" class="preview-image" />
-              <el-button type="danger" circle size="small" @click="removeSelectedImage" class="remove-image-btn">
+              <el-button type="danger" circle size="medium" @click="removeSelectedImage" class="remove-image-btn">
                 <el-icon><close /></el-icon>
               </el-button>
             </div>
-            <el-input
-              v-model="inputMessage"
-              type="textarea"
-              :rows="3"
-              placeholder="请输入您的问题..."
-              @keydown.enter.prevent="handleSendMessage"
-              resize="none"
-            />
+            <div class="textarea-wrapper">
+              <el-input
+                v-model="inputMessage"
+                type="textarea"
+                :rows="3"
+                placeholder="请输入您的问题..."
+                @keydown.enter.prevent="handleSendMessage"
+                resize="none"
+              />
+              <div class="input-tools">
+                <el-button circle size="medium" @click="handleImageClick" title="上传图片">
+                  <img src="../image/picture-icon.svg" alt="上传图片" style="width: 18px; height: 18px;" />
+                </el-button>
+                <el-button
+                  circle
+                  size="medium"
+                  :type="isRecording ? 'danger' : 'default'"
+                  @click="handleAudioClick"
+                  :title="isRecording ? '停止录音' : '语音输入'"
+                >
+                  <img src="../image/microphone-icon.svg" alt="语音输入" style="width: 18px; height: 18px;" />
+                </el-button>
+              </div>
+            </div>
           </div>
           <el-button
             type="primary"
@@ -169,6 +178,23 @@
         </div>
       </main>
     </div>
+
+    <!-- 图片预览对话框 -->
+    <el-dialog
+      v-model="previewDialogVisible"
+      title="图片预览"
+      width="80%"
+      top="5vh"
+      append-to-body
+    >
+      <div class="dialog-image-container">
+        <el-image
+          :src="previewImageUrl"
+          fit="contain"
+          class="dialog-image"
+        />
+      </div>
+    </el-dialog>
   </div>
 </template>
 
@@ -179,7 +205,7 @@ import { marked } from 'marked';
 import DOMPurify from 'dompurify';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import {
-  ArrowDown, Plus, Delete, Document, Download, Picture, Microphone, Close
+  ArrowDown, Plus, Delete, Document, Download, Close
 } from '@element-plus/icons-vue';
 import {
   getChatSessionList,
@@ -208,6 +234,8 @@ const messagesContainer = ref(null);
 const selectedImage = ref(null);
 const isRecording = ref(false);
 const imageInput = ref(null);
+const previewDialogVisible = ref(false);
+const previewImageUrl = ref('');
 
 let mediaRecorder = null;
 let audioChunks = [];
@@ -591,6 +619,11 @@ const handleCommand = (command) => {
   }
 };
 
+const previewImage = (imageUrl) => {
+  previewImageUrl.value = imageUrl;
+  previewDialogVisible.value = true;
+};
+
 onMounted(async () => {
   await loadSessions();
   await loadUserFiles();
@@ -902,10 +935,10 @@ onMounted(async () => {
 }
 
 .message-text {
-  padding: 16px 20px;
+  padding: 10px 18px;
   border-radius: 20px;
   font-size: 15px;
-  line-height: 1.7;
+  line-height: 1.6;
   word-wrap: break-word;
   display: inline-block;
 }
@@ -1009,6 +1042,12 @@ onMounted(async () => {
 
 .pdf-container {
   margin-top: 12px;
+  padding: 16px 20px;
+  background: #ffffff;
+  border-radius: 20px;
+  border-bottom-left-radius: 8px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .pdf-title {
@@ -1036,9 +1075,12 @@ onMounted(async () => {
 }
 
 .input-tools {
+  position: absolute;
+  right: 7px;
+  bottom: 8px;
   display: flex;
-  gap: 8px;
-  flex-shrink: 0;
+  gap: 0px;
+  z-index: 10;
 }
 
 .input-main {
@@ -1046,6 +1088,16 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+
+.textarea-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.textarea-wrapper :deep(.el-textarea__inner) {
+  padding-bottom: 40px;
+  border-radius: 16px;
 }
 
 .selected-image-preview {
@@ -1179,5 +1231,21 @@ onMounted(async () => {
 :deep(.markdown-content) th {
   background: #f8fafc;
   font-weight: 600;
+}
+
+.dialog-image-container {
+  width: 100%;
+  height: 70vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f0f0f0;
+  border-radius: 8px;
+}
+
+.dialog-image {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
 }
 </style>

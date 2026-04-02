@@ -78,8 +78,13 @@
           <el-divider />
 
           <div class="password-section">
-            <h3 class="section-title">修改密码</h3>
-            <el-form label-width="100px">
+            <div class="section-header" @click="showPasswordForm = !showPasswordForm">
+              <h3 class="section-title">修改密码</h3>
+              <el-icon :class="['toggle-icon', { rotated: showPasswordForm }]">
+                <arrow-down />
+              </el-icon>
+            </div>
+            <el-form v-if="showPasswordForm" label-width="100px" class="password-form">
               <el-form-item label="旧密码">
                 <el-input
                   v-model="oldPassword"
@@ -105,7 +110,7 @@
                 />
               </el-form-item>
               <el-form-item>
-                <el-button type="primary" @click="handleUpdatePassword" style="width: 100%">修改密码</el-button>
+                <el-button type="primary" @click="handleUpdatePassword" style="width: 100%">确认修改</el-button>
               </el-form-item>
             </el-form>
           </div>
@@ -119,7 +124,7 @@
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
-import { ArrowLeft } from '@element-plus/icons-vue';
+import { ArrowLeft, ArrowDown } from '@element-plus/icons-vue';
 import {
   getCurrentUserInfo,
   updateNickname,
@@ -135,6 +140,7 @@ const editNickname = ref('');
 const oldPassword = ref('');
 const newPassword = ref('');
 const confirmPassword = ref('');
+const showPasswordForm = ref(false);
 
 onMounted(async () => {
   const user = JSON.parse(localStorage.getItem('user'));
@@ -247,7 +253,11 @@ const handleUpdatePassword = async () => {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background-image: url('../image/bg.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
 }
 
 .navbar {
@@ -296,16 +306,17 @@ const handleUpdatePassword = async () => {
 }
 
 .profile-card {
+  border-radius: 16px;
   width: 100%;
   max-width: 600px;
 }
 
 .profile-title {
   text-align: center;
-  font-size: 24px;
+  font-size: 22px;
   font-weight: 700;
   color: #333;
-  margin: 0;
+  margin: 0px;
 }
 
 .avatar-section {
@@ -391,10 +402,39 @@ const handleUpdatePassword = async () => {
   margin-top: 24px;
 }
 
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  padding: 12px 16px;
+  background: #f5f7fa;
+  border-radius: 8px;
+  transition: all 0.3s;
+}
+
+.section-header:hover {
+  background: #ecf5ff;
+}
+
 .section-title {
-  font-size: 20px;
+  font-size: 16px;
   font-weight: 600;
   color: #333;
-  margin-bottom: 24px;
+  margin: 0;
+}
+
+.toggle-icon {
+  font-size: 20px;
+  color: #409eff;
+  transition: transform 0.3s;
+}
+
+.toggle-icon.rotated {
+  transform: rotate(180deg);
+}
+
+.password-form {
+  margin-top: 16px;
 }
 </style>
