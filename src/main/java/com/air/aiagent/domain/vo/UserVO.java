@@ -36,4 +36,9 @@ public class UserVO {
      * 用户头像URL
      */
     private String avatar;
+
+    /**
+     * 是否为管理员：0-普通用户，1-管理员
+     */
+    private Integer isAdmin;
 }

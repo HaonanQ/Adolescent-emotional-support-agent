@@ -9,17 +9,19 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "vue": "^3.5.13",
-    "vue-router": "^4.6.4",
-    "element-plus": "^2.8.8",
+    "@element-plus/icons-vue": "^2.3.1",
+    "@wangeditor/editor": "^5.1.23",
+    "@wangeditor/editor-for-vue": "^5.1.12",
     "axios": "^1.13.5",
     "dompurify": "^3.3.1",
+    "element-plus": "^2.8.8",
     "marked": "^17.0.3",
-    "@element-plus/icons-vue": "^2.3.1"
+    "vue": "^3.5.13",
+    "vue-router": "^4.6.4"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.2.1",
-    "vite": "^6.0.0",
-    "sass": "^1.80.6"
+    "sass": "^1.80.6",
+    "vite": "^6.0.0"
   }
 }

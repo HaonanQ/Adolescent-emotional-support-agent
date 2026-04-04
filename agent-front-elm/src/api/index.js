@@ -216,4 +216,35 @@ export const updateStatus = (relationshipStatus) => {
   return request.post('/emotionagent/user/updateStatus', { relationshipStatus });
 };
 
+/**
+ * 情感课堂相关接口
+ */
+export const getArticleList = () => {
+  return request.post('/emotionArticle/list');
+};
+
+export const getArticleDetail = (id) => {
+  return request.post('/emotionArticle/detail', { id });
+};
+
+export const getAdminArticleList = () => {
+  return request.post('/emotionArticle/admin/list');
+};
+
+export const getAdminArticleDetail = (id) => {
+  return request.post('/emotionArticle/admin/detail', { id });
+};
+
+export const addArticle = (data) => {
+  return request.post('/emotionArticle/admin/add', data);
+};
+
+export const updateArticle = (data) => {
+  return request.post('/emotionArticle/admin/update', data);
+};
+
+export const deleteArticle = (id) => {
+  return request.post('/emotionArticle/admin/delete', { id });
+};
+
 export default request;

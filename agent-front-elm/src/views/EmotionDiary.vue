@@ -8,6 +8,7 @@
       <div class="nav-center">
         <el-button text @click="goToChat">情感陪伴</el-button>
         <el-button text type="primary">情绪日记</el-button>
+        <el-button text @click="goToEmotionClassroom">情感课堂</el-button>
         <el-button text>反馈与建议</el-button>
       </div>
       <div class="nav-right">
@@ -469,6 +470,10 @@ const goToHome = () => {
 
 const goToChat = () => {
   router.push('/chat');
+};
+
+const goToEmotionClassroom = () => {
+  router.push('/emotion-classroom');
 };
 
 const previewImage = (imageUrl) => {

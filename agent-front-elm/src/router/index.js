@@ -4,6 +4,9 @@ import Login from '../views/Login.vue';
 import Chat from '../views/Chat.vue';
 import EmotionDiary from '../views/EmotionDiary.vue';
 import Profile from '../views/Profile.vue';
+import EmotionClassroom from '../views/EmotionClassroom.vue';
+import ArticleDetail from '../views/ArticleDetail.vue';
+import ArticleEditor from '../views/ArticleEditor.vue';
 
 const routes = [
   {
@@ -26,6 +29,24 @@ const routes = [
     path: '/emotion-diary',
     name: 'EmotionDiary',
     component: EmotionDiary,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/emotion-classroom',
+    name: 'EmotionClassroom',
+    component: EmotionClassroom,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/article-detail',
+    name: 'ArticleDetail',
+    component: ArticleDetail,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/article-editor',
+    name: 'ArticleEditor',
+    component: ArticleEditor,
     meta: { requiresAuth: true },
   },
   {
