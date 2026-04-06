@@ -4,13 +4,16 @@ import cn.hutool.core.bean.BeanUtil;
 import com.air.aiagent.domain.dto.EmotionArticleAddRequest;
 import com.air.aiagent.domain.dto.EmotionArticleUpdateRequest;
 import com.air.aiagent.domain.entity.EmotionArticle;
+import com.air.aiagent.domain.entity.User;
 import com.air.aiagent.domain.vo.EmotionArticleVO;
 import com.air.aiagent.exception.BusinessException;
 import com.air.aiagent.exception.ErrorCode;
 import com.air.aiagent.mapper.EmotionArticleMapper;
 import com.air.aiagent.service.EmotionArticleService;
+import com.air.aiagent.service.UserService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -23,12 +26,22 @@ import java.util.stream.Collectors;
 @Service
 public class EmotionArticleServiceImpl extends ServiceImpl<EmotionArticleMapper, EmotionArticle> implements EmotionArticleService {
 
+    @Resource
+    private UserService userService;
+
     /**
      * Entity转换为VO
      */
     @Override
     public EmotionArticleVO entityToVO(EmotionArticle emotionArticle) {
-        return BeanUtil.copyProperties(emotionArticle, EmotionArticleVO.class);
+        EmotionArticleVO vo = BeanUtil.copyProperties(emotionArticle, EmotionArticleVO.class);
+        if (vo != null && emotionArticle.getAuthorId() != null) {
+            User author = userService.getById(emotionArticle.getAuthorId());
+            if (author != null) {
+                vo.setAuthorAvatar(author.getAvatar());
+            }
+        }
+        return vo;
     }
 
     /**

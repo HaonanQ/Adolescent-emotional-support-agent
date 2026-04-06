@@ -39,11 +39,9 @@
           class="new-article-btn"
           @click="goToEditor()"
         >
-          <el-icon><plus /></el-icon>
           新建文章
         </el-button>
       </div>
-
       <div class="article-list" v-loading="loading">
         <el-empty v-if="!loading && articles.length === 0" description="暂无新文章" :image-size="120">
           <template #image>
@@ -59,28 +57,23 @@
         >
           <div class="article-cover" v-if="article.coverImage">
             <img :src="article.coverImage" :alt="article.title" />
-            <span class="read-duration">{{ calcReadDuration(article.content) }}</span>
           </div>
           <div class="article-content-wrapper">
             <h2 class="article-title">{{ article.title }}</h2>
             <p class="article-summary" v-if="article.summary">{{ article.summary }}</p>
             <div class="article-meta">
               <div class="meta-left">
-                <el-avatar :size="24" class="author-avatar">
+                <el-avatar :size="24" class="author-avatar" :src="article.authorAvatar">
                   {{ (article.authorName || '管理员').charAt(0) }}
                 </el-avatar>
                 <span class="author-name">{{ article.authorName || '管理员' }}</span>
                 <el-tag v-if="isAdmin && article.status !== 1" size="small" type="info" class="status-tag">不可见</el-tag>
               </div>
               <div class="meta-right">
-                <span class="read-count">
-                  <el-icon><view /></el-icon>
-                  {{ article.readCount || 0 }}
-                </span>
                 <!-- 管理员操作按钮 -->
                 <div class="admin-actions" v-if="isAdmin" @click.stop>
                   <el-tooltip content="编辑" placement="top">
-                    <el-button text circle size="small" @click="goToEditor(article.id)">
+                    <el-button text circle size="large" @click="goToEditor(article.id)">
                       <el-icon><edit /></el-icon>
                     </el-button>
                   </el-tooltip>
@@ -88,20 +81,23 @@
                     <el-button
                       text
                       circle
-                      size="small"
-                      :type="article.status !== 1 ? 'success' : 'warning'"
+                      size="large"
+                      :class="article.status === 1 ? 'btn-warning' : 'btn-success'"
                       @click="toggleStatus(article)"
                     >
-                      <el-icon v-if="article.status === 1"><hide /></el-icon>
-                      <el-icon v-else><view /></el-icon>
+                      <el-icon ><hide /></el-icon>
                     </el-button>
                   </el-tooltip>
                   <el-tooltip content="删除" placement="top">
-                    <el-button text circle size="small" type="danger" @click="handleDelete(article)">
+                    <el-button text circle size="large" type="danger" @click="handleDelete(article)">
                       <el-icon><delete /></el-icon>
                     </el-button>
                   </el-tooltip>
                 </div>
+                <span class="read-count">
+                  <el-icon><view /></el-icon>
+                  阅读数：{{ article.readCount || 0 }}
+                </span>
               </div>
             </div>
           </div>
@@ -330,12 +326,12 @@ const handleCommand = (command) => {
 .classroom-main {
   max-width: 800px;
   margin: 0 auto;
-  padding: 32px 20px;
+  padding:20px 20px;
 }
 
 .page-header {
   text-align: center;
-  margin-bottom: 40px;
+  margin-bottom: 20px;
   position: relative;
 }
 
@@ -362,7 +358,8 @@ const handleCommand = (command) => {
 .article-list {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 16px;
+  padding-top: 0px;
 }
 
 .article-card {
@@ -480,13 +477,13 @@ const handleCommand = (command) => {
 .meta-right {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 1px;
 }
 
 .read-count {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 1px;
   font-size: 13px;
   color: #bbb;
 }
@@ -494,9 +491,30 @@ const handleCommand = (command) => {
 .admin-actions {
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: 0px;
   opacity: 0;
   transition: opacity 0.2s;
+}
+
+.admin-actions .el-button {
+  padding: 3px;
+  margin: 0;
+}
+
+.admin-actions .btn-warning {
+  color: #e6a23c;
+}
+
+.admin-actions .btn-warning:hover {
+  color: #ebb563;
+}
+
+.admin-actions .btn-success {
+  color: #67c23a;
+}
+
+.admin-actions .btn-success:hover {
+  color: #85ce61;
 }
 
 .article-card:hover .admin-actions {

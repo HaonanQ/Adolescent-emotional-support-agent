@@ -48,18 +48,35 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { ArrowLeft, View } from '@element-plus/icons-vue';
 import { ElMessage } from 'element-plus';
-import { getArticleDetail } from '../api/index';
+import { getArticleDetail, getAdminArticleDetail } from '../api/index';
 
 const router = useRouter();
 const route = useRoute();
 const article = ref(null);
 const loading = ref(false);
+const user = ref(null);
+
+/**
+ * 判断当前用户是否为管理员
+ */
+const isAdmin = computed(() => {
+  return user.value && user.value.isAdmin === 1;
+});
 
 onMounted(() => {
+  try {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      user.value = JSON.parse(storedUser);
+    }
+  } catch (e) {
+    console.error('解析用户信息失败:', e);
+  }
+  
   const id = route.query.id;
   if (id) {
     loadArticle(id);
@@ -75,7 +92,12 @@ onMounted(() => {
 const loadArticle = async (id) => {
   loading.value = true;
   try {
-    const res = await getArticleDetail(id);
+    let res;
+    if (isAdmin.value) {
+      res = await getAdminArticleDetail(id);
+    } else {
+      res = await getArticleDetail(id);
+    }
     if (res.code === 0 && res.data) {
       article.value = res.data;
       document.title = res.data.title + ' - 情感课堂';

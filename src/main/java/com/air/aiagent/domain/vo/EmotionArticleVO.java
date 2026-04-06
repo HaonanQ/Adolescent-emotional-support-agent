@@ -46,6 +46,11 @@ public class EmotionArticleVO {
     private String authorName;
 
     /**
+     * 作者头像
+     */
+    private String authorAvatar;
+
+    /**
      * 文章分类
      */
     private String category;

@@ -219,6 +219,27 @@ const goToHome = () => {
   margin-top: 24px;
 }
 
+.login-tabs :deep(.el-tabs__header) {
+  display: flex;
+  justify-content: center;
+}
+
+.login-tabs :deep(.el-tabs__nav-wrap) {
+  width: 100%;
+}
+
+.login-tabs :deep(.el-tabs__nav) {
+  width: 100%;
+  display: flex;
+}
+
+.login-tabs :deep(.el-tabs__item) {
+  flex: 1;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 500;
+}
+
 .login-form {
   margin-top: 24px;
 }

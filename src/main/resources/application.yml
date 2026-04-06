@@ -16,6 +16,12 @@ spring:
     store-type: redis
     # 30天过期
     timeout: 2592000
+  # 文件上传配置
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 50MB
+      max-request-size: 100MB
   #数据库配置 - MySQL主数据源（MyBatis使用）
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
