@@ -58,13 +58,13 @@
                 v-model="form.summary"
                 class="summary-input"
                 placeholder="请输入文章摘要（用于列表展示）..."
-                rows="3"
+                rows="4"
                 maxlength="200"
               ></textarea>
               <span class="char-count">{{ form.summary?.length || 0 }}/200</span>
             </div>
 
-            <div class="form-item">
+            <!-- <div class="form-item">
               <label class="form-label">文章分类</label>
               <el-input
                 v-model="form.category"
@@ -72,7 +72,7 @@
                 clearable
                 style="width: 100%"
               />
-            </div>
+            </div> -->
           </div>
         </div>
 
@@ -460,8 +460,8 @@ const handleGoBack = async () => {
 
 .form-row {
   display: flex;
-  gap: 28px;
-  margin-top: 24px;
+  gap: 24px;
+  margin-top: 22px;
 }
 
 .cover-section {

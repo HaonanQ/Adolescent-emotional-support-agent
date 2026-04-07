@@ -17,7 +17,7 @@
           <h1 class="article-title">{{ article.title }}</h1>
           <div class="article-info">
             <div class="info-left">
-              <el-avatar :size="28" class="author-avatar">
+              <el-avatar :size="28" class="author-avatar" :src="article.authorAvatar">
                 {{ (article.authorName || '管理员').charAt(0) }}
               </el-avatar>
               <span class="author-name">{{ article.authorName || '管理员' }}</span>
