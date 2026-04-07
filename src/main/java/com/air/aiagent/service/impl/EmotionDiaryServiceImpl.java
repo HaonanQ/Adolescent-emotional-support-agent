@@ -4,6 +4,7 @@ import cn.hutool.core.bean.BeanUtil;
 import com.air.aiagent.domain.dto.EmotionDiaryAddRequest;
 import com.air.aiagent.domain.entity.EmotionDiary;
 import com.air.aiagent.domain.vo.EmotionDiaryVO;
+import com.air.aiagent.domain.vo.EmotionHistoryVO;
 import com.air.aiagent.exception.BusinessException;
 import com.air.aiagent.exception.ErrorCode;
 import com.air.aiagent.mapper.EmotionDiaryMapper;
@@ -122,5 +123,43 @@ public class EmotionDiaryServiceImpl extends ServiceImpl<EmotionDiaryMapper, Emo
         }
 
         return removeById(id);
+    }
+
+    /**
+     * 获取用户最新一条情绪记录
+     */
+    @Override
+    public EmotionDiary getLatestEmotionByUserId(Long userId) {
+        if (userId == null) {
+            return null;
+        }
+        LambdaQueryWrapper<EmotionDiary> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(EmotionDiary::getUserId, userId)
+                .orderByDesc(EmotionDiary::getCreateTime)
+                .last("LIMIT 1");
+        return getOne(queryWrapper);
+    }
+
+    /**
+     * 获取用户情绪历史记录（按时间正序，用于展示变化趋势）
+     */
+    @Override
+    public List<EmotionHistoryVO> getEmotionHistoryByUserId(Long userId) {
+        if (userId == null) {
+            return List.of();
+        }
+        LambdaQueryWrapper<EmotionDiary> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(EmotionDiary::getUserId, userId)
+                .orderByAsc(EmotionDiary::getCreateTime);
+
+        List<EmotionDiary> list = list(queryWrapper);
+        return list.stream().map(diary -> {
+            EmotionHistoryVO vo = new EmotionHistoryVO();
+            vo.setId(diary.getId());
+            vo.setMood(diary.getMood());
+            vo.setMoodScore(diary.getMoodScore());
+            vo.setDiaryDate(diary.getCreateTime());
+            return vo;
+        }).collect(Collectors.toList());
     }
 }

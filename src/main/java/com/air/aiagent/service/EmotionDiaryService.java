@@ -4,6 +4,7 @@ import com.air.aiagent.domain.dto.EmotionDiaryAddRequest;
 import com.air.aiagent.domain.dto.EmotionDiaryQueryRequest;
 import com.air.aiagent.domain.entity.EmotionDiary;
 import com.air.aiagent.domain.vo.EmotionDiaryVO;
+import com.air.aiagent.domain.vo.EmotionHistoryVO;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 import java.util.List;
@@ -37,4 +38,14 @@ public interface EmotionDiaryService extends IService<EmotionDiary> {
      * 删除情绪日记
      */
     Boolean deleteEmotionDiary(Long id, Long userId);
+
+    /**
+     * 获取用户最新一条情绪记录
+     */
+    EmotionDiary getLatestEmotionByUserId(Long userId);
+
+    /**
+     * 获取用户情绪历史记录（按时间正序，用于展示变化趋势）
+     */
+    List<EmotionHistoryVO> getEmotionHistoryByUserId(Long userId);
 }

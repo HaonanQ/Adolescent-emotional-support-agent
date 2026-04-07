@@ -247,4 +247,19 @@ export const deleteArticle = (id) => {
   return request.post('/emotionArticle/admin/delete', { id });
 };
 
+/**
+ * 管理员用户管理相关接口
+ */
+export const getUserList = (params) => {
+  return request.post('/admin/user/list', params || {});
+};
+
+export const getEmotionHistory = (userId) => {
+  return request.post('/admin/user/emotion/history', null, { params: { userId } });
+};
+
+export const toggleUserStatus = (userId) => {
+  return request.post('/admin/user/toggleStatus', null, { params: { userId } });
+};
+
 export default request;

@@ -7,6 +7,7 @@ import Profile from '../views/Profile.vue';
 import EmotionClassroom from '../views/EmotionClassroom.vue';
 import ArticleDetail from '../views/ArticleDetail.vue';
 import ArticleEditor from '../views/ArticleEditor.vue';
+import UserManagement from '../views/UserManagement.vue';
 
 const routes = [
   {
@@ -53,6 +54,12 @@ const routes = [
     path: '/profile',
     name: 'Profile',
     component: Profile,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/user-management',
+    name: 'UserManagement',
+    component: UserManagement,
     meta: { requiresAuth: true },
   },
 ];

@@ -22,6 +22,7 @@
           <template #dropdown>
             <el-dropdown-menu>
               <el-dropdown-item command="profile">个人中心</el-dropdown-item>
+              <el-dropdown-item command="userManage" v-if="user.isAdmin === 1">用户管理</el-dropdown-item>
               <el-dropdown-item command="logout" divided>退出登录</el-dropdown-item>
             </el-dropdown-menu>
           </template>
@@ -248,6 +249,8 @@ const goToEditor = (id) => {
 const handleCommand = (command) => {
   if (command === 'profile') {
     router.push('/profile');
+  } else if (command === 'userManage') {
+    router.push('/user-management');
   } else if (command === 'logout') {
     localStorage.removeItem('user');
     user.value = null;
@@ -316,7 +319,7 @@ const handleCommand = (command) => {
 
 .user-name {
   font-weight: 500;
-  font-size: 14px;
+  font-size: 16px;
 }
 
 .empty-icon {
