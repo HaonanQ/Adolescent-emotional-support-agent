@@ -10,6 +10,7 @@ import com.air.aiagent.domain.vo.EmotionHistoryVO;
 import com.air.aiagent.domain.vo.UserManageVO;
 import com.air.aiagent.exception.BusinessException;
 import com.air.aiagent.exception.ErrorCode;
+import com.air.aiagent.mapper.UserMapper;
 import com.air.aiagent.service.EmotionDiaryService;
 import com.air.aiagent.service.UserService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -39,34 +40,53 @@ public class AdminController {
     @Resource
     private EmotionDiaryService emotionDiaryService;
 
+    @Resource
+    private  UserMapper userMapper;
+
     /**
      * 获取所有用户列表（含最新情绪分数）
      */
     @LoginCheck
     @PostMapping("/user/list")
     public BaseResponse<List<UserManageVO>> getUserList(@RequestBody(required = false) UserQueryRequest queryRequest, HttpServletRequest request) {
+//        User loginUser = userService.getLoginUser(request);
+//        if (loginUser.getIsAdmin() == null || loginUser.getIsAdmin() != 1) {
+//            throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "无权限访问");
+//        }
+//        LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
+//// 清空所有自动注入的条件（包括逻辑删除）
+//        queryWrapper.clear();
+//        if (queryRequest != null) {
+//            if (queryRequest.getKeyword() != null && !queryRequest.getKeyword().isEmpty()) {
+//                queryWrapper.and(w -> w
+//                        .like(User::getUsername, queryRequest.getKeyword())
+//                        .or()
+//                        .like(User::getNickname, queryRequest.getKeyword())
+//                );
+//            }
+//            if (queryRequest.getIsDeleted() != null) {
+//                queryWrapper.eq(User::getIsDeleted, queryRequest.getIsDeleted());
+//            } else {
+//                queryWrapper.eq(User::getIsDeleted, 0);
+//            }
+//        } else {
+//            queryWrapper.eq(User::getIsDeleted, 0);
+//        }
+//        queryWrapper.orderByDesc(User::getCreateTime);
+//        List<User> userList = userService.list(queryWrapper);
         User loginUser = userService.getLoginUser(request);
         if (loginUser.getIsAdmin() == null || loginUser.getIsAdmin() != 1) {
             throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "无权限访问");
         }
-        LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
+        // 直接用自定义SQL，100% 跳过逻辑删除插件
+        String keyword = null;
+        Integer isDeleted = null;
         if (queryRequest != null) {
-            if (queryRequest.getKeyword() != null && !queryRequest.getKeyword().isEmpty()) {
-                queryWrapper.and(w -> w
-                        .like(User::getUsername, queryRequest.getKeyword())
-                        .or()
-                        .like(User::getNickname, queryRequest.getKeyword())
-                );
-            }
-            if (queryRequest.getIsDeleted() != null) {
-                queryWrapper.eq(User::getIsDeleted, queryRequest.getIsDeleted());
-            }
+            keyword = queryRequest.getKeyword();
+            isDeleted = queryRequest.getIsDeleted();
         }
-        if (queryRequest == null || queryRequest.getIsDeleted() == null) {
-            queryWrapper.eq(User::getIsDeleted, 0);
-        }
-        queryWrapper.orderByDesc(User::getCreateTime);
-        List<User> userList = userService.list(queryWrapper);
+        // 调用自定义方法
+        List<User> userList = userMapper.selectUserList(keyword, isDeleted);
         List<UserManageVO> voList = userList.stream().map(user -> {
             UserManageVO vo = new UserManageVO();
             vo.setId(user.getId());
@@ -101,7 +121,8 @@ public class AdminController {
         if (loginUser.getIsAdmin() == null || loginUser.getIsAdmin() != 1) {
             throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "无权限访问");
         }
-        User targetUser = userService.getById(userId);
+        // 手写SQL查询，无视逻辑删除
+        User targetUser = userMapper.selectUserByIdIgnoreLogicDelete(userId);
         if (targetUser == null) {
             throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "用户不存在");
         }
@@ -109,10 +130,8 @@ public class AdminController {
             throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "无法操作管理员账号");
         }
         int newStatus = (targetUser.getIsDeleted() == null || targetUser.getIsDeleted() == 0) ? 1 : 0;
-        LambdaUpdateWrapper<User> updateWrapper = new LambdaUpdateWrapper<>();
-        updateWrapper.eq(User::getId, userId).set(User::getIsDeleted, newStatus);
-        boolean success = userService.update(updateWrapper);
-        return ResultUtils.success(success);
+        userMapper.updateUserStatus(userId, newStatus);
+        return ResultUtils.success(true);
     }
 
     /**
