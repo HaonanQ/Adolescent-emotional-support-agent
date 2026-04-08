@@ -262,4 +262,59 @@ export const toggleUserStatus = (userId) => {
   return request.post('/admin/user/toggleStatus', null, { params: { userId } });
 };
 
+/**
+ * 知识库管理相关接口
+ */
+export const getKnowledgeBaseList = () => {
+  return request.post('/knowledgeBase/list');
+};
+
+export const addKnowledgeBase = (data) => {
+  return request.post('/knowledgeBase/add', data);
+};
+
+export const updateKnowledgeBase = (data) => {
+  return request.post('/knowledgeBase/update', data);
+};
+
+export const deleteKnowledgeBase = (id) => {
+  return request.post('/knowledgeBase/delete', null, { params: { id } });
+};
+
+export const updateKnowledgeBaseStatus = (id, status) => {
+  return request.post('/knowledgeBase/updateStatus', null, { params: { id, status } });
+};
+
+export const updateKnowledgeBaseAutoLoad = (id, autoLoad) => {
+  return request.post('/knowledgeBase/updateAutoLoad', null, { params: { id, autoLoad } });
+};
+
+export const hotReloadKnowledgeBase = (id) => {
+  return request.post('/knowledgeBase/hotReload', null, { params: { id } });
+};
+
+export const getDocumentList = (knowledgeBaseId) => {
+  return request.post('/knowledgeBase/document/list', null, { params: { knowledgeBaseId } });
+};
+
+export const deleteDocument = (id) => {
+  return request.post('/knowledgeBase/document/delete', null, { params: { id } });
+};
+
+export const updateDocumentStatus = (id, status) => {
+  return request.post('/knowledgeBase/document/updateStatus', null, { params: { id, status } });
+};
+
+export const downloadDocument = (id) => {
+  return `/api/knowledgeBase/document/download?id=${id}`;
+};
+
+export const batchUpdateDocumentStatus = (ids, status) => {
+  return request.post('/knowledgeBase/document/batchUpdateStatus', { ids, status });
+};
+
+export const batchDeleteDocuments = (ids) => {
+  return request.post('/knowledgeBase/document/batchDelete', { ids });
+};
+
 export default request;

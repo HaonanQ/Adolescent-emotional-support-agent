@@ -8,6 +8,7 @@ import EmotionClassroom from '../views/EmotionClassroom.vue';
 import ArticleDetail from '../views/ArticleDetail.vue';
 import ArticleEditor from '../views/ArticleEditor.vue';
 import UserManagement from '../views/UserManagement.vue';
+import KnowledgeManagement from '../views/KnowledgeManagement.vue';
 
 const routes = [
   {
@@ -60,6 +61,12 @@ const routes = [
     path: '/user-management',
     name: 'UserManagement',
     component: UserManagement,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/knowledge-management',
+    name: 'KnowledgeManagement',
+    component: KnowledgeManagement,
     meta: { requiresAuth: true },
   },
 ];

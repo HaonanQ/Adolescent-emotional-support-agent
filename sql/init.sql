@@ -1,3 +1,32 @@
+create table emotion_article
+(
+    id          bigint auto_increment comment '文章ID'
+        primary key,
+    title       varchar(255)                       not null comment '文章标题',
+    content     longtext                           not null comment '文章内容（HTML富文本，支持图片）',
+    cover_image varchar(500)                       null comment '封面图片URL',
+    summary     varchar(1000)                      null comment '文章摘要（列表展示用）',
+    author_id   bigint                             not null comment '作者用户ID',
+    author_name varchar(100)                       null comment '作者名称',
+    category    varchar(100)                       null comment '文章分类',
+    status      tinyint  default 1                 null comment '发布状态：0-不可见（下架），1-可见（已发布）',
+    read_count  int      default 0                 null comment '阅读次数',
+    sort_order  int      default 0                 null comment '排序权重（越大越靠前）',
+    create_time datetime default CURRENT_TIMESTAMP null comment '创建时间',
+    update_time datetime default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP comment '更新时间',
+    is_deleted  tinyint  default 0                 null comment '逻辑删除：0-未删除，1-已删除'
+)
+    comment '情感课堂文章表' collate = utf8mb4_general_ci;
+
+create index idx_create_time
+    on emotion_article (create_time);
+
+create index idx_sort
+    on emotion_article (sort_order);
+
+create index idx_status
+    on emotion_article (status);
+
 create table emotion_diary
 (
     id          bigint auto_increment comment '日记ID'
@@ -74,7 +103,6 @@ create table user
     nickname            varchar(20) default '开心麻花'        null comment '用户昵称',
     password            varchar(100)                          null comment '密码（BCrypt加密）',
     relationship_status tinyint     default 0                 null comment '恋爱状态：0-单身，1-恋爱中',
-    avatar              varchar(500)                          null comment '用户头像URL',
     create_time         datetime    default CURRENT_TIMESTAMP not null comment '创建时间',
     update_time         datetime    default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
     is_deleted          tinyint     default 0                 not null comment '逻辑删除：0-未删除，1-已删除',

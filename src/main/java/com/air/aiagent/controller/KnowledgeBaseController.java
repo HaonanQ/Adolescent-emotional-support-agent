@@ -18,10 +18,12 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -125,6 +127,21 @@ public class KnowledgeBaseController {
     @PostMapping("/add")
     public BaseResponse<Long> addKnowledgeBase(@RequestBody KnowledgeBase knowledgeBase, HttpServletRequest request) {
         User admin = checkAdminPermission(request);
+        
+        // 校验表名
+        String tableName = knowledgeBase.getTableName();
+        if (tableName == null || tableName.trim().isEmpty()) {
+            return (BaseResponse<Long>) ResultUtils.error(ErrorCode.PARAMS_ERROR, "表名不能为空");
+        }
+        // 校验表名长度
+        if (tableName.length() > 30) {
+            return (BaseResponse<Long>) ResultUtils.error(ErrorCode.PARAMS_ERROR, "表名长度不能超过30个字符");
+        }
+        // 校验表名格式：只允许小写字母、数字和下划线，以字母开头
+        if (!tableName.matches("^[a-z][a-z0-9_]*$")) {
+            return (BaseResponse<Long>) ResultUtils.error(ErrorCode.PARAMS_ERROR, "表名格式不正确，只能包含小写字母、数字和下划线，且必须以字母开头");
+        }
+        
         try {
             Long id = knowledgeBaseService.createKnowledgeBase(knowledgeBase);
             if (id != null) {
@@ -160,6 +177,153 @@ public class KnowledgeBaseController {
 
         boolean updated = knowledgeBaseService.updateById(knowledgeBase);
         return ResultUtils.success(updated);
+    }
+
+    /**
+     * 批量更新文档状态
+     * @param ids 文档ID列表
+     * @param status 状态：0-停用，1-启用
+     * @param request HTTP请求
+     * @return 是否成功
+     */
+    @LoginCheck
+    @Operation(summary = "批量更新文档状态", description = "批量设置文档的启用状态（需要管理员权限）")
+    @PostMapping("/document/batchUpdateStatus")
+    public BaseResponse<Boolean> batchUpdateDocumentStatus(@RequestBody java.util.Map<String, Object> params, HttpServletRequest request) {
+        checkAdminPermission(request);
+        
+        @SuppressWarnings("unchecked")
+        java.util.List<?> idList = (java.util.List<?>) params.get("ids");
+        Integer status = (Integer) params.get("status");
+        
+        if (idList == null || idList.isEmpty()) {
+            return (BaseResponse<Boolean>) ResultUtils.error(ErrorCode.PARAMS_ERROR, "文档ID列表不能为空");
+        }
+        
+        for (Object idObj : idList) {
+            Long id;
+            if (idObj instanceof Number) {
+                id = ((Number) idObj).longValue();
+            } else if (idObj instanceof String) {
+                id = Long.parseLong((String) idObj);
+            } else {
+                continue;
+            }
+            KnowledgeDocument document = new KnowledgeDocument();
+            document.setId(id);
+            document.setStatus(status);
+            document.setUpdateTime(LocalDateTime.now());
+            knowledgeDocumentService.updateById(document);
+            
+            // 更新知识库的文档数量
+            KnowledgeDocument doc = knowledgeDocumentService.getById(id);
+            if (doc != null) {
+                updateKnowledgeBaseDocumentCount(doc.getKnowledgeBaseId());
+            }
+        }
+        
+        return ResultUtils.success(true);
+    }
+
+    /**
+     * 批量删除文档
+     * @param ids 文档ID列表
+     * @param request HTTP请求
+     * @return 是否成功
+     */
+    @LoginCheck
+    @Operation(summary = "批量删除文档", description = "批量删除文档（需要管理员权限）")
+    @PostMapping("/document/batchDelete")
+    public BaseResponse<Boolean> batchDeleteDocuments(@RequestBody java.util.Map<String, Object> params, HttpServletRequest request) {
+        User admin = checkAdminPermission(request);
+        
+        @SuppressWarnings("unchecked")
+        java.util.List<?> idList = (java.util.List<?>) params.get("ids");
+        
+        if (idList == null || idList.isEmpty()) {
+            return (BaseResponse<Boolean>) ResultUtils.error(ErrorCode.PARAMS_ERROR, "文档ID列表不能为空");
+        }
+        
+        int count = 0;
+        for (Object idObj : idList) {
+            Long id;
+            if (idObj instanceof Number) {
+                id = ((Number) idObj).longValue();
+            } else if (idObj instanceof String) {
+                id = Long.parseLong((String) idObj);
+            } else {
+                continue;
+            }
+            KnowledgeDocument doc = knowledgeDocumentService.getById(id);
+            if (doc != null) {
+                // 删除文件
+                if (doc.getFilePath() != null) {
+                    java.io.File file = new java.io.File(doc.getFilePath());
+                    if (file.exists()) {
+                        file.delete();
+                    }
+                }
+                
+                // 删除数据库记录
+                knowledgeDocumentService.removeById(id);
+                
+                // 更新知识库的文档数量
+                updateKnowledgeBaseDocumentCount(doc.getKnowledgeBaseId());
+                count++;
+            }
+        }
+        
+        log.info("管理员 [{}] 批量删除文档成功，数量: {}", admin.getUsername(), count);
+        return ResultUtils.success(true);
+    }
+
+    /**
+     * 下载文档
+     * @param id 文档ID
+     * @param request HTTP请求
+     * @param response HTTP响应
+     */
+    @LoginCheck
+    @Operation(summary = "下载文档", description = "下载知识库文档（需要管理员权限）")
+    @Parameter(name = "id", description = "文档ID", required = true)
+    @GetMapping("/document/download")
+    public void downloadDocument(@RequestParam Long id, HttpServletRequest request, HttpServletResponse response) {
+        checkAdminPermission(request);
+        
+        KnowledgeDocument document = knowledgeDocumentService.getById(id);
+        if (document == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "文档不存在");
+        }
+        
+        String filePath = document.getFilePath();
+        if (filePath == null || filePath.isEmpty()) {
+            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "文件路径不存在");
+        }
+        
+        java.io.File file = new java.io.File(filePath);
+        if (!file.exists()) {
+            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "文件不存在");
+        }
+        
+        try {
+            response.setContentType("application/octet-stream");
+            response.setHeader("Content-Disposition", "attachment; filename=\"" + 
+                java.net.URLEncoder.encode(document.getFileName(), "UTF-8") + "\"");
+            response.setContentLengthLong(file.length());
+            
+            try (java.io.FileInputStream fis = new java.io.FileInputStream(file);
+                 java.io.OutputStream os = response.getOutputStream()) {
+                byte[] buffer = new byte[4096];
+                int bytesRead;
+                while ((bytesRead = fis.read(buffer)) != -1) {
+                    os.write(buffer, 0, bytesRead);
+                }
+                os.flush();
+            }
+        } catch (Exception e) {
+            log.error("下载文档失败: {}", e.getMessage());
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "下载文档失败");
+        }
     }
 
     /**
@@ -314,6 +478,8 @@ public class KnowledgeBaseController {
             document.setFileType("markdown");
             document.setFileSize(file.getSize());
             document.setStatus(1); // 默认启用
+            document.setCreateTime(LocalDateTime.now());
+            document.setUpdateTime(LocalDateTime.now());
 
             boolean saved = knowledgeDocumentService.save(document);
             if (saved) {
@@ -400,6 +566,7 @@ public class KnowledgeBaseController {
         KnowledgeDocument document = new KnowledgeDocument();
         document.setId(id);
         document.setStatus(status);
+        document.setUpdateTime(LocalDateTime.now());
         boolean updated = knowledgeDocumentService.updateById(document);
 
         if (updated) {
@@ -422,6 +589,7 @@ public class KnowledgeBaseController {
             KnowledgeBase knowledgeBase = new KnowledgeBase();
             knowledgeBase.setId(knowledgeBaseId);
             knowledgeBase.setDocumentCount(count);
+            knowledgeBase.setUpdateTime(LocalDateTime.now());
             knowledgeBaseService.updateById(knowledgeBase);
         } catch (Exception e) {
             log.error("更新知识库文档数量失败，knowledgeBaseId: {}", knowledgeBaseId, e);

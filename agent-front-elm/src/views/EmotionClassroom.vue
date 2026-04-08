@@ -8,7 +8,8 @@
       <div class="nav-center">
         <el-button text @click="goToChat">情感陪伴</el-button>
         <el-button text @click="goToEmotionDiary">情绪日记</el-button>
-        <el-button text @click="goToEmotionClassroom">情感课堂</el-button>
+        <el-button text type="primary">情感课堂</el-button>
+        <el-button text @click="goToKnowledgeManagement" v-if="user?.isAdmin === 1">知识库管理</el-button>
         <el-button text>反馈与建议</el-button>
       </div>
       <div class="nav-right">
@@ -22,7 +23,8 @@
           <template #dropdown>
             <el-dropdown-menu>
               <el-dropdown-item command="profile">个人中心</el-dropdown-item>
-              <el-dropdown-item command="userManage" v-if="user.isAdmin === 1">用户管理</el-dropdown-item>
+              <el-dropdown-item command="userManage" v-if="user?.isAdmin === 1">用户管理</el-dropdown-item>
+              <el-dropdown-item command="knowledgeManage" v-if="user?.isAdmin === 1">知识库管理</el-dropdown-item>
               <el-dropdown-item command="logout" divided>退出登录</el-dropdown-item>
             </el-dropdown-menu>
           </template>
@@ -233,7 +235,9 @@ const goToEmotionClassroom = () => {
 const goToDetail = (id) => {
   router.push({ path: '/article-detail', query: { id } });
 };
-
+const goToKnowledgeManagement = () => {
+  router.push('/knowledge-management');
+};
 /**
  * 跳转到编辑器页面
  * @param {number} id - 文章ID，不传则新建
@@ -251,6 +255,8 @@ const handleCommand = (command) => {
     router.push('/profile');
   } else if (command === 'userManage') {
     router.push('/user-management');
+  } else if (command === 'knowledgeManage') {
+    router.push('/knowledge-management');
   } else if (command === 'logout') {
     localStorage.removeItem('user');
     user.value = null;
