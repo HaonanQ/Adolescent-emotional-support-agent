@@ -39,9 +39,9 @@ public class User implements Serializable {
     private String password;
 
     /**
-     * 恋爱状态：0-单身，1-恋爱中
+     * 性别：0-女生，1-男生
      */
-    private Integer relationshipStatus;
+    private Integer sex;
 
     /**
      * 创建时间

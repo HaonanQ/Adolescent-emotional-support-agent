@@ -55,21 +55,21 @@
               </div>
             </el-form-item>
 
-            <el-form-item label="当前状态">
-              <div class="status-options">
+            <el-form-item label="性别">
+              <div class="sex-options">
                 <div
-                  :class="['status-option', { active: userInfo.relationshipStatus === 0 }]"
-                  @click="handleUpdateStatus(0)"
+                  :class="['sex-option', 'female', { active: userInfo.sex === 0 }]"
+                  @click="handleUpdateSex(0)"
                 >
-                  <span class="status-icon">💔</span>
-                  <span class="status-text">单身</span>
+                  <span class="sex-icon">♀</span>
+                  <span class="sex-text">女</span>
                 </div>
                 <div
-                  :class="['status-option', { active: userInfo.relationshipStatus === 1 }]"
-                  @click="handleUpdateStatus(1)"
+                  :class="['sex-option', 'male', { active: userInfo.sex === 1 }]"
+                  @click="handleUpdateSex(1)"
                 >
-                  <span class="status-icon">💕</span>
-                  <span class="status-text">恋爱中</span>
+                  <span class="sex-icon">♂</span>
+                  <span class="sex-text">男</span>
                 </div>
               </div>
             </el-form-item>
@@ -130,7 +130,7 @@ import {
   updateNickname,
   updatePassword,
   updateAvatar,
-  updateStatus,
+  updateSex,
   uploadImage
 } from '../api';
 
@@ -208,17 +208,17 @@ const handleUpdateNickname = async () => {
   }
 };
 
-const handleUpdateStatus = async (status) => {
+const handleUpdateSex = async (sex) => {
   try {
-    const response = await updateStatus(status);
+    const response = await updateSex(sex);
     if (response.code === 0 && response.data) {
       userInfo.value = response.data;
       localStorage.setItem('user', JSON.stringify(response.data));
-      ElMessage.success('状态更新成功！');
+      ElMessage.success('性别更新成功！');
     }
   } catch (error) {
-    console.error('更新状态失败:', error);
-    ElMessage.error('更新状态失败，请重试');
+    console.error('更新性别失败:', error);
+    ElMessage.error('更新性别失败，请重试');
   }
 };
 
@@ -360,40 +360,52 @@ const handleUpdatePassword = async () => {
   width: 100%;
 }
 
-.status-options {
+.sex-options {
   display: flex;
-  gap: 16px;
-  width: 100%;
+  gap: 12px;
 }
 
-.status-option {
-  flex: 1;
+.sex-option {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  padding: 24px 16px;
+  gap: 6px;
+  padding: 1px 20px;
   border: 2px solid #e0e0e0;
-  border-radius: 12px;
+  border-radius: 8px;
   cursor: pointer;
   transition: all 0.3s;
+  user-select: none;
 }
 
-.status-option:hover {
+.sex-option:hover {
   border-color: #409eff;
 }
 
-.status-option.active {
+.sex-option.female.active {
+  border-color: #f56c6c;
+  background: rgba(245, 108, 108, 0.1);
+}
+
+.sex-option.male.active {
   border-color: #409eff;
   background: rgba(64, 158, 255, 0.1);
 }
 
-.status-icon {
-  font-size: 40px;
-  margin-bottom: 8px;
+.sex-icon {
+  font-size: 20px;
+  font-weight: bold;
 }
 
-.status-text {
-  font-size: 16px;
+.sex-option.female .sex-icon {
+  color: #f56c6c;
+}
+
+.sex-option.male .sex-icon {
+  color: #409eff;
+}
+
+.sex-text {
+  font-size: 14px;
   font-weight: 500;
   color: #555;
 }

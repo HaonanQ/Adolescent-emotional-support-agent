@@ -63,6 +63,16 @@
               <el-option label="已启用" :value="0" />
               <el-option label="已停用" :value="1" />
             </el-select>
+            <el-select
+              v-model="sexFilter"
+              placeholder="性别"
+              clearable
+              style="width: 120px"
+              @change="handleSearch"
+            >
+              <el-option label="女生" :value="0" />
+              <el-option label="男生" :value="1" />
+            </el-select>
             <el-button type="primary" @click="handleSearch">
               <el-icon><Search /></el-icon>  
               <span style="margin-left:6px;">搜索</span>
@@ -98,6 +108,14 @@
           <el-table-column label="注册时间" width="170">
             <template #default="{ row }">
               {{ formatDate(row.createTime) }}
+            </template>
+          </el-table-column>
+
+          <el-table-column label="性别" width="80" align="center">
+            <template #default="{ row }">
+              <el-tag v-if="row.sex === 0" type="danger" size="small">女生</el-tag>
+              <el-tag v-else-if="row.sex === 1" type="primary" size="small">男生</el-tag>
+              <span v-else class="no-mood">-</span>
             </template>
           </el-table-column>
 
@@ -216,6 +234,7 @@ const currentUser = ref(null);
 const emotionHistory = ref([]);
 const searchKeyword = ref('');
 const statusFilter = ref(null);
+const sexFilter = ref(null);
 
 /**
  * 加载用户列表
@@ -229,6 +248,9 @@ const loadUserList = async () => {
     }
     if (statusFilter.value !== null && statusFilter.value !== undefined) {
       params.isDeleted = statusFilter.value;
+    }
+    if (sexFilter.value !== null && sexFilter.value !== undefined) {
+      params.sex = sexFilter.value;
     }
     const res = await getUserList(Object.keys(params).length > 0 ? params : null);
     if (res.code === 0) {
@@ -255,6 +277,7 @@ const handleSearch = () => {
 const resetFilters = () => {
   searchKeyword.value = '';
   statusFilter.value = null;
+  sexFilter.value = null;
   loadUserList();
 };
 

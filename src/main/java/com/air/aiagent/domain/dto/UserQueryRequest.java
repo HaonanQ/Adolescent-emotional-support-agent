@@ -20,5 +20,10 @@ public class UserQueryRequest implements Serializable {
      */
     private Integer isDeleted;
 
+    /**
+     * 性别：0-女生，1-男生，不传则查全部
+     */
+    private Integer sex;
+
     private static final long serialVersionUID = 1L;
 }

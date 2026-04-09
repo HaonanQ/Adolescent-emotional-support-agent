@@ -78,15 +78,15 @@ public class AdminController {
         if (loginUser.getIsAdmin() == null || loginUser.getIsAdmin() != 1) {
             throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "无权限访问");
         }
-        // 直接用自定义SQL，100% 跳过逻辑删除插件
         String keyword = null;
         Integer isDeleted = null;
+        Integer sex = null;
         if (queryRequest != null) {
             keyword = queryRequest.getKeyword();
             isDeleted = queryRequest.getIsDeleted();
+            sex = queryRequest.getSex();
         }
-        // 调用自定义方法
-        List<User> userList = userMapper.selectUserList(keyword, isDeleted);
+        List<User> userList = userMapper.selectUserList(keyword, isDeleted, sex);
         List<UserManageVO> voList = userList.stream().map(user -> {
             UserManageVO vo = new UserManageVO();
             vo.setId(user.getId());
@@ -96,6 +96,7 @@ public class AdminController {
             vo.setCreateTime(user.getCreateTime());
             vo.setIsAdmin(user.getIsAdmin());
             vo.setIsDeleted(user.getIsDeleted());
+            vo.setSex(user.getSex());
             EmotionDiary latest = emotionDiaryService.getLatestEmotionByUserId(user.getId());
             if (latest != null) {
                 vo.setLatestMoodScore(latest.getMoodScore());

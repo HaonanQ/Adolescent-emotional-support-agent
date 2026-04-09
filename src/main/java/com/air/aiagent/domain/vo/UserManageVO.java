@@ -65,6 +65,11 @@ public class UserManageVO implements Serializable {
     private Integer isAdmin;
 
     /**
+     * 性别：0-女生，1-男生
+     */
+    private Integer sex;
+
+    /**
      * 账号状态：0-已启用，1-已停用
      */
     private Integer isDeleted;

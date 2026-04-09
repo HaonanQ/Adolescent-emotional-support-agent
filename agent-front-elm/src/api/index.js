@@ -212,8 +212,8 @@ export const updateAvatar = (avatar) => {
   return request.post('/emotionagent/user/updateAvatar', { avatar });
 };
 
-export const updateStatus = (relationshipStatus) => {
-  return request.post('/emotionagent/user/updateStatus', { relationshipStatus });
+export const updateSex = (sex) => {
+  return request.post('/emotionagent/user/updateSex', { sex });
 };
 
 /**

@@ -207,24 +207,21 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     /**
-     * 更新用户状态
+     * 更新用户性别
      */
     @Override
-    public Boolean updateStatus(Long userId, Integer relationshipStatus){
-        // 1.校验参数
+    public Boolean updateSex(Long userId, Integer sex){
         if(userId == null){
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户ID不能为空");
         }
-        if(relationshipStatus == null || (relationshipStatus != 0 && relationshipStatus != 1)){
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "状态值无效");
+        if(sex == null || (sex != 0 && sex != 1)){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "性别值无效");
         }
-        // 2.查询用户是否存在
         User user = this.getById(userId);
         if(user == null){
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户不存在");
         }
-        // 3.更新状态
-        user.setRelationshipStatus(relationshipStatus);
+        user.setSex(sex);
         user.setUpdateTime(new Date());
         return this.updateById(user);
     }

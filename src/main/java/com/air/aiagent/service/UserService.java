@@ -54,9 +54,9 @@ public interface UserService extends IService<User> {
     Boolean updateAvatar(Long userId, String avatar);
 
     /**
-     * 更新用户状态
+     * 更新用户性别
      */
-    Boolean updateStatus(Long userId, Integer relationshipStatus);
+    Boolean updateSex(Long userId, Integer sex);
 
     /**
      * 获取当前登录用户信息

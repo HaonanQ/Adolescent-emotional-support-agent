@@ -149,22 +149,18 @@ public class UserController {
     }
 
     /**
-     * 修改用户状态
+     * 修改用户性别
      */
     @LoginCheck
-    @PostMapping("/updateStatus")
-    public BaseResponse<UserVO> updateStatus(@RequestBody UpdateStatusRequest request, HttpServletRequest httpServletRequest){
-        // 1.获取当前登录用户
+    @PostMapping("/updateSex")
+    public BaseResponse<UserVO> updateSex(@RequestBody UpdateStatusRequest request, HttpServletRequest httpServletRequest){
         User loginUser = userService.getLoginUser(httpServletRequest);
-        // 2.调用更新状态方法
-        boolean success = userService.updateStatus(loginUser.getId(), request.getRelationshipStatus());
+        boolean success = userService.updateSex(loginUser.getId(), request.getSex());
         if(!success){
-            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "修改状态失败");
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "修改性别失败");
         }
-        // 3.更新session中的用户信息
         User updatedUser = userService.getById(loginUser.getId());
         httpServletRequest.getSession().setAttribute(LOGIN_USER, updatedUser);
-        // 4.返回更新后的用户信息
         return ResultUtils.success(userService.entityToVO(updatedUser));
     }
 
