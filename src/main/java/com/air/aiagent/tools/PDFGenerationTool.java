@@ -114,13 +114,22 @@ public class PDFGenerationTool {
 
                 // load regular
                 try {
-                    ClassPathResource baseFontRes = new ClassPathResource("fonts/NotoSansCJKsc-Regular.otf");
-                    try (InputStream baseIn = baseFontRes.getInputStream()) {
-                        byte[] baseBytes = baseIn.readAllBytes();
-                        FontProgram fontProgram = FontProgramFactory.createFont(baseBytes);
-                        mainFont = PdfFontFactory.createFont(fontProgram, PdfEncodings.IDENTITY_H,
-                                PdfFontFactory.EmbeddingStrategy.FORCE_EMBEDDED);
-                        System.out.println("✓ Base font loaded: " + baseFontRes.getPath());
+                    // 尝试从类路径加载字体文件
+                    InputStream baseIn = getClass().getClassLoader().getResourceAsStream("fonts/NotoSansCJKsc-Regular.otf");
+                    if (baseIn != null) {
+                        try {
+                            byte[] baseBytes = baseIn.readAllBytes();
+                            FontProgram fontProgram = FontProgramFactory.createFont(baseBytes);
+                            mainFont = PdfFontFactory.createFont(fontProgram, PdfEncodings.IDENTITY_H,
+                                    PdfFontFactory.EmbeddingStrategy.FORCE_EMBEDDED);
+                            System.out.println("✓ Base font loaded from classpath");
+                        } finally {
+                            baseIn.close();
+                        }
+                    } else {
+                        // 回退到内置字体（不会支持中文/emoji）
+                        System.err.println("⚠ Base font not found in classpath, fallback to Helvetica");
+                        mainFont = PdfFontFactory.createFont(StandardFonts.HELVETICA);
                     }
                 } catch (Exception e) {
                     // 回退到内置字体（不会支持中文/emoji）
@@ -147,17 +156,20 @@ public class PDFGenerationTool {
                 // 如果包含 emoji，则加载 emoji 字体
                 if (hasEmoji) {
                     try {
-                        ClassPathResource emojiRes = new ClassPathResource("fonts/NotoColorEmoji.ttf");
-                        if (emojiRes.exists()) {
-                            try (InputStream emojiIn = emojiRes.getInputStream()) {
+                        // 尝试从类路径加载emoji字体
+                        InputStream emojiIn = getClass().getClassLoader().getResourceAsStream("fonts/NotoColorEmoji.ttf");
+                        if (emojiIn != null) {
+                            try {
                                 byte[] emojiBytes = emojiIn.readAllBytes();
                                 FontProgram emojiProgram = FontProgramFactory.createFont(emojiBytes);
                                 emojiFont = PdfFontFactory.createFont(emojiProgram, PdfEncodings.IDENTITY_H,
                                         PdfFontFactory.EmbeddingStrategy.FORCE_EMBEDDED);
-                                System.out.println("✓ Emoji font loaded: " + emojiRes.getPath());
+                                System.out.println("✓ Emoji font loaded from classpath");
+                            } finally {
+                                emojiIn.close();
                             }
                         } else {
-                            System.out.println("ℹ Emoji font resource not found (optional).");
+                            System.out.println("ℹ Emoji font not found in classpath (optional).");
                         }
                     } catch (Exception e) {
                         System.err.println("⚠ Failed to load emoji font (optional): " + e.getMessage());
