@@ -71,7 +71,7 @@ public class TeenSupportController {
      * RAG知识库对话，支持工具调用
      */
     @CheckLoginwithChat
-    @PostMapping(value = "/chat/rag", produces = "text/html;charset=UTF-8")
+    @PostMapping(value = "/chat/rag", produces = "text/event-stream;charset=UTF-8")
     @ClearContext
     public Flux<String> chatWithRag(@RequestBody ChatRequest request, HttpServletRequest httpServletRequest) {
         log.info("收到RAG知识库对话请求: {}", request);
@@ -474,7 +474,7 @@ public class TeenSupportController {
      * 发送包含图片的消息
      */
     @CheckLoginwithChat
-    @PostMapping(value = "/chat/image", produces = "text/html;charset=UTF-8")
+    @PostMapping(value = "/chat/image", produces = "text/event-stream;charset=UTF-8")
     @ClearContext
     public Flux<String> chatWithImage(
             @RequestParam("file") MultipartFile file,
@@ -574,7 +574,7 @@ public class TeenSupportController {
      * 发送包含音频的消息
      */
     @CheckLoginwithChat
-    @PostMapping(value = "/chat/audio", produces = "text/html;charset=UTF-8")
+    @PostMapping(value = "/chat/audio", produces = "text/event-stream;charset=UTF-8")
     @ClearContext
     public Flux<String> chatWithAudio(
             @RequestParam("file") MultipartFile file,
