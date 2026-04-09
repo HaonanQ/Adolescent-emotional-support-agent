@@ -110,7 +110,7 @@
                 <el-image 
                   :src="message.imageFileUrl" 
                   :alt="message.imageFileName || '图片'" 
-                  fit="cover" 
+                  fit="contain" 
                   class="message-image"
                   @click="previewImage(message.imageFileUrl)"
                 />
@@ -140,7 +140,7 @@
               @change="handleImageSelect"
             />
             <div v-if="selectedImage" class="selected-image-preview">
-              <el-image :src="selectedImage.preview" :alt="selectedImage.name" fit="cover" class="preview-image" />
+              <el-image :src="selectedImage.preview" :alt="selectedImage.name" fit="contain" class="preview-image" />
               <el-button type="danger" circle size="medium" @click="removeSelectedImage" class="remove-image-btn">
                 <el-icon><close /></el-icon>
               </el-button>
@@ -1011,14 +1011,19 @@ onMounted(async () => {
 
 .image-container {
   margin-bottom: 10px;
+  max-width: 100%;
+  overflow: hidden;
 }
 
 .message-image {
-  max-width: 100%;
+  width: 100%;
+  height: 100%;
+  max-width: 300px;
   max-height: 400px;
   border-radius: 16px;
   cursor: pointer;
   transition: transform 0.2s;
+  object-fit: contain;
 }
 
 .message-image:hover {
@@ -1260,6 +1265,8 @@ onMounted(async () => {
 }
 
 .dialog-image {
+  width: 100%;
+  height: 100%;
   max-width: 100%;
   max-height: 100%;
   object-fit: contain;
