@@ -16,6 +16,9 @@ public class ToolRegistration {
     @Value("${search-api.api-key}")
     private String searchApiKey;
 
+    @Value("${tavily-api}")
+    private String tavilySearchApiKey;
+
     @Resource
     private PDFGenerationTool pdfGenerationTool;
 
@@ -27,6 +30,10 @@ public class ToolRegistration {
         ResourceDownloadTool resourceDownloadTool = new ResourceDownloadTool();
         TerminalOperationTool terminalOperationTool = new TerminalOperationTool();
         TerminateTool terminateTool = new TerminateTool();
+        DocumentReaderTool documentReaderTool = new DocumentReaderTool();
+        DateLocationTool dateLocationTool = new DateLocationTool();
+        UserAssistanceTool userAssistanceTool = new UserAssistanceTool();
+        TavilyWebSearchTool tavilyWebSearchTool = new TavilyWebSearchTool(tavilySearchApiKey);
         return ToolCallbacks.from(
             fileOperationTool,
             webSearchTool,
@@ -34,7 +41,11 @@ public class ToolRegistration {
             resourceDownloadTool,
             terminalOperationTool,
                 pdfGenerationTool,
-                terminateTool
+                terminateTool,
+                documentReaderTool,
+                dateLocationTool,
+                userAssistanceTool,
+                tavilyWebSearchTool
         );
     }
 }

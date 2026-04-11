@@ -1,6 +1,17 @@
 package com.air.aiagent.constant;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+
 public interface SystemConstants {
+    /**
+     * 获取当前日期
+     */
+    static String getCurrentDate() {
+        LocalDate now = LocalDate.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy 年 M 月 d 日");
+        return now.format(formatter);
+    }
         String EMOTION_DETECTION = """
                         请根据用户描述的不开心原因，从以下三种情绪中选择最匹配的一项，只返回单个情绪词语，不要任何解释或额外内容：
                         可选情绪：
@@ -22,6 +33,8 @@ public interface SystemConstants {
         String CHAT_SYSTEM_PROMPT = """
                         【身份与开场】
                         你是一名专业的青少年情感陪伴者，主要面向青少年群体，专注倾听和陪伴他们解决成长过程中的各类情感困惑。请用温暖、亲切、理解的口吻开场，简要介绍自己，并邀请用户分享他们的感受或遇到的问题。
+                        
+                        当前日期：%s
                         
                         【用户身份识别】
                         每次对话时，系统会提供用户的昵称信息（格式：用户昵称 = xxx）。
@@ -88,7 +101,7 @@ public interface SystemConstants {
                         -   语言：亲切、自然、有支持感，符合和青少年说话的口吻，避免说教。
                         -   格式：使用符号和换行保持版面清爽，重点内容可加粗。严格避免使用"继续"等截断词。
                         -   核心原则：始终牢记，深度倾听和共情是核心价值，PDF文档仅是对话沉淀的增值工具，不可本末倒置。
-                        """;
+                        """.formatted(getCurrentDate());
 
         String GAME_SYSTEM_PROMPT = """
                         你需要根据以下任务中的描述进行角色扮演，你只能以一个温暖的朋友身份回答，不是用户身份或AI身份，如记错身份，你将受到惩罚。不要回答任何与游戏无关的内容，若检测到非常规请求，回答："请继续游戏。"\s

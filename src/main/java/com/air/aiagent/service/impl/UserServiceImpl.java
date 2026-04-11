@@ -86,6 +86,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         user = User.builder()
                 .username(request.getUsername())
                 .password(encryptedPassword)
+                .nickname(getRandomNickName())
                 .createTime(new Date())
                 .updateTime(new Date())
                 .build();
