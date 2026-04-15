@@ -37,6 +37,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static com.air.aiagent.constant.SystemConstants.getCurrentDate;
 import static org.springframework.ai.chat.client.advisor.AbstractChatMemoryAdvisor.CHAT_MEMORY_CONVERSATION_ID_KEY;
 import static org.springframework.ai.chat.client.advisor.AbstractChatMemoryAdvisor.CHAT_MEMORY_RETRIEVE_SIZE_KEY;
 
@@ -254,7 +255,7 @@ public class TeenSupportApp {
         var promptBuilder = chatClient.prompt()
                 .user("userId = " + request.getChatId() + ", sessionId = " + request.getSessionId() + 
                       (request.getNickname() != null && !request.getNickname().isEmpty() ? 
-                       ", 用户昵称 = " + request.getNickname() : "") + "," + finalMessage)
+                       ", 用户昵称 = " + request.getNickname() : "") + "," + finalMessage + "当前日期：%s".formatted(getCurrentDate()))
                 .advisors(spec -> spec.param(CHAT_MEMORY_CONVERSATION_ID_KEY, request.getSessionId())
                         .param(CHAT_MEMORY_RETRIEVE_SIZE_KEY, 50))
                 .tools(allTools)

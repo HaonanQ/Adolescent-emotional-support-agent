@@ -35,3 +35,4 @@ target/
 **/TestApiKey.java
 **/ApiKey.java
 **/Secret.java
+/src/test/java/com/air/aiagent/app/TeenSupportAppTest.java
