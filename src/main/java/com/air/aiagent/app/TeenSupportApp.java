@@ -84,12 +84,6 @@ public class TeenSupportApp {
     private IntentRecognizer intentRecognizer;
     @Resource
     private VectorStore teenSupportVectorStore;
-    //云知识库
-//    @Resource
-//    private Advisor teenSupportRagCloudAdvisor;
-
-    @Resource
-    private VectorStore pgVectorVectorStore;
 
     @Resource
     private PgVectorStoreConfig pgVectorStoreConfig;
@@ -310,11 +304,6 @@ public class TeenSupportApp {
                 .tools(allTools)
                 .tools(toolCallbackProvider);
 //                .options(chatOptions); // 关键：传入联网搜索配置
-
-        // 只有在需要 RAG 时才添加 QuestionAnswerAdvisor
-        if (needRag) {
-            promptBuilder = promptBuilder.advisors(new QuestionAnswerAdvisor(pgVectorVectorStore));
-        }
 
         return promptBuilder
                 .stream()
