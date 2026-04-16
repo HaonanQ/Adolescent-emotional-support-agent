@@ -11,6 +11,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.JdbcTemplate;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -166,5 +168,30 @@ public class PgVectorStoreConfig {
             log.error("清空向量表 {} 失败", tableName, e);
             throw new RuntimeException("清空向量表失败: " + tableName, e);
         }
+    }
+
+    /**
+     * 批量获取多个知识库的VectorStore
+     *
+     * @param pgJdbcTemplate pg向量数据库JdbcTemplate
+     * @param embeddingModel 嵌入模型
+     * @param tableNames 向量表名列表
+     * @return VectorStore列表
+     */
+    public List<VectorStore> getVectorStoresByTableNames(JdbcTemplate pgJdbcTemplate,
+                                                          EmbeddingModel embeddingModel,
+                                                          List<String> tableNames) {
+        List<VectorStore> vectorStores = new ArrayList<>();
+        for (String tableName : tableNames) {
+            try {
+                VectorStore vectorStore = getOrCreateVectorStore(pgJdbcTemplate, embeddingModel, tableName);
+                vectorStores.add(vectorStore);
+                log.debug("成功获取知识库向量存储: {}", tableName);
+            } catch (Exception e) {
+                log.error("获取知识库向量存储失败: {}", tableName, e);
+            }
+        }
+        log.info("成功获取 {} 个知识库的向量存储", vectorStores.size());
+        return vectorStores;
     }
 }

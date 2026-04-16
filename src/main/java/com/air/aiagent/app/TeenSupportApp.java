@@ -5,14 +5,19 @@ import com.air.aiagent.advisor.MyLoggerAdvisor;
 import com.air.aiagent.constant.SystemConstants;
 import com.air.aiagent.domain.dto.ChatRequest;
 import com.air.aiagent.domain.entity.ChatMessage;
+import com.air.aiagent.domain.entity.KnowledgeBase;
 import com.air.aiagent.domain.entity.MessageMetadata;
 import com.air.aiagent.domain.entity.MessageType;
+import com.air.aiagent.rag.PgVectorStoreConfig;
+import com.air.aiagent.service.KnowledgeBaseService;
 import com.air.aiagent.service.impl.ChatMessageService;
 import com.air.aiagent.service.impl.ChatSessionService;
 import com.air.aiagent.utils.AudioRecognizer;
 import com.air.aiagent.utils.ImageRecognizer;
 import com.air.aiagent.utils.IntentRecognizer;
 import com.alibaba.cloud.ai.dashscope.chat.DashScopeChatOptions;
+import org.springframework.ai.embedding.EmbeddingModel;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +34,7 @@ import org.springframework.ai.tool.ToolCallback;
 import org.springframework.ai.tool.ToolCallbackProvider;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 
@@ -84,6 +90,19 @@ public class TeenSupportApp {
 
     @Resource
     private VectorStore pgVectorVectorStore;
+
+    @Resource
+    private PgVectorStoreConfig pgVectorStoreConfig;
+
+    @Resource
+    private KnowledgeBaseService knowledgeBaseService;
+
+    @Resource
+    @Qualifier("pgJdbcTemplate")
+    private JdbcTemplate pgJdbcTemplate;
+
+    @Resource
+    private EmbeddingModel dashscopeEmbeddingModel;
 
     @Resource
     private ToolCallback[] allTools;
@@ -194,41 +213,71 @@ public class TeenSupportApp {
 
         String finalMessage;
         if (needRag) {
-            log.info("启用 RAG 知识库检索...");
-            List<Document> relevantDocs = pgVectorVectorStore.similaritySearch(
-                SearchRequest.builder()
-                    .query(request.getMessage())
-                    .topK(5)
-                    .build()
-            );
-
-            List<Document> uniqueDocs = new ArrayList<>();
-            Set<String> seenContents = new HashSet<>();
-
-            for (Document doc : relevantDocs) {
-                String content = doc.getText();
-                if (!seenContents.contains(content)) {
-                    seenContents.add(content);
-                    uniqueDocs.add(doc);
-                    if (uniqueDocs.size() >= 3) {
-                        break;
+            // 获取所有激活的知识库
+            List<KnowledgeBase> activeKnowledgeBases = knowledgeBaseService.getActiveKnowledgeBaseList();
+            
+            if (activeKnowledgeBases.isEmpty()) {
+                log.info("没有激活的知识库，不使用RAG，直接对话");
+                finalMessage = "用户问题：" + request.getMessage();
+            } else {
+                log.info("启用 RAG 知识库检索，共 {} 个激活的知识库", activeKnowledgeBases.size());
+                
+                // 获取所有激活知识库的表名
+                List<String> tableNames = activeKnowledgeBases.stream()
+                        .map(KnowledgeBase::getTableName)
+                        .toList();
+                
+                // 获取对应的VectorStore列表
+                List<VectorStore> vectorStores = pgVectorStoreConfig.getVectorStoresByTableNames(
+                        pgJdbcTemplate, dashscopeEmbeddingModel, tableNames);
+                
+                // 从所有知识库中检索文档
+                List<Document> allRelevantDocs = new ArrayList<>();
+                for (VectorStore vectorStore : vectorStores) {
+                    try {
+                        List<Document> docs = vectorStore.similaritySearch(
+                            SearchRequest.builder()
+                                .query(request.getMessage())
+                                .topK(5)
+                                .build()
+                        );
+                        allRelevantDocs.addAll(docs);
+                    } catch (Exception e) {
+                        log.error("从知识库检索文档失败", e);
                     }
                 }
-            }
+                
+                log.info("从所有知识库共检索到 {} 条相关文档", allRelevantDocs.size());
 
-            StringBuilder contextBuilder = new StringBuilder();
-            if (!uniqueDocs.isEmpty()) {
-                contextBuilder.append("以下是相关的参考资料（仅作参考，请优先基于对话历史回答）：\n\n");
-                for (int i = 0; i < uniqueDocs.size(); i++) {
-                    Document doc = uniqueDocs.get(i);
-                    contextBuilder.append("资料 ").append(i + 1).append(":\n");
-                    contextBuilder.append(doc.getText()).append("\n\n");
+                // 文档去重
+                List<Document> uniqueDocs = new ArrayList<>();
+                Set<String> seenContents = new HashSet<>();
+
+                for (Document doc : allRelevantDocs) {
+                    String content = doc.getText();
+                    if (!seenContents.contains(content)) {
+                        seenContents.add(content);
+                        uniqueDocs.add(doc);
+                        if (uniqueDocs.size() >= 3) {
+                            break;
+                        }
+                    }
                 }
-                contextBuilder.append("请根据以上参考资料回答用户的问题。如果参考资料与用户相关的话题没有关联度，则不参考资料，直接回答\n\n");
-            }
 
-            finalMessage = contextBuilder.toString() + "用户问题：" + request.getMessage();
-            log.info("RAG 检索到 {} 条相关文档，去重后剩余 {} 条", relevantDocs.size(), uniqueDocs.size());
+                StringBuilder contextBuilder = new StringBuilder();
+                if (!uniqueDocs.isEmpty()) {
+                    contextBuilder.append("以下是相关的参考资料（仅作参考，请优先基于对话历史回答）：\n\n");
+                    for (int i = 0; i < uniqueDocs.size(); i++) {
+                        Document doc = uniqueDocs.get(i);
+                        contextBuilder.append("资料 ").append(i + 1).append(":\n");
+                        contextBuilder.append(doc.getText()).append("\n\n");
+                    }
+                    contextBuilder.append("请根据以上参考资料回答用户的问题。如果参考资料与用户相关的话题没有关联度，则不参考资料，直接回答\n\n");
+                }
+
+                finalMessage = contextBuilder.toString() + "用户问题：" + request.getMessage();
+                log.info("RAG 检索到 {} 条相关文档，去重后剩余 {} 条", allRelevantDocs.size(), uniqueDocs.size());
+            }
         } else {
             log.info("不启用 RAG 知识库，直接使用用户消息对话");
             finalMessage = "用户问题：" + request.getMessage();
