@@ -232,10 +232,12 @@ public class TeenSupportApp {
                         List<Document> docs = vectorStore.similaritySearch(
                             SearchRequest.builder()
                                 .query(request.getMessage())
-                                .topK(5)
+                                .topK(10)
+                                .similarityThreshold(0.5)
                                 .build()
                         );
                         allRelevantDocs.addAll(docs);
+                        log.info("从知识库检索到 {} 条文档", docs.size());
                     } catch (Exception e) {
                         log.error("从知识库检索文档失败", e);
                     }
@@ -243,7 +245,7 @@ public class TeenSupportApp {
                 
                 log.info("从所有知识库共检索到 {} 条相关文档", allRelevantDocs.size());
 
-                // 文档去重
+                // 文档去重，保留最多5条
                 List<Document> uniqueDocs = new ArrayList<>();
                 Set<String> seenContents = new HashSet<>();
 
@@ -252,7 +254,7 @@ public class TeenSupportApp {
                     if (!seenContents.contains(content)) {
                         seenContents.add(content);
                         uniqueDocs.add(doc);
-                        if (uniqueDocs.size() >= 3) {
+                        if (uniqueDocs.size() >= 5) {
                             break;
                         }
                     }

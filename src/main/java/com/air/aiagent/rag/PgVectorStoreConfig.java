@@ -122,17 +122,44 @@ public class PgVectorStoreConfig {
 
                 // 创建向量索引
                 String indexSql = String.format(
-                    "CREATE INDEX IF NOT EXISTS idx_%s_embedding ON %s USING ivfflat (embedding vector_cosine_ops)",
+                    "CREATE INDEX IF NOT EXISTS idx_%s_embedding ON %s USING hnsw (embedding vector_cosine_ops)",
                     tableName, tableName);
                 pgJdbcTemplate.execute(indexSql);
 
                 log.info("向量表 {} 创建成功", tableName);
             } else {
-                log.debug("向量表 {} 已存在", tableName);
+                log.debug("向量表 {} 已存在，检查并升级索引", tableName);
+                upgradeIndexToHnsw(pgJdbcTemplate, tableName);
             }
         } catch (Exception e) {
             log.error("创建向量表 {} 失败", tableName, e);
             throw new RuntimeException("创建向量表失败: " + tableName, e);
+        }
+    }
+
+    /**
+     * 将已有的ivfflat索引升级为hnsw索引
+     *
+     * @param pgJdbcTemplate pg向量数据库JdbcTemplate
+     * @param tableName 表名
+     */
+    private void upgradeIndexToHnsw(JdbcTemplate pgJdbcTemplate, String tableName) {
+        try {
+            String indexName = "idx_" + tableName + "_embedding";
+            String checkIndexSql = "SELECT indexdef FROM pg_indexes WHERE tablename = ? AND indexname = ?";
+            String indexDef = pgJdbcTemplate.queryForObject(checkIndexSql, String.class, tableName, indexName);
+
+            if (indexDef != null && indexDef.toLowerCase().contains("ivfflat")) {
+                log.info("检测到表 {} 使用ivfflat索引，正在升级为hnsw索引...", tableName);
+                pgJdbcTemplate.execute("DROP INDEX IF EXISTS " + indexName);
+                String indexSql = String.format(
+                    "CREATE INDEX %s ON %s USING hnsw (embedding vector_cosine_ops)",
+                    indexName, tableName);
+                pgJdbcTemplate.execute(indexSql);
+                log.info("表 {} 索引已从ivfflat升级为hnsw", tableName);
+            }
+        } catch (Exception e) {
+            log.warn("检查/升级索引时出错（表: {}）: {}", tableName, e.getMessage());
         }
     }
 
