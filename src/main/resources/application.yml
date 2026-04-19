@@ -33,7 +33,7 @@ spring:
     driver-class-name: org.postgresql.Driver
     jdbc-url: jdbc:postgresql://101.42.51.131:5432/teen_emotion_rag?options=-c%20TimeZone%3DAsia%2FShanghai
     username: postgres  # 这个 mydatabase 是数据源，虚拟机中的 mydatabase 安装了 pgvector，如果切换数据源的话也得要安装 pgvector 插件
-    password: 123456
+    password: 123456qhnan
   data:
     redis:
       host: 101.42.51.131
