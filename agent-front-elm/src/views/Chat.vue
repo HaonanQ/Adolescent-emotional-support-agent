@@ -145,6 +145,25 @@
                 <el-icon><close /></el-icon>
               </el-button>
             </div>
+            <div v-if="selectedDiaries.length > 0" class="selected-diaries-preview">
+              <div class="diaries-preview-header">
+                <span class="diaries-preview-title">已选择 {{ selectedDiaries.length }} 篇日记</span>
+                <el-button type="text" size="small" @click="clearSelectedDiaries">
+                  <el-icon><close /></el-icon>
+                </el-button>
+              </div>
+              <div class="diaries-preview-list">
+                <el-tag
+                  v-for="diary in selectedDiaries"
+                  :key="diary.id"
+                  closable
+                  @close="removeDiaryFromSelection(diary.id)"
+                  class="diary-tag"
+                >
+                  {{ diary.title || '无标题' }}
+                </el-tag>
+              </div>
+            </div>
             <div class="textarea-wrapper">
               <el-input
                 v-model="inputMessage"
@@ -155,6 +174,9 @@
                 resize="none"
               />
               <div class="input-tools">
+                <el-button circle size="medium" @click="handleDiaryClick" title="选择日记">
+                  📔
+                </el-button>
                 <el-button circle size="medium" @click="handleImageClick" title="上传图片">
                   <img src="../image/picture-icon.svg" alt="上传图片" style="width: 18px; height: 18px;" />
                 </el-button>
@@ -167,18 +189,22 @@
                 >
                   <img src="../image/microphone-icon.svg" alt="语音输入" style="width: 18px; height: 18px;" />
                 </el-button>
+                <el-button
+                  circle
+                  size="medium"
+                  type="primary"
+                  :loading="isLoading"
+                  :disabled="!inputMessage.trim() && !selectedImage && selectedDiaries.length === 0"
+                  @click="handleSendMessage"
+                  title="发送消息"
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 4L12 20M12 4L6 10M12 4L18 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </el-button>
               </div>
             </div>
           </div>
-          <el-button
-            type="primary"
-            :loading="isLoading"
-            :disabled="!inputMessage.trim() && !selectedImage"
-            @click="handleSendMessage"
-            class="send-btn"
-          >
-            发送
-          </el-button>
         </div>
       </main>
     </div>
@@ -198,6 +224,46 @@
           class="dialog-image"
         />
       </div>
+    </el-dialog>
+
+    <!-- 日记选择对话框 -->
+    <el-dialog
+      v-model="diaryDialogVisible"
+      title="选择日记"
+      width="60%"
+      top="10vh"
+      append-to-body
+    >
+      <div class="diary-select-container">
+        <el-empty v-if="availableDiaries.length === 0" description="暂无日记" :image-size="60" />
+        <div v-else class="diary-select-list">
+          <div
+            v-for="diary in availableDiaries"
+            :key="diary.id"
+            :class="['diary-select-item', { selected: selectedDiaryIds.includes(diary.id) }]"
+            @click="toggleDiarySelection(diary.id)"
+          >
+            <div class="diary-select-checkbox">
+              <el-checkbox :model-value="selectedDiaryIds.includes(diary.id)" @click.stop />
+            </div>
+            <div class="diary-select-content">
+              <div class="diary-select-title">{{ diary.title || '无标题' }}</div>
+              <div class="diary-select-info">
+                <span class="diary-select-mood">{{ diary.mood }}</span>
+                <span class="diary-select-time">{{ formatDate(diary.createTime) }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="diaryDialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="confirmDiarySelection">
+            确定 (已选择 {{ selectedDiaryIds.length }} 篇)
+          </el-button>
+        </span>
+      </template>
     </el-dialog>
   </div>
 </template>
@@ -221,7 +287,8 @@ import {
   logout,
   getUserFileList,
   chatWithImage,
-  chatWithAudio
+  chatWithAudio,
+  getEmotionDiaryList
 } from '../api';
 
 const router = useRouter();
@@ -240,6 +307,11 @@ const isRecording = ref(false);
 const imageInput = ref(null);
 const previewDialogVisible = ref(false);
 const previewImageUrl = ref('');
+
+const diaryDialogVisible = ref(false);
+const availableDiaries = ref([]);
+const selectedDiaryIds = ref([]);
+const selectedDiaries = ref([]);
 
 let mediaRecorder = null;
 let audioChunks = [];
@@ -364,6 +436,7 @@ const deleteSession = async (sessionId) => {
 };
 
 const handleImageClick = () => {
+  clearSelectedDiaries();
   imageInput.value.click();
 };
 
@@ -389,7 +462,63 @@ const removeSelectedImage = () => {
   }
 };
 
+const handleDiaryClick = async () => {
+  clearSelectedImage();
+  try {
+    const response = await getEmotionDiaryList(user.value.id);
+    if (response.code === 0 && response.data) {
+      availableDiaries.value = response.data || [];
+      selectedDiaryIds.value = [...selectedDiaries.value.map(d => d.id)];
+      diaryDialogVisible.value = true;
+    }
+  } catch (error) {
+    console.error('加载日记列表失败:', error);
+    ElMessage.error('加载日记列表失败');
+  }
+};
+
+const toggleDiarySelection = (diaryId) => {
+  const index = selectedDiaryIds.value.indexOf(diaryId);
+  if (index > -1) {
+    selectedDiaryIds.value.splice(index, 1);
+  } else {
+    selectedDiaryIds.value.push(diaryId);
+  }
+};
+
+const confirmDiarySelection = () => {
+  selectedDiaries.value = availableDiaries.value.filter(diary => 
+    selectedDiaryIds.value.includes(diary.id)
+  );
+  diaryDialogVisible.value = false;
+};
+
+const clearSelectedDiaries = () => {
+  selectedDiaries.value = [];
+  selectedDiaryIds.value = [];
+};
+
+const clearSelectedImage = () => {
+  selectedImage.value = null;
+  if (imageInput.value) {
+    imageInput.value.value = '';
+  }
+};
+
+const removeDiaryFromSelection = (diaryId) => {
+  const index = selectedDiaries.value.findIndex(d => d.id === diaryId);
+  if (index > -1) {
+    selectedDiaries.value.splice(index, 1);
+  }
+  const idIndex = selectedDiaryIds.value.indexOf(diaryId);
+  if (idIndex > -1) {
+    selectedDiaryIds.value.splice(idIndex, 1);
+  }
+};
+
 const handleAudioClick = async () => {
+  clearSelectedDiaries();
+  clearSelectedImage();
   if (isRecording.value) {
     stopRecording();
   } else {
@@ -481,7 +610,7 @@ const stopRecording = () => {
 };
 
 const handleSendMessage = async () => {
-  if ((!inputMessage.value.trim() && !selectedImage.value) || isLoading.value) return;
+  if ((!inputMessage.value.trim() && !selectedImage.value && selectedDiaries.value.length === 0) || isLoading.value) return;
 
   if (!currentSessionId.value) {
     await createNewSession();
@@ -490,6 +619,8 @@ const handleSendMessage = async () => {
 
   if (selectedImage.value) {
     await handleSendImageMessage();
+  } else if (selectedDiaries.value.length > 0) {
+    await handleSendDiaryMessage();
   } else {
     await handleSendTextMessage();
   }
@@ -582,6 +713,62 @@ const handleSendImageMessage = async () => {
     await loadUserFiles();
   } catch (error) {
     console.error('发送图片消息失败:', error);
+    const lastMessage = messages.value[messages.value.length - 1];
+    if (lastMessage && lastMessage.id === aiMessageId) {
+      lastMessage.content = '抱歉，发生了一些错误，请稍后再试。';
+    }
+  } finally {
+    isLoading.value = false;
+    scrollToBottom();
+  }
+};
+
+const handleSendDiaryMessage = async () => {
+  const diaryContent = selectedDiaries.value.map(diary => {
+    return `【${diary.title || '无标题'}】\n情绪: ${diary.mood}\n情绪分数: ${diary.moodScore}/10\n内容: ${diary.content || '无内容'}`;
+  }).join('\n\n---\n\n');
+
+  const fullMessage = inputMessage.value 
+    ? `${inputMessage.value}\n\n---以下是日记内容---\n\n${diaryContent}`
+    : `以下是日记内容:\n\n${diaryContent}`;
+
+  const userMessage = {
+    id: Date.now().toString(),
+    content: `已选择 ${selectedDiaries.value.length} 篇日记:\n${selectedDiaries.value.map(d => `• ${d.title || '无标题'}`).join('\n')}${inputMessage.value ? '\n\n' + inputMessage.value : ''}`,
+    isAiResponse: false,
+  };
+
+  messages.value.push(userMessage);
+  inputMessage.value = '';
+  const diariesToSend = [...selectedDiaries.value];
+  clearSelectedDiaries();
+  scrollToBottom();
+
+  isLoading.value = true;
+
+  const aiMessageId = (Date.now() + 1).toString();
+  const aiMessage = {
+    id: aiMessageId,
+    content: '',
+    isAiResponse: true,
+    pdfFileUrl: null,
+    pdfFileName: null,
+  };
+  messages.value.push(aiMessage);
+
+  try {
+    await chatWithRagStream(fullMessage, chatId, currentSessionId.value, (chunk) => {
+      const lastMessage = messages.value[messages.value.length - 1];
+      if (lastMessage && lastMessage.id === aiMessageId) {
+        lastMessage.content = chunk;
+        scrollToBottom();
+      }
+    });
+
+    await loadSessions();
+    await loadUserFiles();
+  } catch (error) {
+    console.error('发送日记消息失败:', error);
     const lastMessage = messages.value[messages.value.length - 1];
     if (lastMessage && lastMessage.id === aiMessageId) {
       lastMessage.content = '抱歉，发生了一些错误，请稍后再试。';
@@ -1109,6 +1296,7 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  width: 100%;
 }
 
 .textarea-wrapper {
@@ -1138,6 +1326,41 @@ onMounted(async () => {
   position: absolute;
   top: -8px;
   right: -8px;
+}
+
+.selected-diaries-preview {
+  width: 100%;
+  padding: 10px;
+  background: #f8fafc;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  margin-bottom: 8px;
+}
+
+.diaries-preview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.diaries-preview-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #334155;
+}
+
+.diaries-preview-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.diary-tag {
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .send-btn {
@@ -1270,5 +1493,74 @@ onMounted(async () => {
   max-width: 100%;
   max-height: 100%;
   object-fit: contain;
+}
+
+.diary-select-container {
+  border-radius: 10px;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.diary-select-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.diary-select-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 10px;
+  border: 2px solid #e2e8f0;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.diary-select-item:hover {
+  border-color: #409eff;
+  background: #f0f7ff;
+}
+
+.diary-select-item.selected {
+  border-color: #409eff;
+  background: #ecf5ff;
+}
+
+.diary-select-checkbox {
+  flex-shrink: 0;
+}
+
+.diary-select-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.diary-select-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #334155;
+  margin-bottom: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.diary-select-info {
+  display: flex;
+  gap: 12px;
+  font-size: 13px;
+  color: #64748b;
+}
+
+.diary-select-mood {
+  padding: 2px 8px;
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+.diary-select-time {
+  color: #94a3b8;
 }
 </style>

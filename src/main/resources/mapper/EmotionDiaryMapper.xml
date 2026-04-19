@@ -7,6 +7,7 @@
     <resultMap id="BaseResultMap" type="com.air.aiagent.domain.entity.EmotionDiary">
             <id property="id" column="id" jdbcType="BIGINT"/>
             <result property="userId" column="user_id" jdbcType="BIGINT"/>
+            <result property="title" column="title" jdbcType="VARCHAR"/>
             <result property="mood" column="mood" jdbcType="VARCHAR"/>
             <result property="moodScore" column="mood_score" jdbcType="INTEGER"/>
             <result property="content" column="content" jdbcType="LONGVARCHAR"/>
@@ -17,7 +18,7 @@
     </resultMap>
 
     <sql id="Base_Column_List">
-        id,user_id,mood,mood_score,content,image_url,create_time,update_time,is_deleted
+        id,user_id,title,mood,mood_score,content,image_url,create_time,update_time,is_deleted
     </sql>
 
 </mapper>

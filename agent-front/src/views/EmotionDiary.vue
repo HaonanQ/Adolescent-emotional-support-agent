@@ -55,6 +55,7 @@
               {{ getMoodEmoji(diary.mood) }}
             </div>
             <div class="timeline-content">
+              <div class="timeline-title">{{ diary.title || '无标题' }}</div>
               <div class="timeline-mood-text">{{ diary.mood }}</div>
               <div class="timeline-time">{{ formatTime(diary.createTime) }}</div>
               <div class="timeline-score">情绪分: {{ diary.moodScore }}/10</div>
@@ -78,7 +79,8 @@
                 {{ getMoodEmoji(selectedDiary.mood) }}
               </span>
               <div class="preview-mood-info">
-                <h2>{{ selectedDiary.mood }}</h2>
+                <h2>{{ selectedDiary.title || '无标题' }}</h2>
+                <div class="preview-mood-label">情绪: {{ selectedDiary.mood }}</div>
                 <div class="preview-time">{{ formatTime(selectedDiary.createTime) }}</div>
                 <div class="preview-score">
                   情绪分数:
@@ -102,6 +104,17 @@
           </div>
 
           <div class="editor-form">
+            <div class="form-group">
+              <label>日记标题 *</label>
+              <input
+                v-model="formData.title"
+                type="text"
+                class="title-input"
+                placeholder="请输入日记标题..."
+                maxlength="100"
+              />
+            </div>
+
             <div class="form-group">
               <label>选择情绪</label>
               <select v-model="formData.mood" @change="updateMoodScore" class="mood-select">
@@ -159,7 +172,7 @@
 
             <div class="form-actions">
               <button @click="resetForm" class="cancel-btn">取消</button>
-              <button @click="saveDiary" :disabled="isSaving || !formData.mood" class="save-btn">
+              <button @click="saveDiary" :disabled="isSaving || !formData.mood || !formData.title" class="save-btn">
                 {{ isSaving ? '保存中...' : '保存日记' }}
               </button>
             </div>
@@ -232,6 +245,7 @@ const moodOptions = [
 ];
 
 const formData = ref({
+  title: '',
   mood: '',
   moodScore: 5,
   content: '',
@@ -319,6 +333,7 @@ const resetForm = () => {
   selectedDiary.value = null;
   isPreview.value = false;
   formData.value = {
+    title: '',
     mood: '',
     moodScore: 5,
     content: '',
@@ -400,6 +415,10 @@ const checkLoginStatus = () => {
  * 3. 保存日记数据
  */
 const saveDiary = async () => {
+  if (!formData.value.title || formData.value.title.trim() === '') {
+    alert('请输入日记标题');
+    return;
+  }
   if (!formData.value.mood) {
     alert('请选择情绪');
     return;
@@ -435,6 +454,7 @@ const saveDiary = async () => {
 
     // 保存日记
     const response = await addEmotionDiary({
+      title: formData.value.title,
       mood: formData.value.mood,
       moodScore: formData.value.moodScore,
       content: formData.value.content,
@@ -870,11 +890,20 @@ onMounted(async () => {
   min-width: 0;
 }
 
-.timeline-mood-text {
+.timeline-title {
   font-size: 15px;
-  font-weight: 500;
+  font-weight: 600;
   color: #334155;
   margin-bottom: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.timeline-mood-text {
+  font-size: 14px;
+  color: #64748b;
+  margin-bottom: 2px;
 }
 
 .timeline-time {
@@ -959,6 +988,12 @@ onMounted(async () => {
   margin: 0 0 8px 0;
   font-size: 24px;
   color: #334155;
+}
+
+.preview-mood-label {
+  font-size: 14px;
+  color: #64748b;
+  margin-bottom: 4px;
 }
 
 .preview-time {
@@ -1059,6 +1094,21 @@ onMounted(async () => {
 }
 
 .mood-select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.title-input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  font-size: 15px;
+  transition: all 0.2s;
+}
+
+.title-input:focus {
   outline: none;
   border-color: #3b82f6;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);

@@ -39,6 +39,9 @@ public class EmotionDiaryServiceImpl extends ServiceImpl<EmotionDiaryMapper, Emo
         if (request.getUserId() == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户ID不能为空");
         }
+        if (request.getTitle() == null || request.getTitle().trim().isEmpty()) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "标题不能为空");
+        }
         if (request.getMood() == null || request.getMood().isEmpty()) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "情绪不能为空");
         }
@@ -48,6 +51,7 @@ public class EmotionDiaryServiceImpl extends ServiceImpl<EmotionDiaryMapper, Emo
 
         EmotionDiary emotionDiary = EmotionDiary.builder()
                 .userId(request.getUserId())
+                .title(request.getTitle())
                 .mood(request.getMood())
                 .moodScore(request.getMoodScore())
                 .content(request.getContent())

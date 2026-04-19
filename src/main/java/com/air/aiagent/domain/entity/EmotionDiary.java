@@ -28,6 +28,11 @@ public class EmotionDiary implements Serializable {
     private Long userId;
 
     /**
+     * 日记标题
+     */
+    private String title;
+
+    /**
      * 情绪（开心/难过/愤怒/焦虑/平静/其他）
      */
     private String mood;

@@ -300,7 +300,7 @@ public class TeenSupportApp {
         var promptBuilder = chatClient.prompt()
                 .user("userId = " + request.getChatId() + ", sessionId = " + request.getSessionId() + 
                       (request.getNickname() != null && !request.getNickname().isEmpty() ? 
-                       ", 用户昵称 = " + request.getNickname() : "") + "," + finalMessage + "当前日期：%s".formatted(getCurrentDate()))
+                       ", 用户昵称 = " + request.getNickname() : "") + "," + finalMessage + "\n当前日期：%s".formatted(getCurrentDate()))
                 .advisors(spec -> spec.param(CHAT_MEMORY_CONVERSATION_ID_KEY, request.getSessionId())
                         .param(CHAT_MEMORY_RETRIEVE_SIZE_KEY, 50))
                 .tools(allTools)
