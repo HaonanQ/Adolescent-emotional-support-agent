@@ -281,7 +281,7 @@ const handleCommand = (command) => {
   align-items: center;
   justify-content: space-between;
   padding: 12px 24px;
-  background: white;
+  background: rgba(255, 255, 255, 0.9);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 

@@ -373,7 +373,7 @@ const handleGoBack = async () => {
   justify-content: space-between;
   align-items: center;
   padding: 0 24px;
-  background: #fff;
+  background: rgba(255, 255, 255, 0.9);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   height: 56px;
   position: sticky;
