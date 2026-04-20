@@ -361,7 +361,11 @@ const handleGoBack = async () => {
 <style scoped>
 .editor-container {
   min-height: 100vh;
-  background: #f5f6fa;
+  background-image: url('../image/bg.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
 }
 
 .navbar {
@@ -411,6 +415,11 @@ const handleGoBack = async () => {
   max-width: 900px;
   margin: 0 auto;
   padding: 24px 20px 60px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 20px;
+  margin-top: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
 }
 
 .editor-form {

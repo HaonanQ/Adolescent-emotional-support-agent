@@ -269,7 +269,11 @@ const handleCommand = (command) => {
 <style scoped>
 .classroom-container {
   min-height: 100vh;
-  background: #f5f6fa;
+  background-image: url('../image/bg.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
 }
 
 .navbar {
@@ -335,7 +339,12 @@ const handleCommand = (command) => {
 .classroom-main {
   max-width: 800px;
   margin: 0 auto;
-  padding:20px 20px;
+  padding: 20px 20px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 20px;
+  margin-top: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
 }
 
 .page-header {
@@ -347,13 +356,13 @@ const handleCommand = (command) => {
 .page-title {
   font-size: 32px;
   font-weight: 700;
-  color: #333;
+  color: #334155;
   margin-bottom: 12px;
 }
 
 .page-desc {
   font-size: 15px;
-  color: #888;
+  color: #64748b;
   line-height: 1.6;
 }
 

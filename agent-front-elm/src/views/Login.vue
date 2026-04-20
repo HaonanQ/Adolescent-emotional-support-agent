@@ -176,7 +176,11 @@ const goToHome = () => {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  background: linear-gradient(135deg, #f0f4f8 0%, #d9e2ec 100%);
+  background-image: url('../image/bg.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
   position: relative;
 }
 
@@ -190,6 +194,9 @@ const goToHome = () => {
   width: 100%;
   max-width: 420px;
   padding: 20px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 20px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
 }
 
 .logo {

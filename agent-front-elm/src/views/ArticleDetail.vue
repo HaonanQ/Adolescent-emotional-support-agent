@@ -135,7 +135,11 @@ const goBack = () => {
 <style scoped>
 .detail-container {
   min-height: 100vh;
-  background: #fff;
+  background-image: url('../image/bg.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
 }
 
 .navbar {
@@ -185,6 +189,11 @@ const goBack = () => {
   max-width: 720px;
   margin: 0 auto;
   padding: 32px 20px 60px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 20px;
+  margin-top: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
 }
 
 .article-full {

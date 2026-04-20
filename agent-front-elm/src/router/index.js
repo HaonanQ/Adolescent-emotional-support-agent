@@ -9,6 +9,7 @@ import ArticleDetail from '../views/ArticleDetail.vue';
 import ArticleEditor from '../views/ArticleEditor.vue';
 import UserManagement from '../views/UserManagement.vue';
 import KnowledgeManagement from '../views/KnowledgeManagement.vue';
+import NotFound from '../views/NotFound.vue';
 
 const routes = [
   {
@@ -68,6 +69,11 @@ const routes = [
     name: 'KnowledgeManagement',
     component: KnowledgeManagement,
     meta: { requiresAuth: true },
+  },
+  {
+    path: '/:pathMatch(.*)*',
+    name: 'NotFound',
+    component: NotFound,
   },
 ];
 

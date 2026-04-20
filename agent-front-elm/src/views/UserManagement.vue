@@ -415,7 +415,11 @@ onMounted(() => {
 <style scoped>
 .user-management-container {
   min-height: 100vh;
-  background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%);
+  background-image: url('../image/bg.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
 }
 
 .navbar {
@@ -423,7 +427,7 @@ onMounted(() => {
   align-items: center;
   justify-content: space-between;
   padding: 12px 24px;
-  background: rgba(255, 255, 255, 0.95);
+  background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(10px);
   border-bottom: 1px solid #e8e8e8;
   position: sticky;
@@ -492,6 +496,10 @@ onMounted(() => {
   max-width: 1200px;
   margin: 32px auto;
   padding: 0 24px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
 }
 
 .page-header {

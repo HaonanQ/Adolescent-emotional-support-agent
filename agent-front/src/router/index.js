@@ -4,6 +4,7 @@ import Login from '../views/Login.vue';
 import Chat from '../views/Chat.vue';
 import EmotionDiary from '../views/EmotionDiary.vue';
 import Profile from '../views/Profile.vue';
+import NotFound from '../views/NotFound.vue';
 
 const routes = [
   {
@@ -33,6 +34,11 @@ const routes = [
     name: 'Profile',
     component: Profile,
     meta: { requiresAuth: true },
+  },
+  {
+    path: '/:pathMatch(.*)*',
+    name: 'NotFound',
+    component: NotFound,
   },
 ];
 
