@@ -24,6 +24,11 @@ public class ChatRequest {
     private String nickname;
 
     /**
+     * 用户性别（0-女，1-男）
+     */
+    private Integer sex;
+
+    /**
      * 会话id
      */
     private String sessionId;

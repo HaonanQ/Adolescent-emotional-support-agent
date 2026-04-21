@@ -84,6 +84,7 @@ public class TeenSupportController {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "无效的 sessionId");
         }
         request.setNickname(loginUser.getNickname());
+        request.setSex(loginUser.getSex());
         return teenSupportApp.smartChat(request, MessageType.TEXT);
     }
 
@@ -497,6 +498,7 @@ public class TeenSupportController {
         request.setImageUrl(imageUrl);
         request.setImageFileName(file.getOriginalFilename());
         request.setNickname(loginUser.getNickname());
+        request.setSex(loginUser.getSex());
         
         UserContext.setUserId(chatId);
         UserContext.setSessionId(sessionId);
@@ -597,6 +599,7 @@ public class TeenSupportController {
         request.setAudioUrl(audioUrl);
         request.setAudioFileName(file.getOriginalFilename());
         request.setNickname(loginUser.getNickname());
+        request.setSex(loginUser.getSex());
         
         UserContext.setUserId(chatId);
         UserContext.setSessionId(sessionId);

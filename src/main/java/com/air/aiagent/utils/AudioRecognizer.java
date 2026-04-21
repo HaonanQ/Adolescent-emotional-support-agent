@@ -66,9 +66,11 @@ public class AudioRecognizer {
                     contentList.add(Collections.singletonMap("audio", request.getAudioUrl()));
                 }
                 
+                // 构建提示词
+                String prompt = buildAudioPrompt(request);
                 // 添加文本提示词
-                contentList.add(Collections.singletonMap("text", "你是一名专业的青少年情感陪伴专家，请分析音频内容，并给予相应的情感支持和建议。"));
-
+                contentList.add(Collections.singletonMap("text", prompt));
+                log.info("构建的提示词：{}", prompt);
                 // 构建用户消息
                 MultiModalMessage userMsg = MultiModalMessage.builder()
                         .role(Role.USER.getValue())
@@ -175,6 +177,35 @@ public class AudioRecognizer {
         }).start();
 
         return sink.asFlux().filter(Objects::nonNull);
+    }
+
+    /**
+     * 构建音频对话提示词
+     */
+    private String buildAudioPrompt(ChatRequest request) {
+        String userInfo = "";
+        if (request.getNickname() != null && !request.getNickname().isEmpty()) {
+            userInfo += "用户昵称 = " + request.getNickname();
+        }
+        if (request.getSex() != null) {
+            userInfo += (userInfo.isEmpty() ? "" : ", ") + "用户性别 = " + (request.getSex() == 1 ? "男" : "女");
+        }
+        
+        return """
+           你是一名专业的青少年情感陪伴专家，请分析音频内容，并给予相应的情感支持和建议。
+           %s
+           当前日期：%s
+           """.formatted(
+               userInfo.isEmpty() ? "" : userInfo + "\n",
+               getCurrentDate()
+           );
+    }
+    
+    /**
+     * 获取当前日期
+     */
+    private String getCurrentDate() {
+        return java.time.LocalDate.now().toString();
     }
 
     /**

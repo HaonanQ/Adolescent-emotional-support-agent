@@ -71,13 +71,13 @@ export const getLatestChatHistory = (chatId) => {
   return request.post('/support/getLatestChatHistory', { chatId });
 };
 
-export const chatWithRagStream = async (message, chatId, sessionId, onChunk) => {
+export const chatWithRagStream = async (message, chatId, sessionId, nickname, sex, onChunk) => {
   try {
     const response = await fetch(`${API_BASE_URL}/support/chat/rag`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
-      body: JSON.stringify({ message, chatId, sessionId }),
+      body: JSON.stringify({ message, chatId, sessionId, nickname, sex }),
     });
 
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
@@ -116,12 +116,14 @@ export const uploadImage = (file) => {
   });
 };
 
-export const chatWithImage = async (file, message, chatId, sessionId, onChunk) => {
+export const chatWithImage = async (file, message, chatId, sessionId, nickname, sex, onChunk) => {
   const formData = new FormData();
   formData.append('file', file);
   if (message) formData.append('message', message);
   formData.append('chatId', chatId);
   formData.append('sessionId', sessionId);
+  if (nickname) formData.append('nickname', nickname);
+  if (sex !== undefined && sex !== null) formData.append('sex', sex);
 
   try {
     const response = await fetch(`${API_BASE_URL}/support/chat/image`, {
@@ -150,12 +152,14 @@ export const chatWithImage = async (file, message, chatId, sessionId, onChunk) =
   }
 };
 
-export const chatWithAudio = async (file, message, chatId, sessionId, onChunk) => {
+export const chatWithAudio = async (file, message, chatId, sessionId, nickname, sex, onChunk) => {
   const formData = new FormData();
   formData.append('file', file);
   if (message) formData.append('message', message);
   formData.append('chatId', chatId);
   formData.append('sessionId', sessionId);
+  if (nickname) formData.append('nickname', nickname);
+  if (sex !== undefined && sex !== null) formData.append('sex', sex);
 
   try {
     const response = await fetch(`${API_BASE_URL}/support/chat/audio`, {

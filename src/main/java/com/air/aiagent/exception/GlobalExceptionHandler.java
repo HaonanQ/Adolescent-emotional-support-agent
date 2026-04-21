@@ -32,7 +32,27 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(RuntimeException.class)
     public BaseResponse<?> runtimeExceptionHandler(RuntimeException e) {
         log.error("RuntimeException", e);
-        return ResultUtils.error(ErrorCode.SYSTEM_ERROR, "系统错误");
+        
+        // 检查是否是AI相关的异常
+        String errorMessage = e.getMessage();
+        if (errorMessage != null) {
+            String lowerMessage = errorMessage.toLowerCase();
+            if (lowerMessage.contains("ai") || lowerMessage.contains("model") || 
+                lowerMessage.contains("api") || lowerMessage.contains("openai") ||
+                lowerMessage.contains("chatgpt") || lowerMessage.contains("timeout") ||
+                lowerMessage.contains("connection") || lowerMessage.contains("rate limit")) {
+                return ResultUtils.error(ErrorCode.SYSTEM_ERROR, "AI服务暂时无法响应，请稍后再试");
+            }
+        }
+        
+        // 检查异常类型
+        String exceptionClassName = e.getClass().getName().toLowerCase();
+        if (exceptionClassName.contains("ai") || exceptionClassName.contains("model") ||
+            exceptionClassName.contains("api")) {
+            return ResultUtils.error(ErrorCode.SYSTEM_ERROR, "AI服务暂时无法响应，请稍后再试");
+        }
+        
+        return ResultUtils.error(ErrorCode.SYSTEM_ERROR, "系统错误，请稍后再试");
     }
 }
 

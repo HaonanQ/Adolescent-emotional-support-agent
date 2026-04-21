@@ -262,13 +262,13 @@ public class TeenSupportApp {
 
                 StringBuilder contextBuilder = new StringBuilder();
                 if (!uniqueDocs.isEmpty()) {
-                    contextBuilder.append("以下是相关的参考资料（仅作参考，请优先基于对话历史回答）：\n\n");
+                    contextBuilder.append("以下是相关的参考资料（仅作参考，请优先基于对话历史回答）：\n");
                     for (int i = 0; i < uniqueDocs.size(); i++) {
                         Document doc = uniqueDocs.get(i);
                         contextBuilder.append("资料 ").append(i + 1).append(":\n");
                         contextBuilder.append(doc.getText()).append("\n\n");
                     }
-                    contextBuilder.append("请根据以上参考资料回答用户的问题。如果参考资料与用户相关的话题没有关联度，则不参考资料，直接回答\n\n");
+                    contextBuilder.append("请根据以上参考资料回答用户的问题。如果参考资料与用户相关的话题没有关联度，则不参考资料，直接回答。\n");
                 }
 
                 finalMessage = contextBuilder.toString() + "用户问题：" + request.getMessage();
@@ -300,7 +300,10 @@ public class TeenSupportApp {
         var promptBuilder = chatClient.prompt()
                 .user("userId = " + request.getChatId() + ", sessionId = " + request.getSessionId() + 
                       (request.getNickname() != null && !request.getNickname().isEmpty() ? 
-                       ", 用户昵称 = " + request.getNickname() : "") + "," + finalMessage + "\n当前日期：%s".formatted(getCurrentDate()))
+                       ", 用户昵称 = " + request.getNickname() : "") +
+                      (request.getSex() != null ? 
+                       ", 用户性别 = " + (request.getSex() == 1 ? "男" : "女") : "") +
+                      "," + finalMessage + "\n当前日期：%s".formatted(getCurrentDate()))
                 .advisors(spec -> spec.param(CHAT_MEMORY_CONVERSATION_ID_KEY, request.getSessionId())
                         .param(CHAT_MEMORY_RETRIEVE_SIZE_KEY, 50))
                 .tools(allTools)

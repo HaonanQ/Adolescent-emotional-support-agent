@@ -580,7 +580,7 @@ const handleSendAudioMessage = async (audioFile, audioPreviewUrl) => {
   messages.value.push(aiMessage);
 
   try {
-    await chatWithAudio(audioFile, '', chatId, currentSessionId.value, (chunk) => {
+    await chatWithAudio(audioFile, '', chatId, currentSessionId.value, user.value.nickname, user.value.sex, (chunk) => {
       const lastMessage = messages.value[messages.value.length - 1];
       if (lastMessage && lastMessage.id === aiMessageId) {
         lastMessage.content = chunk;
@@ -651,7 +651,7 @@ const handleSendTextMessage = async () => {
   messages.value.push(aiMessage);
 
   try {
-    await chatWithRagStream(messageToSend, chatId, currentSessionId.value, (chunk) => {
+    await chatWithRagStream(messageToSend, chatId, currentSessionId.value, user.value.nickname, user.value.sex, (chunk) => {
       const lastMessage = messages.value[messages.value.length - 1];
       if (lastMessage && lastMessage.id === aiMessageId) {
         lastMessage.content = chunk;
@@ -665,7 +665,32 @@ const handleSendTextMessage = async () => {
     console.error('发送消息失败:', error);
     const lastMessage = messages.value[messages.value.length - 1];
     if (lastMessage && lastMessage.id === aiMessageId) {
-      lastMessage.content = '抱歉，发生了一些错误，请稍后再试。';
+      let errorMessage = '抱歉，发生了一些错误，请稍后再试。';
+      
+      if (error.response) {
+        const status = error.response.status;
+        const data = error.response.data;
+        
+        if (status === 429) {
+          errorMessage = '抱歉，当前请求过于频繁，请稍后再试。';
+        } else if (status === 500) {
+          errorMessage = '抱歉，服务器遇到了一些问题，请稍后再试。';
+        } else if (status === 503) {
+          errorMessage = '抱歉，AI服务暂时不可用，请稍后再试。';
+        } else if (data && data.message) {
+          if (data.message.includes('AI') || data.message.includes('模型') || data.message.includes('API')) {
+            errorMessage = '抱歉，AI服务暂时无法响应，请稍后再试。';
+          }
+        }
+      } else if (error.message) {
+        if (error.message.includes('timeout') || error.message.includes('超时')) {
+          errorMessage = '抱歉，请求超时了，请检查网络后重试。';
+        } else if (error.message.includes('network') || error.message.includes('网络')) {
+          errorMessage = '抱歉，网络连接出现问题，请检查网络后重试。';
+        }
+      }
+      
+      lastMessage.content = errorMessage;
     }
   } finally {
     isLoading.value = false;
@@ -701,7 +726,7 @@ const handleSendImageMessage = async () => {
   messages.value.push(aiMessage);
 
   try {
-    await chatWithImage(imageFile, messageToSend, chatId, currentSessionId.value, (chunk) => {
+    await chatWithImage(imageFile, messageToSend, chatId, currentSessionId.value, user.value.nickname, user.value.sex, (chunk) => {
       const lastMessage = messages.value[messages.value.length - 1];
       if (lastMessage && lastMessage.id === aiMessageId) {
         lastMessage.content = chunk;
@@ -715,7 +740,32 @@ const handleSendImageMessage = async () => {
     console.error('发送图片消息失败:', error);
     const lastMessage = messages.value[messages.value.length - 1];
     if (lastMessage && lastMessage.id === aiMessageId) {
-      lastMessage.content = '抱歉，发生了一些错误，请稍后再试。';
+      let errorMessage = '抱歉，发生了一些错误，请稍后再试。';
+      
+      if (error.response) {
+        const status = error.response.status;
+        const data = error.response.data;
+        
+        if (status === 429) {
+          errorMessage = '抱歉，当前请求过于频繁，请稍后再试。';
+        } else if (status === 500) {
+          errorMessage = '抱歉，服务器遇到了一些问题，请稍后再试。';
+        } else if (status === 503) {
+          errorMessage = '抱歉，AI服务暂时不可用，请稍后再试。';
+        } else if (data && data.message) {
+          if (data.message.includes('AI') || data.message.includes('模型') || data.message.includes('API')) {
+            errorMessage = '抱歉，AI服务暂时无法响应，请稍后再试。';
+          }
+        }
+      } else if (error.message) {
+        if (error.message.includes('timeout') || error.message.includes('超时')) {
+          errorMessage = '抱歉，请求超时了，请检查网络后重试。';
+        } else if (error.message.includes('network') || error.message.includes('网络')) {
+          errorMessage = '抱歉，网络连接出现问题，请检查网络后重试。';
+        }
+      }
+      
+      lastMessage.content = errorMessage;
     }
   } finally {
     isLoading.value = false;
@@ -757,7 +807,7 @@ const handleSendDiaryMessage = async () => {
   messages.value.push(aiMessage);
 
   try {
-    await chatWithRagStream(fullMessage, chatId, currentSessionId.value, (chunk) => {
+    await chatWithRagStream(fullMessage, chatId, currentSessionId.value, user.value.nickname, user.value.sex, (chunk) => {
       const lastMessage = messages.value[messages.value.length - 1];
       if (lastMessage && lastMessage.id === aiMessageId) {
         lastMessage.content = chunk;
@@ -771,7 +821,32 @@ const handleSendDiaryMessage = async () => {
     console.error('发送日记消息失败:', error);
     const lastMessage = messages.value[messages.value.length - 1];
     if (lastMessage && lastMessage.id === aiMessageId) {
-      lastMessage.content = '抱歉，发生了一些错误，请稍后再试。';
+      let errorMessage = '抱歉，发生了一些错误，请稍后再试。';
+      
+      if (error.response) {
+        const status = error.response.status;
+        const data = error.response.data;
+        
+        if (status === 429) {
+          errorMessage = '抱歉，当前请求过于频繁，请稍后再试。';
+        } else if (status === 500) {
+          errorMessage = '抱歉，服务器遇到了一些问题，请稍后再试。';
+        } else if (status === 503) {
+          errorMessage = '抱歉，AI服务暂时不可用，请稍后再试。';
+        } else if (data && data.message) {
+          if (data.message.includes('AI') || data.message.includes('模型') || data.message.includes('API')) {
+            errorMessage = '抱歉，AI服务暂时无法响应，请稍后再试。';
+          }
+        }
+      } else if (error.message) {
+        if (error.message.includes('timeout') || error.message.includes('超时')) {
+          errorMessage = '抱歉，请求超时了，请检查网络后重试。';
+        } else if (error.message.includes('network') || error.message.includes('网络')) {
+          errorMessage = '抱歉，网络连接出现问题，请检查网络后重试。';
+        }
+      }
+      
+      lastMessage.content = errorMessage;
     }
   } finally {
     isLoading.value = false;

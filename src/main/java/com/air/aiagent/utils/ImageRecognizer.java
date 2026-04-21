@@ -74,7 +74,8 @@ public class ImageRecognizer {
     public Flux<String> recognizeScene(ChatRequest request) {
         log.info("已进入到该函数里面，用户消息：{}，图片URL：{}",
                 request.getMessage(), request.getImageUrl());
-        String prompt = buildIntentPrompt(request.getMessage());// 用户的提示文本拼接
+        String prompt = buildIntentPrompt(request);// 用户的提示文本拼接
+        log.info("构建的提示词：{}", prompt);
         String aiMessageId = UUID.randomUUID().toString();
         long startTime = System.currentTimeMillis();
 
@@ -330,15 +331,38 @@ public class ImageRecognizer {
     /**
      * 图像意图识别提示词
      */
-    private String buildIntentPrompt(String userMessage) {
+    private String buildIntentPrompt(ChatRequest request) {
+        String userInfo = "";
+        if (request.getNickname() != null && !request.getNickname().isEmpty()) {
+            userInfo += "用户昵称 = " + request.getNickname();
+        }
+        if (request.getSex() != null) {
+            userInfo += (userInfo.isEmpty() ? "" : ", ") + "用户性别 = " + (request.getSex() == 1 ? "男" : "女");
+        }
+        
         return """
            你是一名专业的青少年情感分析专家，擅长通过图片分析人物的情绪状态。
            分析规则：
-           1. 如果图片中没有人出现，直接回答“该图片没有人物，请换一张图片”；
-           2. 如果有人物，精准描述人物的情感（如开心、难过、焦虑、愤怒、平静等）；
+           1. 如果图片中没有人出现，直接回答"该图片没有人物，请换一张图片"。
+           2. 如果有人物，精准描述人物的情感（如开心、难过、焦虑、愤怒、平静等），并简要说明分析依据（如表情、姿态、场景等）。请务必基于图片内容进行分析，不要添加与图片无关的假设。
+           3. 请使用简洁明了的语言进行描述，避免过于专业的术语，让青少年用户也能轻松理解。
+           %s
            用户的问题：%s
-           """.formatted(userMessage);
+           当前日期：%s
+           """.formatted(
+               userInfo.isEmpty() ? "" : userInfo + "\n",
+               request.getMessage(),
+               getCurrentDate()
+           );
     }
+    
+    /**
+     * 获取当前日期
+     */
+    private String getCurrentDate() {
+        return java.time.LocalDate.now().toString();
+    }
+    
     private int estimateTokens(String content) {
         if (content == null || content.isEmpty()) {
             return 0;
