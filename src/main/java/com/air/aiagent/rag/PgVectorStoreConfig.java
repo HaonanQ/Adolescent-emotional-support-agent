@@ -79,7 +79,7 @@ public class PgVectorStoreConfig {
         createVectorTableIfNotExists(pgJdbcTemplate, tableName);
 
         return PgVectorStore.builder(pgJdbcTemplate, embeddingModel)
-                .dimensions(1536)
+                .dimensions(1024)
                 .distanceType(COSINE_DISTANCE)
                 .indexType(HNSW)
                 .initializeSchema(false) // 我们手动创建表
@@ -115,7 +115,7 @@ public class PgVectorStoreConfig {
                     "id UUID DEFAULT uuid_generate_v4() PRIMARY KEY, " +
                     "content TEXT, " +
                     "metadata JSON, " +
-                    "embedding vector(1536)" +
+                    "embedding vector(1024)" +
                     ")", tableName);
 
                 pgJdbcTemplate.execute(createSql);

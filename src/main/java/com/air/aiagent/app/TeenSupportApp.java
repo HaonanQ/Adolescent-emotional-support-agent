@@ -233,7 +233,7 @@ public class TeenSupportApp {
                             SearchRequest.builder()
                                 .query(request.getMessage())
                                 .topK(10)
-                                .similarityThreshold(0.5)
+                                .similarityThreshold(0.54)
                                 .build()
                         );
                         allRelevantDocs.addAll(docs);
