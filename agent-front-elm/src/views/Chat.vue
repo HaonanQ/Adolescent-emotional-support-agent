@@ -1356,7 +1356,7 @@ onMounted(async () => {
 .input-area {
   display: flex;
   gap: 12px;
-  padding: 20px 24px 24px;
+  padding: 12px 12px 12px;
   border-top: 1px solid #e2e8f0;
   align-items: flex-end;
 }
