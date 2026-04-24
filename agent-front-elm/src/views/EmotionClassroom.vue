@@ -6,12 +6,12 @@
         <span class="nav-title">青少年情感陪伴智能体</span>
       </div>
       <div class="nav-center">
-        <el-button text @click="goToChat">情感陪伴</el-button>
-        <el-button text @click="goToEmotionDiary">情绪日记</el-button>
-        <el-button text type="primary">情感课堂</el-button>
-        <el-button text @click="goToKnowledgeManagement" v-if="user?.isAdmin === 1">知识库管理</el-button>
-        <el-button text>反馈与建议</el-button>
-      </div>
+          <el-button text @click="goToChat">情感陪伴</el-button>
+          <el-button text @click="goToEmotionDiary">情绪日记</el-button>
+          <el-button text @click="goToEmotionClassroom">情感课堂</el-button>
+          <el-button text @click="goToKnowledgeManagement" v-if="user?.isAdmin === 1">知识库管理</el-button>
+          <el-button text @click="goToFeedback">反馈与建议</el-button>
+        </div>
       <div class="nav-right">
         <el-dropdown @command="handleCommand" v-if="user">
           <span class="el-dropdown-link">
@@ -237,6 +237,13 @@ const goToDetail = (id) => {
 };
 const goToKnowledgeManagement = () => {
   router.push('/knowledge-management');
+};
+const goToFeedback = () => {
+  if (user.value?.isAdmin === 1) {
+    router.push('/feedback-management');
+  } else {
+    router.push('/feedback');
+  }
 };
 /**
  * 跳转到编辑器页面

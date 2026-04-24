@@ -9,6 +9,8 @@ import ArticleDetail from '../views/ArticleDetail.vue';
 import ArticleEditor from '../views/ArticleEditor.vue';
 import UserManagement from '../views/UserManagement.vue';
 import KnowledgeManagement from '../views/KnowledgeManagement.vue';
+import Feedback from '../views/Feedback.vue';
+import FeedbackManagement from '../views/FeedbackManagement.vue';
 import NotFound from '../views/NotFound.vue';
 
 const routes = [
@@ -68,6 +70,18 @@ const routes = [
     path: '/knowledge-management',
     name: 'KnowledgeManagement',
     component: KnowledgeManagement,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/feedback',
+    name: 'Feedback',
+    component: Feedback,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/feedback-management',
+    name: 'FeedbackManagement',
+    component: FeedbackManagement,
     meta: { requiresAuth: true },
   },
   {

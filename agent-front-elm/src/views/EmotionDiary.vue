@@ -7,10 +7,10 @@
       </div>
       <div class="nav-center">
         <el-button text @click="goToChat">情感陪伴</el-button>
-        <el-button text type="primary">情绪日记</el-button>
-        <el-button text @click="goToEmotionClassroom">情感课堂</el-button>
-        <el-button text @click="goToKnowledgeManagement" v-if="user?.isAdmin === 1">知识库管理</el-button>
-        <el-button text>反馈与建议</el-button>
+          <el-button text @click="goToEmotionDiary">情绪日记</el-button>
+          <el-button text @click="goToEmotionClassroom">情感课堂</el-button>
+          <el-button text @click="goToKnowledgeManagement" v-if="user?.isAdmin === 1">知识库管理</el-button>
+          <el-button text @click="goToFeedback">反馈与建议</el-button>
       </div>
       <div class="nav-right">
         <el-dropdown @command="handleCommand">
@@ -497,7 +497,7 @@ const goToHome = () => {
 const goToChat = () => {
   router.push('/chat');
 };
-
+const goToEmotionDiary = () => router.push('/emotion-diary');
 const goToEmotionClassroom = () => {
   router.push('/emotion-classroom');
 };
@@ -505,7 +505,13 @@ const goToEmotionClassroom = () => {
 const goToKnowledgeManagement = () => {
   router.push('/knowledge-management');
 };
-
+const goToFeedback = () => {
+  if (user.value?.isAdmin === 1) {
+    router.push('/feedback-management');
+  } else {
+    router.push('/feedback');
+  }
+};
 const previewImage = (imageUrl) => {
   previewImageUrl.value = imageUrl;
   previewDialogVisible.value = true;

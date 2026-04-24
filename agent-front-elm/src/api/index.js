@@ -321,4 +321,27 @@ export const batchDeleteDocuments = (ids) => {
   return request.post('/knowledgeBase/document/batchDelete', { ids });
 };
 
+/**
+ * 反馈相关接口
+ */
+export const addFeedback = (data) => {
+  return request.post('/feedback/add', data);
+};
+
+export const getUserFeedbackList = (params) => {
+  return request.post('/feedback/list/user', params);
+};
+
+export const deleteFeedback = (id) => {
+  return request.post('/feedback/delete', { id });
+};
+
+export const getAdminFeedbackList = (params) => {
+  return request.post('/feedback/admin/list', params);
+};
+
+export const replyFeedback = (data) => {
+  return request.post('/feedback/admin/reply', data);
+};
+
 export default request;
