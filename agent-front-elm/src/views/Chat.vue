@@ -1,22 +1,26 @@
 <template>
   <div class="chat-container">
-    <nav class="navbar">
+    <!-- 装饰性背景 -->
+    <div class="decorative-circle circle-1" style="top: -150px; right: -150px; opacity: 0.3;"></div>
+    <div class="decorative-circle circle-2" style="bottom: -100px; left: -100px; opacity: 0.3;"></div>
+    
+    <nav class="navbar" style="animation: fadeInDown 0.4s ease-out;">
       <div class="nav-left" @click="goToHome" style="cursor: pointer;">
         <span class="nav-logo">❤️</span>
         <span class="nav-title">青少年情感陪伴智能体</span>
       </div>
       <div class="nav-center">
-        <el-button text @click="goToChat">情感陪伴</el-button>
-        <el-button text @click="goToEmotionDiary">情绪日记</el-button>
-        <el-button text @click="goToEmotionClassroom">情感课堂</el-button>
-        <el-button text @click="goToKnowledgeManagement" v-if="user?.isAdmin === 1">知识库管理</el-button>
-        <el-button text @click="goToFeedback">反馈与建议</el-button>
+        <el-button class="nav-btn" @click="goToChat">情感陪伴</el-button>
+        <el-button class="nav-btn" @click="goToEmotionDiary">情绪日记</el-button>
+        <el-button class="nav-btn" @click="goToEmotionClassroom">情感课堂</el-button>
+        <el-button class="nav-btn" @click="goToKnowledgeManagement" v-if="user?.isAdmin === 1">知识库管理</el-button>
+        <el-button class="nav-btn" @click="goToFeedback">反馈与建议</el-button>
       </div>
       <div class="nav-right">
         <el-dropdown @command="handleCommand">
           <span class="el-dropdown-link">
-            <el-avatar :size="36" :src="user.avatar" v-if="user.avatar"></el-avatar>
-            <el-avatar :size="36" v-else>{{ user.username?.charAt(0) || 'U' }}</el-avatar>
+            <el-avatar :size="36" :src="user.avatar" v-if="user.avatar" class="user-avatar"></el-avatar>
+            <el-avatar :size="36" v-else class="user-avatar">{{ user.username?.charAt(0) || 'U' }}</el-avatar>
             <span class="user-name">{{ user.username }}</span>
             <el-icon class="el-icon--right"><arrow-down /></el-icon>
           </span>
@@ -33,11 +37,12 @@
     </nav>
 
     <div class="chat-main">
-      <aside class="sidebar">
+      <!-- 侧边栏 -->
+      <aside class="sidebar" style="animation: fadeInUp 0.4s ease-out 0.1s both;">
         <div class="sidebar-section">
           <div class="sidebar-header">
             <h3>历史会话</h3>
-            <el-button type="primary" circle @click="createNewSession" title="新建会话">
+            <el-button type="primary" circle @click="createNewSession" title="新建会话" class="new-session-btn">
               <el-icon><plus /></el-icon>
             </el-button>
           </div>
@@ -49,13 +54,16 @@
               :class="['session-item', { active: currentSessionId === session.id }]"
               @click="selectSession(session.id)"
             >
-              <div class="session-title">{{ session.sessionName || '新会话' }}</div>
-              <div class="session-time">{{ formatDate(session.updatedAt) }}</div>
+              <div class="session-icon">💬</div>
+              <div class="session-info">
+                <div class="session-title">{{ session.sessionName || '新会话' }}</div>
+                <div class="session-time">{{ formatDate(session.updatedAt) }}</div>
+              </div>
               <el-button
                 type="danger"
                 text
                 circle
-                size="large"
+                size="small"
                 @click.stop="deleteSession(session.id)"
                 title="删除会话"
                 class="delete-session-btn"
@@ -67,30 +75,30 @@
         </div>
 
         <div class="sidebar-section">
-          <div class="sidebar-header2">
+          <div class="sidebar-header">
             <h3>我的文档</h3>
           </div>
           <div class="file-list">
             <el-empty v-if="userFiles.length === 0" description="暂无文档" :image-size="40" />
             <div v-for="file in userFiles" :key="file.id" class="file-item">
               <el-link :href="file.fileUrl" target="_blank" type="primary" class="file-download-link">
-                <el-icon><document /></el-icon>
+                <el-icon class="file-icon"><document /></el-icon>
                 <span class="file-name">{{ file.fileName }}</span>
-                <!-- <el-icon class="file-download-icon"><download /></el-icon> -->
               </el-link>
-               <div class="file-time">{{ formatDate(file.createTime) }}</div>
+              <div class="file-time">{{ formatDate(file.createTime) }}</div>
             </div>
           </div>
         </div>
       </aside>
 
-      <main class="chat-area">
+      <!-- 聊天区域 -->
+      <main class="chat-area" style="animation: fadeInUp 0.4s ease-out 0.2s both;">
         <div class="messages-container" ref="messagesContainer">
-          <el-empty v-if="messages.length === 0" description="你好！我是你的情感陪伴助手，有什么想和我聊聊的吗？">
-            <template #image>
-              <div class="empty-icon">🤖</div>
-            </template>
-          </el-empty>
+          <div v-if="messages.length === 0" class="welcome-section">
+            <div class="welcome-icon">🤖</div>
+            <h2 class="welcome-title">你好！我是你的情感陪伴助手</h2>
+            <p class="welcome-text">有什么想和我聊聊的吗？无论是开心、烦恼还是困惑，我都会耐心倾听。</p>
+          </div>
           <div
             v-for="message in messages"
             :key="message.id"
@@ -98,21 +106,25 @@
           >
             <div class="message-avatar">
               <template v-if="message.isAiResponse">
-                🤖
+                <div class="ai-avatar">
+                  <span>🤖</span>
+                </div>
               </template>
               <template v-else>
-                <el-avatar :size="44" :src="user.avatar" v-if="user.avatar"></el-avatar>
-                <span v-else>👤</span>
+                <el-avatar :size="44" :src="user.avatar" v-if="user.avatar" class="user-message-avatar"></el-avatar>
+                <div v-else class="user-avatar-fallback">
+                  <span>👤</span>
+                </div>
               </template>
             </div>
             <div class="message-content">
-              <div v-if="message.imageFileUrl" class="image-container">
+              <div v-if="message.imageFileUrl" class="image-container" @click="previewImage(message.imageFileUrl)">
                 <el-image 
                   :src="message.imageFileUrl" 
                   :alt="message.imageFileName || '图片'" 
                   fit="contain" 
                   class="message-image"
-                  @click="previewImage(message.imageFileUrl)"
+                  :preview-src-list="[message.imageFileUrl]"
                 />
               </div>
               <div v-if="message.audioFileUrl" class="audio-container">
@@ -120,9 +132,11 @@
               </div>
               <div v-if="message.content" class="message-text markdown-content" v-html="formatMessage(message.content)"></div>
               <div v-if="message.pdfFileUrl" class="pdf-container">
-                <div class="pdf-title">📄 生成的文档：</div>
-                <el-link :href="message.pdfFileUrl" target="_blank" type="success" class="pdf-download-btn">
-                  <!-- <el-icon><download /></el-icon> -->
+                <div class="pdf-header">
+                  <span class="pdf-icon">📄</span>
+                  <span class="pdf-label">生成的文档</span>
+                </div>
+                <el-link :href="message.pdfFileUrl" target="_blank" type="primary" class="pdf-download-btn">
                   <span>{{ message.pdfFileName || '下载PDF' }}</span>
                 </el-link>
               </div>
@@ -130,6 +144,7 @@
           </div>
         </div>
 
+        <!-- 输入区域 -->
         <div class="input-area">
           <div class="input-main">
             <input
@@ -139,16 +154,20 @@
               style="display: none"
               @change="handleImageSelect"
             />
-            <div v-if="selectedImage" class="selected-image-preview">
-              <el-image :src="selectedImage.preview" :alt="selectedImage.name" fit="contain" class="preview-image" />
-              <el-button type="danger" circle size="medium" @click="removeSelectedImage" class="remove-image-btn">
-                <el-icon><close /></el-icon>
-              </el-button>
+            
+            <!-- 预览区域 -->
+            <div v-if="selectedImage" class="selected-preview">
+              <div class="selected-image-container">
+                <el-image :src="selectedImage.preview" :alt="selectedImage.name" fit="contain" class="preview-image" />
+                <el-button type="danger" circle size="small" @click="removeSelectedImage" class="remove-btn">
+                  <el-icon><close /></el-icon>
+                </el-button>
+              </div>
             </div>
             <div v-if="selectedDiaries.length > 0" class="selected-diaries-preview">
               <div class="diaries-preview-header">
-                <span class="diaries-preview-title">已选择 {{ selectedDiaries.length }} 篇日记</span>
-                <el-button type="text" size="small" @click="clearSelectedDiaries">
+                <span class="diaries-preview-title">📔 已选择 {{ selectedDiaries.length }} 篇日记</span>
+                <el-button type="text" size="small" @click="clearSelectedDiaries" class="clear-btn">
                   <el-icon><close /></el-icon>
                 </el-button>
               </div>
@@ -164,32 +183,43 @@
                 </el-tag>
               </div>
             </div>
+            
+            <!-- 输入框 -->
             <div class="textarea-wrapper">
               <el-input
                 v-model="inputMessage"
                 type="textarea"
                 :rows="3"
-                placeholder="请输入您的问题..."
-                @keydown.enter.prevent="handleSendMessage"
+                placeholder="请输入您想聊的内容..."
+                @keydown.enter.prevent="handleEnter"
                 resize="none"
+                class="chat-textarea"
               />
               <div class="input-tools">
-                <el-button circle size="medium" @click="handleDiaryClick" title="选择日记">
+                <el-button class="tool-btn" circle size="medium" @click="handleDiaryClick" title="选择日记">
                   📔
                 </el-button>
-                <el-button circle size="medium" @click="handleImageClick" title="上传图片">
-                  <img src="../image/picture-icon.svg" alt="上传图片" style="width: 18px; height: 18px;" />
+                <el-button class="tool-btn" circle size="medium" @click="handleImageClick" title="上传图片">
+                  <span class="tool-icon">🖼️</span>
                 </el-button>
                 <el-button
+                  class="tool-btn"
                   circle
                   size="medium"
                   :type="isRecording ? 'danger' : 'default'"
                   @click="handleAudioClick"
                   :title="isRecording ? '停止录音' : '语音输入'"
                 >
-                  <img src="../image/microphone-icon.svg" alt="语音输入" style="width: 18px; height: 18px;" />
+                  <span class="tool-icon" v-if="!isRecording">🎤</span>
+                  <span class="recording-indicator" v-else>
+                    <span class="recording-dot"></span>
+                    <span class="recording-dot"></span>
+                    <span class="recording-dot"></span>
+                  </span>
                 </el-button>
+                <div class="tool-divider"></div>
                 <el-button
+                  class="send-btn"
                   circle
                   size="medium"
                   type="primary"
@@ -209,30 +239,14 @@
       </main>
     </div>
 
-    <!-- 图片预览对话框 -->
-    <el-dialog
-      v-model="previewDialogVisible"
-      title="图片预览"
-      width="80%"
-      top="5vh"
-      append-to-body
-    >
-      <div class="dialog-image-container">
-        <el-image
-          :src="previewImageUrl"
-          fit="contain"
-          class="dialog-image"
-        />
-      </div>
-    </el-dialog>
-
     <!-- 日记选择对话框 -->
     <el-dialog
       v-model="diaryDialogVisible"
       title="选择日记"
-      width="60%"
-      top="10vh"
+      width="600px"
+      top="15vh"
       append-to-body
+      class="diary-dialog"
     >
       <div class="diary-select-container">
         <el-empty v-if="availableDiaries.length === 0" description="暂无日记" :image-size="60" />
@@ -253,16 +267,19 @@
                 <span class="diary-select-time">{{ formatDate(diary.createTime) }}</span>
               </div>
             </div>
+            <div class="diary-select-check">
+              <el-icon v-if="selectedDiaryIds.includes(diary.id)"><Check /></el-icon>
+            </div>
           </div>
         </div>
       </div>
       <template #footer>
-        <span class="dialog-footer">
-          <el-button @click="diaryDialogVisible = false">取消</el-button>
-          <el-button type="primary" @click="confirmDiarySelection">
+        <div class="dialog-footer">
+          <el-button @click="diaryDialogVisible = false" class="dialog-cancel-btn">取消</el-button>
+          <el-button type="primary" @click="confirmDiarySelection" class="dialog-confirm-btn">
             确定 (已选择 {{ selectedDiaryIds.length }} 篇)
           </el-button>
-        </span>
+        </div>
       </template>
     </el-dialog>
   </div>
@@ -275,7 +292,7 @@ import { marked } from 'marked';
 import DOMPurify from 'dompurify';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import {
-  ArrowDown, Plus, Delete, Document, Download, Close
+  ArrowDown, Plus, Delete, Document, Close, Check
 } from '@element-plus/icons-vue';
 import {
   getChatSessionList,
@@ -285,7 +302,7 @@ import {
   chatWithRagStream,
   deleteChatSession,
   logout,
-  getUserFileList,
+  getUserFiles,
   chatWithImage,
   chatWithAudio,
   getEmotionDiaryList
@@ -305,8 +322,6 @@ const messagesContainer = ref(null);
 const selectedImage = ref(null);
 const isRecording = ref(false);
 const imageInput = ref(null);
-const previewDialogVisible = ref(false);
-const previewImageUrl = ref('');
 
 const diaryDialogVisible = ref(false);
 const availableDiaries = ref([]);
@@ -347,7 +362,7 @@ const formatMessage = (content) => {
 const scrollToBottom = () => {
   nextTick(() => {
     if (messagesContainer.value) {
-      messagesContainer.value.wrap.scrollTop = messagesContainer.value.wrap.scrollHeight;
+      messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight;
     }
   });
 };
@@ -365,7 +380,7 @@ const loadSessions = async () => {
 
 const loadUserFiles = async () => {
   try {
-    const response = await getUserFileList(chatId);
+    const response = await getUserFiles(chatId);
     if (response.code === 0 && response.data) {
       userFiles.value = response.data;
     }
@@ -534,9 +549,8 @@ const handleAudioClick = async () => {
       mediaRecorder.onstop = async () => {
         const audioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
         const audioFile = new File([audioBlob], 'audio.mp3', { type: 'audio/mp3' });
-        const audioPreviewUrl = URL.createObjectURL(audioBlob);
 
-        await handleSendAudioMessage(audioFile, audioPreviewUrl);
+        await handleSendAudioMessage(audioFile);
 
         stream.getTracks().forEach(track => track.stop());
       };
@@ -550,12 +564,13 @@ const handleAudioClick = async () => {
   }
 };
 
-const handleSendAudioMessage = async (audioFile, audioPreviewUrl) => {
+const handleSendAudioMessage = async (audioFile) => {
   if (!currentSessionId.value) {
     await createNewSession();
     if (!currentSessionId.value) return;
   }
 
+  const audioPreviewUrl = URL.createObjectURL(audioFile);
   const userMessage = {
     id: Date.now().toString(),
     content: '',
@@ -606,6 +621,12 @@ const stopRecording = () => {
   if (mediaRecorder && isRecording.value) {
     mediaRecorder.stop();
     isRecording.value = false;
+  }
+};
+
+const handleEnter = (event) => {
+  if (!event.shiftKey) {
+    handleSendMessage();
   }
 };
 
@@ -784,7 +805,7 @@ const handleSendDiaryMessage = async () => {
 
   const userMessage = {
     id: Date.now().toString(),
-    content: `已选择 ${selectedDiaries.value.length} 篇日记:\n${selectedDiaries.value.map(d => `• ${d.title || '无标题'}`).join('\n')}${inputMessage.value ? '\n\n' + inputMessage.value : ''}`,
+    content: `已选择 ${selectedDiaries.value.length} 篇日记:\n${selectedDiaries.value.map(d => '• ' + (d.title || '无标题')).join('\n')}${inputMessage.value ? '\n\n' + inputMessage.value : ''}`,
     isAiResponse: false,
   };
 
@@ -910,8 +931,7 @@ const handleCommand = (command) => {
 };
 
 const previewImage = (imageUrl) => {
-  previewImageUrl.value = imageUrl;
-  previewDialogVisible.value = true;
+  // Element Plus 的 el-image 组件已经支持预览功能
 };
 
 onMounted(async () => {
@@ -933,102 +953,135 @@ onMounted(async () => {
 
 <style scoped>
 .chat-container {
-  height: 100vh;
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background-image: url('../image/bg.jpg');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  background-attachment: fixed;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--color-background);
+  position: relative;
+  overflow: hidden;
 }
 
+/* 导航栏 */
 .navbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 24px;
-  background: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  padding: 12px 32px;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: var(--shadow-soft);
+  border-bottom: 1px solid rgba(255, 107, 157, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
 
 .nav-left {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
+  transition: transform var(--transition-fast);
+}
+
+.nav-left:hover {
+  transform: translateX(4px);
 }
 
 .nav-logo {
   font-size: 32px;
+  animation: pulse 3s ease-in-out infinite;
 }
 
 .nav-title {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 600;
-  color: #334155;
+  color: var(--color-text-primary);
 }
 
 .nav-center {
   display: flex;
-  gap: 16px;
+  gap: 8px;
 }
 
-.nav-center .el-button {
-  font-size: 16px;
+.nav-btn {
+  font-size: 14px;
   font-weight: 500;
+  color: var(--color-text-secondary);
+  border: none;
+  background: transparent;
+  border-radius: var(--radius-full);
+  padding: 8px 16px;
+  transition: all var(--transition-base);
+}
+
+.nav-btn:hover {
+  color: var(--color-primary);
+  background: rgba(255, 107, 157, 0.1);
 }
 
 .nav-right {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-right: 15px;
 }
 
 .el-dropdown-link {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   cursor: pointer;
-  color: #333;
+  color: var(--color-text-primary);
+  padding: 8px 16px;
+  border-radius: var(--radius-full);
+  transition: all var(--transition-base);
+}
+
+.el-dropdown-link:hover {
+  background: var(--color-surface-soft);
+}
+
+.user-avatar {
+  border: 2px solid var(--color-primary-light);
 }
 
 .user-name {
   font-weight: 500;
-  font-size: 16px;
+  font-size: 14px;
 }
 
+/* 主聊天区域 */
 .chat-main {
   flex: 1;
   display: flex;
   overflow: hidden;
-  padding: 16px;
-  gap: 16px;
+  padding: 24px;
+  gap: 24px;
+  max-width: 1600px;
+  margin: 0 auto;
+  width: 100%;
 }
 
-.chat-content {
-  height: 100%;
-  display: flex;
-  overflow: hidden;
-}
-
+/* 侧边栏 */
 .sidebar {
-  width: 300px;
+  width: 320px;
   background: rgba(255, 255, 255, 0.9);
-  border-radius: 16px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-soft);
   display: flex;
   flex-direction: column;
   gap: 16px;
-  padding: 16px;
+  padding: 20px;
+  border: 1px solid rgba(255, 107, 157, 0.1);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .sidebar-section {
   display: flex;
   flex-direction: column;
-  background: rgba(255, 255, 255, 0.9);
-  border-radius: 12px;
+  background: transparent;
+  border-radius: var(--radius-lg);
   overflow: hidden;
 }
 
@@ -1038,70 +1091,91 @@ onMounted(async () => {
 }
 
 .sidebar-section:last-child {
-  max-height: 300px;
-  min-height: 150px;
+  max-height: 320px;
+  min-height: 160px;
+  border-top: 1px solid rgba(255, 107, 157, 0.1);
+  padding-top: 16px;
 }
 
 .sidebar-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 14px;
-  border-bottom: 1px solid #e2e8f0;
-}
-.sidebar-header2 {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 14px;
-  border-bottom: 1px solid #e2e8f0;
-}
-.sidebar-header h3 {
-  margin: 0;
-  font-size: 16px;
-  color: #334155;
-}
-.sidebar-header2 h3 {
-  padding-top: 4px;
-  margin: 0;
-  font-size: 16px;
-  color: #334155;
-}
-.session-list {
-  flex: 1;
-  padding: 8px;
-  overflow-y: auto;
+  padding: 0 8px 16px;
 }
 
-.file-list {
-  padding: 8px;
+.sidebar-header h3 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.new-session-btn {
+  background: var(--gradient-1);
+  border: none;
+  box-shadow: var(--shadow-soft);
+  transition: all var(--transition-base);
+}
+
+.new-session-btn:hover {
+  transform: scale(1.1) rotate(90deg);
+  box-shadow: var(--shadow-medium);
+}
+
+.session-list {
+  flex: 1;
+  padding: 0;
   overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .session-item {
   position: relative;
-  padding: 12px;
-  border-radius: 12px;
+  padding: 14px 16px;
+  border-radius: var(--radius-lg);
   cursor: pointer;
-  margin-bottom: 8px;
-  transition: all 0.2s;
+  transition: all var(--transition-base);
   border: 1px solid transparent;
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .session-item:hover {
-  background: #f8fafc;
+  background: rgba(255, 107, 157, 0.05);
+  border-color: rgba(255, 107, 157, 0.15);
+  transform: translateX(4px);
 }
 
 .session-item.active {
-  background: #eff6ff;
-  border-color: #bfdbfe;
+  background: linear-gradient(135deg, rgba(255, 107, 157, 0.1) 0%, rgba(167, 139, 250, 0.1) 100%);
+  border-color: var(--color-primary-light);
+}
+
+.session-icon {
+  font-size: 20px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 107, 157, 0.1);
+  border-radius: var(--radius-md);
+}
+
+.session-info {
+  flex: 1;
+  min-width: 0;
 }
 
 .session-title {
   font-size: 14px;
   font-weight: 500;
-  color: #334155;
-  margin-bottom: 4px;
+  color: var(--color-text-primary);
+  margin-bottom: 2px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1109,35 +1183,44 @@ onMounted(async () => {
 
 .session-time {
   font-size: 12px;
-  color: #94a3b8;
+  color: var(--color-text-tertiary);
 }
 
 .delete-session-btn {
-  position: absolute;
-  right: 8px;
-  top: 50%;
-  transform: translateY(-50%);
+  position: relative;
   opacity: 0;
-  transition: opacity 0.2s;
+  transition: all var(--transition-base);
 }
 
 .session-item:hover .delete-session-btn {
   opacity: 1;
 }
 
+.delete-session-btn:hover {
+  background: rgba(245, 101, 101, 0.1);
+}
+
+.file-list {
+  padding: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 .file-item {
-  background: white;
-  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: var(--radius-md);
   padding: 12px;
-  margin-bottom: 8px;
-  transition: all 0.2s;
-  border: 1px solid #e2e8f0;
+  transition: all var(--transition-base);
+  border: 1px solid rgba(255, 107, 157, 0.08);
   text-align: left;
 }
 
 .file-item:hover {
-  border-color: #bfdbfe;
-  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
+  border-color: var(--color-primary-light);
+  background: rgba(255, 107, 157, 0.05);
+  transform: translateX(4px);
 }
 
 .file-download-link {
@@ -1150,62 +1233,88 @@ onMounted(async () => {
   justify-content: flex-start;
 }
 
+.file-icon {
+  font-size: 20px;
+  color: var(--color-primary);
+}
+
 .file-name {
-  /* flex: 1; */
   font-size: 13px;
   font-weight: 500;
-  color: #334155;
+  color: var(--color-text-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   text-align: left;
+  flex: 1;
 }
-
-/* .file-download-icon {
-  font-size: 16px;
-  flex-shrink: 0;
-  opacity: 0.7;
-  transition: opacity 0.2s;
-} */
-
-/* .file-item:hover .file-download-icon {
-  opacity: 1;
-} */
 
 .file-time {
   font-size: 11px;
-  color: #94a3b8;
-  margin-top: 4px;
+  color: var(--color-text-tertiary);
+  margin-top: 6px;
   text-align: left;
 }
 
+/* 聊天区域 */
 .chat-area {
   flex: 1;
   background: rgba(255, 255, 255, 0.9);
-  border-radius: 16px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-soft);
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  border: 1px solid rgba(255, 107, 157, 0.1);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .messages-container {
   flex: 1;
-  padding: 24px;
+  padding: 32px;
   overflow-y: auto;
 }
 
-.empty-icon {
-  font-size: 64px;
-  margin-bottom: 16px;
+/* 欢迎区域 */
+.welcome-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
 }
 
+.welcome-icon {
+  font-size: 80px;
+  margin-bottom: 20px;
+  animation: floatSlow 4s ease-in-out infinite;
+  filter: drop-shadow(0 8px 24px rgba(255, 107, 157, 0.2));
+}
+
+.welcome-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: 12px;
+}
+
+.welcome-text {
+  font-size: 15px;
+  color: var(--color-text-secondary);
+  max-width: 480px;
+  line-height: 1.6;
+}
+
+/* 消息样式 */
 .message {
   display: flex;
   gap: 16px;
-  margin-bottom: 24px;
+  margin-bottom: 28px;
   align-items: flex-start;
   position: relative;
+  animation: fadeInUp 0.3s ease-out;
 }
 
 .message-avatar {
@@ -1217,91 +1326,120 @@ onMounted(async () => {
   justify-content: center;
   font-size: 22px;
   flex-shrink: 0;
-  background: #f8fafc;
-  border: 2px solid #e2e8f0;
-  overflow: hidden;
+  position: absolute;
+  bottom: 0;
+}
+
+.ai-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-soft);
+}
+
+.ai-avatar span {
+  font-size: 24px;
+}
+
+.user-message-avatar {
+  border: 2px solid var(--color-primary-light);
+}
+
+.user-avatar-fallback {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--color-accent-light) 0%, var(--color-primary-light) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
 }
 
 .message-content {
   display: flex;
   flex-direction: column;
-  max-width: 75%;
+  max-width: 72%;
 }
 
 .message-text {
-  padding: 10px 18px;
-  border-radius: 20px;
+  padding: 14px 18px;
+  border-radius: var(--radius-lg);
   font-size: 15px;
-  line-height: 1.6;
+  line-height: 1.7;
   word-wrap: break-word;
   display: inline-block;
 }
 
+/* 用户消息 */
 .user-message {
   flex-direction: row-reverse;
   justify-content: flex-start;
-  margin-bottom: 16px;
-  padding-bottom: 20px;
+  margin-bottom: 24px;
+  padding-right: 60px;
 }
 
 .user-message .message-avatar {
-  position: absolute;
-  bottom: 0;
   right: 0;
 }
 
 .user-message .message-content {
   align-items: flex-end;
-  margin-right: 58px;
 }
 
 .user-message .message-text {
-  background: linear-gradient(135deg, #409eff 0%, #66b1ff 100%);
+  background: var(--gradient-1);
   color: white;
-  border-bottom-right-radius: 8px;
-  box-shadow: 0 4px 12px rgba(64, 158, 255, 0.25);
+  border-bottom-right-radius: 6px;
+  box-shadow: var(--shadow-medium);
 }
 
+/* AI消息 */
 .ai-message {
   flex-direction: row;
-  margin-bottom: 12px;
-  padding-bottom: 20px;
+  margin-bottom: 24px;
+  padding-left: 60px;
 }
 
 .ai-message .message-avatar {
-  position: absolute;
-  bottom: 0;
   left: 0;
 }
 
 .ai-message .message-content {
   align-items: flex-start;
-  margin-left: 58px;
 }
 
 .ai-message .message-text {
-  background: #ffffff;
-  color: #334155;
-  border-bottom-left-radius: 8px;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  background: white;
+  color: var(--color-text-primary);
+  border-bottom-left-radius: 6px;
+  border: 1px solid rgba(255, 107, 157, 0.15);
+  box-shadow: var(--shadow-soft);
 }
 
+/* 图片消息 */
 .image-container {
-  margin-bottom: 10px;
+  margin-bottom: 12px;
   max-width: 100%;
   overflow: hidden;
+  cursor: pointer;
+  border-radius: var(--radius-lg);
 }
 
 .message-image {
   width: 100%;
   height: 100%;
-  max-width: 300px;
+  max-width: 320px;
   max-height: 400px;
-  border-radius: 16px;
+  border-radius: var(--radius-lg);
   cursor: pointer;
-  transition: transform 0.2s;
+  transition: transform var(--transition-base);
   object-fit: contain;
+  box-shadow: var(--shadow-soft);
 }
 
 .message-image:hover {
@@ -1309,50 +1447,63 @@ onMounted(async () => {
 }
 
 .user-message .message-image {
-  border-bottom-right-radius: 4px;
+  border-bottom-right-radius: 6px;
 }
 
 .ai-message .message-image {
-  border-bottom-left-radius: 4px;
+  border-bottom-left-radius: 6px;
 }
 
+/* 音频消息 */
 .audio-container {
-  margin-bottom: 10px;
+  margin-bottom: 12px;
   display: block;
   width: 100%;
-  max-width: 400px;
+  max-width: 420px;
 }
 
 .message-audio {
   width: 100%;
-  min-width: 400px;
+  min-width: 320px;
   height: 48px;
-  border-radius: 24px;
+  border-radius: var(--radius-full);
   border: none;
   outline: none;
-  transition: all 0.3s ease;
+  transition: all var(--transition-base);
   display: block;
 }
 
 .user-message .message-audio {
   background: #f2f2f2;
-  border-bottom-right-radius: 8px;
+  border-bottom-right-radius: 6px;
 }
 
+/* PDF文档 */
 .pdf-container {
-  margin-top: 12px;
+  margin-top: 16px;
   padding: 16px 20px;
-  background: #ffffff;
-  border-radius: 20px;
-  border-bottom-left-radius: 8px;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  background: white;
+  border-radius: var(--radius-lg);
+  border-bottom-left-radius: 6px;
+  border: 1px solid rgba(255, 107, 157, 0.15);
+  box-shadow: var(--shadow-soft);
 }
 
-.pdf-title {
+.pdf-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.pdf-icon {
+  font-size: 20px;
+}
+
+.pdf-label {
   font-size: 13px;
-  color: #64748b;
-  margin-bottom: 8px;
+  color: var(--color-text-secondary);
+  font-weight: 500;
 }
 
 .pdf-download-btn {
@@ -1360,72 +1511,78 @@ onMounted(async () => {
   align-items: center;
   gap: 8px;
   padding: 10px 20px;
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   font-size: 14px;
   font-weight: 500;
+  background: linear-gradient(135deg, rgba(255, 107, 157, 0.1) 0%, rgba(167, 139, 250, 0.1) 100%);
+  border: 1px solid var(--color-primary-light);
+  color: var(--color-primary);
+  transition: all var(--transition-base);
 }
 
+.pdf-download-btn:hover {
+  background: var(--gradient-1);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-soft);
+}
+
+/* 输入区域 */
 .input-area {
   display: flex;
   gap: 12px;
-  padding: 12px 12px 12px;
-  border-top: 1px solid #e2e8f0;
+  padding: 20px;
+  border-top: 1px solid rgba(255, 107, 157, 0.1);
   align-items: flex-end;
-}
-
-.input-tools {
-  position: absolute;
-  right: 7px;
-  bottom: 8px;
-  display: flex;
-  gap: 0px;
-  z-index: 10;
+  background: linear-gradient(180deg, transparent 0%, rgba(255, 107, 157, 0.03) 100%);
 }
 
 .input-main {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
   width: 100%;
 }
 
-.textarea-wrapper {
-  position: relative;
+/* 预览区域 */
+.selected-preview {
   width: 100%;
 }
 
-.textarea-wrapper :deep(.el-textarea__inner) {
-  padding-bottom: 40px;
-  border-radius: 16px;
-}
-
-.selected-image-preview {
+.selected-image-container {
   position: relative;
   display: inline-block;
 }
 
 .preview-image {
-  max-width: 200px;
-  max-height: 150px;
-  border-radius: 12px;
-  border: 2px solid #e2e8f0;
+  max-width: 160px;
+  max-height: 120px;
+  border-radius: var(--radius-md);
+  border: 2px solid var(--color-primary-light);
   object-fit: contain;
+  box-shadow: var(--shadow-soft);
 }
 
-.remove-image-btn {
+.remove-btn {
   position: absolute;
   top: -8px;
   right: -8px;
+  background: rgba(245, 101, 101, 1);
+  border: none;
+  box-shadow: var(--shadow-soft);
+}
+
+.remove-btn:hover {
+  background: rgba(220, 76, 76, 1);
 }
 
 .selected-diaries-preview {
   width: 100%;
-  padding: 10px;
-  background: #f8fafc;
-  border-radius: 12px;
-  border: 1px solid #e2e8f0;
-  margin-bottom: 8px;
+  padding: 12px 16px;
+  background: rgba(255, 107, 157, 0.05);
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(255, 107, 157, 0.15);
 }
 
 .diaries-preview-header {
@@ -1438,7 +1595,15 @@ onMounted(async () => {
 .diaries-preview-title {
   font-size: 14px;
   font-weight: 500;
-  color: #334155;
+  color: var(--color-text-primary);
+}
+
+.clear-btn {
+  color: var(--color-text-secondary);
+}
+
+.clear-btn:hover {
+  color: var(--color-primary);
 }
 
 .diaries-preview-list {
@@ -1448,19 +1613,118 @@ onMounted(async () => {
 }
 
 .diary-tag {
-  max-width: 200px;
+  max-width: 180px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  background: white;
+  border-color: var(--color-primary-light);
+  color: var(--color-text-primary);
+}
+
+.diary-tag:hover {
+  border-color: var(--color-primary);
+}
+
+/* 输入框 */
+.textarea-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.chat-textarea {
+  border-radius: var(--radius-xl);
+}
+
+.chat-textarea :deep(.el-textarea__inner) {
+  padding: 16px 16px 56px;
+  border-radius: var(--radius-xl);
+  border: 2px solid rgba(255, 107, 157, 0.15);
+  background: rgba(255, 255, 255, 0.9);
+  font-size: 15px;
+  line-height: 1.6;
+  transition: all var(--transition-base);
+  resize: none;
+}
+
+.chat-textarea :deep(.el-textarea__inner:focus) {
+  border-color: var(--color-primary-light);
+  box-shadow: 0 0 0 4px rgba(255, 107, 157, 0.1);
+}
+
+.input-tools {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 10;
+}
+
+.tool-btn {
+  border: none;
+  background: rgba(255, 107, 157, 0.08);
+  transition: all var(--transition-base);
+}
+
+.tool-btn:hover {
+  background: rgba(255, 107, 157, 0.15);
+  transform: scale(1.1);
+}
+
+.tool-icon {
+  font-size: 18px;
+}
+
+/* 录音指示器 */
+.recording-indicator {
+  display: flex;
+  gap: 3px;
+  align-items: center;
+  padding: 4px;
+}
+
+.recording-dot {
+  width: 6px;
+  height: 6px;
+  background: var(--color-primary);
+  border-radius: 50%;
+  animation: pulse 0.8s ease-in-out infinite;
+}
+
+.recording-dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.recording-dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+.tool-divider {
+  width: 1px;
+  height: 32px;
+  background: rgba(255, 107, 157, 0.15);
+  margin: 0 4px;
 }
 
 .send-btn {
-  align-self: flex-end;
-  padding: 12px 28px;
-  font-size: 15px;
-  font-weight: 600;
+  background: var(--gradient-1);
+  border: none;
+  box-shadow: var(--shadow-soft);
+  transition: all var(--transition-base);
 }
 
+.send-btn:hover:not(:disabled) {
+  transform: scale(1.1);
+  box-shadow: var(--shadow-medium);
+}
+
+.send-btn:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+/* Markdown 内容样式 */
 :deep(.markdown-content) h1,
 :deep(.markdown-content) h2,
 :deep(.markdown-content) h3,
@@ -1481,7 +1745,7 @@ onMounted(async () => {
 
 :deep(.markdown-content) p {
   margin: 0.5em 0;
-  line-height: 1.6;
+  line-height: 1.7;
 }
 
 :deep(.markdown-content) ul,
@@ -1491,11 +1755,11 @@ onMounted(async () => {
 }
 
 :deep(.markdown-content) li {
-  margin: 0.25em 0;
+  margin: 0.3em 0;
 }
 
 :deep(.markdown-content) code {
-  background: #f3f4f6;
+  background: rgba(255, 107, 157, 0.1);
   padding: 0.2em 0.4em;
   border-radius: 4px;
   font-family: 'Courier New', monospace;
@@ -1506,7 +1770,7 @@ onMounted(async () => {
   background: #1f2937;
   color: #e5e7eb;
   padding: 1em;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   overflow-x: auto;
   margin: 0.5em 0;
 }
@@ -1518,20 +1782,25 @@ onMounted(async () => {
 }
 
 :deep(.markdown-content) blockquote {
-  border-left: 4px solid #409eff;
+  border-left: 3px solid var(--color-primary);
   padding-left: 1em;
   margin: 0.5em 0;
-  color: #64748b;
+  color: var(--color-text-secondary);
   font-style: italic;
+  background: rgba(255, 107, 157, 0.05);
+  padding: 12px 16px;
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
 }
 
 :deep(.markdown-content) a {
-  color: #409eff;
-  text-decoration: underline;
+  color: var(--color-primary);
+  text-decoration: none;
+  transition: all var(--transition-fast);
 }
 
 :deep(.markdown-content) a:hover {
-  color: #66b1ff;
+  color: var(--color-primary-dark);
+  text-decoration: underline;
 }
 
 :deep(.markdown-content) strong,
@@ -1546,7 +1815,7 @@ onMounted(async () => {
 
 :deep(.markdown-content) hr {
   border: none;
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid rgba(255, 107, 157, 0.15);
   margin: 1em 0;
 }
 
@@ -1558,65 +1827,67 @@ onMounted(async () => {
 
 :deep(.markdown-content) th,
 :deep(.markdown-content) td {
-  border: 1px solid #e2e8f0;
+  border: 1px solid rgba(255, 107, 157, 0.15);
   padding: 0.5em;
   text-align: left;
 }
 
 :deep(.markdown-content) th {
-  background: #f8fafc;
+  background: rgba(255, 107, 157, 0.05);
   font-weight: 600;
 }
 
-.dialog-image-container {
-  width: 100%;
-  height: 70vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #f0f0f0;
-  border-radius: 8px;
+/* 日记选择对话框 */
+:deep(.diary-dialog .el-dialog) {
+  border-radius: var(--radius-xl);
+  overflow: hidden;
 }
 
-.dialog-image {
-  width: 100%;
-  height: 100%;
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
+:deep(.diary-dialog .el-dialog__header) {
+  background: linear-gradient(135deg, rgba(255, 107, 157, 0.05) 0%, rgba(167, 139, 250, 0.05) 100%);
+  padding: 20px 24px;
+  margin: 0;
+  border-bottom: 1px solid rgba(255, 107, 157, 0.1);
+}
+
+:deep(.diary-dialog .el-dialog__title) {
+  font-weight: 600;
+  color: var(--color-text-primary);
 }
 
 .diary-select-container {
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   max-height: 60vh;
   overflow-y: auto;
+  padding: 8px;
 }
 
 .diary-select-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
 .diary-select-item {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 12px;
-  border-radius: 10px;
-  border: 2px solid #e2e8f0;
+  padding: 14px 16px;
+  border-radius: var(--radius-lg);
+  border: 2px solid rgba(255, 107, 157, 0.1);
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all var(--transition-base);
 }
 
 .diary-select-item:hover {
-  border-color: #409eff;
-  background: #f0f7ff;
+  border-color: var(--color-primary-light);
+  background: rgba(255, 107, 157, 0.05);
+  transform: translateX(4px);
 }
 
 .diary-select-item.selected {
-  border-color: #409eff;
-  background: #ecf5ff;
+  border-color: var(--color-primary);
+  background: linear-gradient(135deg, rgba(255, 107, 157, 0.1) 0%, rgba(167, 139, 250, 0.1) 100%);
 }
 
 .diary-select-checkbox {
@@ -1631,7 +1902,7 @@ onMounted(async () => {
 .diary-select-title {
   font-size: 15px;
   font-weight: 600;
-  color: #334155;
+  color: var(--color-text-primary);
   margin-bottom: 4px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1642,16 +1913,43 @@ onMounted(async () => {
   display: flex;
   gap: 12px;
   font-size: 13px;
-  color: #64748b;
+  color: var(--color-text-secondary);
+  align-items: center;
 }
 
 .diary-select-mood {
-  padding: 2px 8px;
-  background: #f1f5f9;
-  border-radius: 4px;
+  padding: 3px 10px;
+  background: rgba(255, 107, 157, 0.1);
+  border-radius: var(--radius-full);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-primary);
 }
 
 .diary-select-time {
-  color: #94a3b8;
+  color: var(--color-text-tertiary);
+  font-size: 12px;
 }
-</style>
+
+.diary-select-check {
+  flex-shrink: 0;
+  color: var(--color-primary);
+  font-size: 20px;
+}
+
+.dialog-footer {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  padding-top: 16px;
+}
+
+.dialog-cancel-btn {
+  border-color: rgba(255, 107, 157, 0.2);
+  color: var(--color-text-secondary);
+  border-radius: var(--radius-full);
+  padding: 10px 24px;
+  transition: all var(--transition-base);
+}
+
+.dialog-cancel-btn:hover {
