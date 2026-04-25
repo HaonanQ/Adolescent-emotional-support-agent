@@ -1,22 +1,26 @@
 <template>
   <div class="classroom-container">
-    <nav class="navbar">
+    <!-- 装饰背景元素 -->
+    <div class="decorative-circle circle-1" style="top: -150px; right: -150px; opacity: 0.3;"></div>
+    <div class="decorative-circle circle-2" style="bottom: -100px; left: -100px; opacity: 0.3;"></div>
+    
+    <nav class="navbar" style="animation: fadeInDown 0.4s ease-out;">
       <div class="nav-left" @click="goToHome" style="cursor: pointer;">
         <span class="nav-logo">❤️</span>
         <span class="nav-title">青少年情感陪伴智能体</span>
       </div>
       <div class="nav-center">
-          <el-button text @click="goToChat">情感陪伴</el-button>
-          <el-button text @click="goToEmotionDiary">情绪日记</el-button>
-          <el-button text @click="goToEmotionClassroom">情感课堂</el-button>
-          <el-button text @click="goToKnowledgeManagement" v-if="user?.isAdmin === 1">知识库管理</el-button>
-          <el-button text @click="goToFeedback">反馈与建议</el-button>
+          <el-button class="nav-btn" @click="goToChat">情感陪伴</el-button>
+          <el-button class="nav-btn" @click="goToEmotionDiary">情绪日记</el-button>
+          <el-button class="nav-btn" @click="goToEmotionClassroom">情感课堂</el-button>
+          <el-button class="nav-btn" @click="goToKnowledgeManagement" v-if="user?.isAdmin === 1">知识库管理</el-button>
+          <el-button class="nav-btn" @click="goToFeedback">反馈与建议</el-button>
         </div>
       <div class="nav-right">
         <el-dropdown @command="handleCommand" v-if="user">
           <span class="el-dropdown-link">
-            <el-avatar :size="36" :src="user.avatar" v-if="user.avatar"></el-avatar>
-            <el-avatar :size="36" v-else>{{ user.username?.charAt(0) || 'U' }}</el-avatar>
+            <el-avatar :size="36" :src="user.avatar" v-if="user.avatar" class="user-avatar"></el-avatar>
+            <el-avatar :size="36" v-else class="user-avatar">{{ user.username?.charAt(0) || 'U' }}</el-avatar>
             <span class="user-name">{{ user.username }}</span>
             <el-icon class="el-icon--right"><arrow-down /></el-icon>
           </span>
@@ -33,7 +37,7 @@
     </nav>
 
     <div class="classroom-main">
-      <div class="page-header">
+      <div class="page-header" style="animation: fadeInUp 0.4s ease-out 0.1s both;">
         <h1 class="page-title">情感课堂</h1>
         <p class="page-desc">在这里，我们用温暖的文章陪伴你成长，每一篇都是为你精心准备的礼物</p>
         <el-button
@@ -42,7 +46,7 @@
           class="new-article-btn"
           @click="goToEditor()"
         >
-          新建文章
+          <el-icon><plus /></el-icon> 新建文章
         </el-button>
       </div>
       <div class="article-list" v-loading="loading">
@@ -53,13 +57,15 @@
         </el-empty>
 
         <div
-          v-for="article in articles"
+          v-for="(article, index) in articles"
           :key="article.id"
           :class="['article-card', { 'invisible-card': isAdmin && article.status !== 1 }]"
           @click="goToDetail(article.id)"
+          style="animation: fadeInUp 0.4s ease-out " + (0.2 + index * 0.1) + "s both"
         >
           <div class="article-cover" v-if="article.coverImage">
             <img :src="article.coverImage" :alt="article.title" />
+            <div class="read-duration">{{ calcReadDuration(article.content) }}</div>
           </div>
           <div class="article-content-wrapper">
             <h2 class="article-title">{{ article.title }}</h2>
@@ -76,7 +82,7 @@
                 <!-- 管理员操作按钮 -->
                 <div class="admin-actions" v-if="isAdmin" @click.stop>
                   <el-tooltip content="编辑" placement="top">
-                    <el-button text circle size="large" @click="goToEditor(article.id)">
+                    <el-button text circle size="small" @click="goToEditor(article.id)" class="admin-action-btn">
                       <el-icon><edit /></el-icon>
                     </el-button>
                   </el-tooltip>
@@ -84,22 +90,22 @@
                     <el-button
                       text
                       circle
-                      size="large"
-                      :class="article.status === 1 ? 'btn-warning' : 'btn-success'"
+                      size="small"
+                      :class="['admin-action-btn', article.status === 1 ? 'btn-warning' : 'btn-success']"
                       @click="toggleStatus(article)"
                     >
                       <el-icon ><hide /></el-icon>
                     </el-button>
                   </el-tooltip>
                   <el-tooltip content="删除" placement="top">
-                    <el-button text circle size="large" type="danger" @click="handleDelete(article)">
+                    <el-button text circle size="small" type="danger" @click="handleDelete(article)" class="admin-action-btn">
                       <el-icon><delete /></el-icon>
                     </el-button>
                   </el-tooltip>
                 </div>
                 <span class="read-count">
                   <el-icon><view /></el-icon>
-                  阅读数：{{ article.readCount || 0 }}
+                  {{ article.readCount || 0 }} 阅读
                 </span>
               </div>
             </div>
@@ -276,168 +282,236 @@ const handleCommand = (command) => {
 <style scoped>
 .classroom-container {
   min-height: 100vh;
-  background-image: url('../image/bg.jpg');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  background-attachment: fixed;
+  background: var(--color-background);
+  position: relative;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
+/* 导航栏 */
 .navbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 24px;
-  background: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  padding: 12px 32px;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: var(--shadow-soft);
+  border-bottom: 1px solid rgba(255, 107, 157, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
 
 .nav-left {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
   cursor: pointer;
+  transition: transform var(--transition-fast);
+}
+
+.nav-left:hover {
+  transform: translateX(4px);
 }
 
 .nav-logo {
   font-size: 32px;
+  animation: pulse 3s ease-in-out infinite;
 }
 
 .nav-title {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 600;
-  color: #334155;
+  color: var(--color-text-primary);
 }
 
 .nav-center {
   display: flex;
-  gap: 16px;
+  gap: 8px;
 }
 
-.nav-center .el-button {
-  font-size: 16px;
+.nav-btn {
+  font-size: 14px;
   font-weight: 500;
+  color: var(--color-text-secondary);
+  border: none;
+  background: transparent;
+  border-radius: var(--radius-full);
+  padding: 8px 16px;
+  transition: all var(--transition-base);
+}
+
+.nav-btn:hover {
+  color: var(--color-primary);
+  background: rgba(255, 107, 157, 0.1);
 }
 
 .nav-right {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-right: 15px;
 }
 
 .el-dropdown-link {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   cursor: pointer;
-  color: #333;
+  color: var(--color-text-primary);
+  padding: 8px 16px;
+  border-radius: var(--radius-full);
+  transition: all var(--transition-base);
+}
+
+.el-dropdown-link:hover {
+  background: var(--color-surface-soft);
+}
+
+.user-avatar {
+  border: 2px solid var(--color-primary-light);
 }
 
 .user-name {
   font-weight: 500;
-  font-size: 16px;
+  font-size: 14px;
 }
 
 .empty-icon {
   font-size: 64px;
+  animation: float 3s ease-in-out infinite;
 }
 
 .classroom-main {
-  max-width: 800px;
+  max-width: 1000px;
   margin: 0 auto;
-  padding: 20px 20px;
+  padding: 32px;
   background: rgba(255, 255, 255, 0.9);
-  border-radius: 20px;
-  margin-top: 20px;
-  margin-bottom: 20px;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
+  border-radius: var(--radius-xl);
+  margin-top: 24px;
+  margin-bottom: 24px;
+  box-shadow: var(--shadow-soft);
+  border: 1px solid rgba(255, 107, 157, 0.1);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .page-header {
   text-align: center;
-  margin-bottom: 20px;
+  margin-bottom: 32px;
   position: relative;
+  padding: 24px 0;
+  background: linear-gradient(135deg, rgba(255, 107, 157, 0.05) 0%, rgba(167, 139, 250, 0.05) 100%);
+  border-radius: var(--radius-lg);
+  margin: 0 -32px 32px;
 }
 
 .page-title {
   font-size: 32px;
   font-weight: 700;
-  color: #334155;
+  color: var(--color-text-primary);
   margin-bottom: 12px;
+  background: var(--gradient-1);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .page-desc {
   font-size: 15px;
-  color: #64748b;
+  color: var(--color-text-secondary);
   line-height: 1.6;
+  max-width: 600px;
+  margin: 0 auto;
 }
 
 .new-article-btn {
   position: absolute;
-  right: 0;
+  right: 32px;
   top: 50%;
   transform: translateY(-50%);
+  background: var(--gradient-1);
+  border: none;
+  border-radius: var(--radius-lg);
+  padding: 10px 20px;
+  transition: all var(--transition-base);
+  box-shadow: var(--shadow-soft);
+}
+
+.new-article-btn:hover {
+  transform: translateY(-50%) scale(1.05);
+  box-shadow: var(--shadow-medium);
 }
 
 .article-list {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  padding-top: 0px;
+  gap: 20px;
 }
 
 .article-card {
-  background: #fff;
-  border-radius: 16px;
+  background: white;
+  border-radius: var(--radius-xl);
   overflow: hidden;
   cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+  transition: all var(--transition-base);
+  box-shadow: var(--shadow-soft);
   display: flex;
-  gap: 20px;
-  padding: 20px;
+  gap: 24px;
+  padding: 24px;
+  border: 1px solid rgba(255, 107, 157, 0.1);
 }
 
 .invisible-card {
   opacity: 0.7;
-  border: 1px dashed #ddd;
+  border: 1px dashed rgba(255, 107, 157, 0.3);
 }
 
 .article-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-medium);
+  border-color: var(--color-primary-light);
 }
 
 .article-card:hover .article-title {
-  color: #409eff;
+  color: var(--color-primary);
 }
 
 .article-cover {
   position: relative;
-  width: 200px;
-  min-width: 200px;
-  height: 140px;
-  border-radius: 12px;
+  width: 220px;
+  min-width: 220px;
+  height: 160px;
+  border-radius: var(--radius-lg);
   overflow: hidden;
   flex-shrink: 0;
+  box-shadow: var(--shadow-soft);
+  transition: all var(--transition-base);
+}
+
+.article-card:hover .article-cover {
+  transform: scale(1.02);
 }
 
 .article-cover img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: all var(--transition-base);
 }
 
 .read-duration {
   position: absolute;
-  bottom: 8px;
-  right: 8px;
-  background: rgba(0, 0, 0, 0.6);
-  color: #fff;
+  bottom: 10px;
+  right: 10px;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
   font-size: 12px;
-  padding: 2px 8px;
-  border-radius: 10px;
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
 }
 
 .article-content-wrapper {
@@ -449,12 +523,12 @@ const handleCommand = (command) => {
 }
 
 .article-title {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 600;
-  color: #333;
+  color: var(--color-text-primary);
   line-height: 1.4;
-  margin-bottom: 10px;
-  transition: color 0.2s;
+  margin-bottom: 12px;
+  transition: all var(--transition-base);
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -463,9 +537,9 @@ const handleCommand = (command) => {
 
 .article-summary {
   font-size: 14px;
-  color: #666;
+  color: var(--color-text-secondary);
   line-height: 1.7;
-  margin-bottom: 12px;
+  margin-bottom: 16px;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -476,54 +550,65 @@ const handleCommand = (command) => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 107, 157, 0.1);
 }
 
 .meta-left {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
 .author-avatar {
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  color: #fff;
+  background: var(--gradient-1);
+  color: white;
   font-size: 11px;
+  border: 1px solid var(--color-primary-light);
 }
 
 .author-name {
   font-size: 13px;
-  color: #999;
+  color: var(--color-text-tertiary);
+  font-weight: 500;
 }
 
 .status-tag {
-  margin-left: 4px;
+  margin-left: 6px;
+  border-radius: var(--radius-full);
 }
 
 .meta-right {
   display: flex;
   align-items: center;
-  gap: 1px;
+  gap: 12px;
 }
 
 .read-count {
   display: flex;
   align-items: center;
-  gap: 1px;
+  gap: 4px;
   font-size: 13px;
-  color: #bbb;
+  color: var(--color-text-tertiary);
+  font-weight: 500;
 }
 
 .admin-actions {
   display: flex;
   align-items: center;
-  gap: 0px;
+  gap: 8px;
   opacity: 0;
-  transition: opacity 0.2s;
+  transition: all var(--transition-base);
 }
 
-.admin-actions .el-button {
-  padding: 3px;
-  margin: 0;
+.admin-action-btn {
+  transition: all var(--transition-base);
+  border-radius: var(--radius-full);
+}
+
+.admin-action-btn:hover {
+  background: var(--color-surface-soft);
+  transform: scale(1.1);
 }
 
 .admin-actions .btn-warning {
@@ -532,6 +617,7 @@ const handleCommand = (command) => {
 
 .admin-actions .btn-warning:hover {
   color: #ebb563;
+  background: rgba(230, 162, 60, 0.1);
 }
 
 .admin-actions .btn-success {
@@ -540,9 +626,177 @@ const handleCommand = (command) => {
 
 .admin-actions .btn-success:hover {
   color: #85ce61;
+  background: rgba(103, 194, 58, 0.1);
 }
 
 .article-card:hover .admin-actions {
   opacity: 1;
+}
+
+/* 装饰背景元素 */
+.decorative-circle {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--color-primary-light) 0%, transparent 70%);
+  filter: blur(100px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.circle-1 {
+  width: 600px;
+  height: 600px;
+  top: -150px;
+  right: -150px;
+  opacity: 0.3;
+  animation: float 6s ease-in-out infinite;
+}
+
+.circle-2 {
+  width: 400px;
+  height: 400px;
+  bottom: -100px;
+  left: -100px;
+  opacity: 0.3;
+  animation: float 8s ease-in-out infinite reverse;
+}
+
+/* 动画 */
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+/* 响应式设计 */
+@media (max-width: 1200px) {
+  .classroom-main {
+    max-width: 900px;
+    padding: 24px;
+  }
+  
+  .page-header {
+    margin: 0 -24px 24px;
+  }
+  
+  .new-article-btn {
+    right: 24px;
+  }
+  
+  .article-cover {
+    width: 200px;
+    min-width: 200px;
+    height: 140px;
+  }
+}
+
+@media (max-width: 992px) {
+  .classroom-main {
+    max-width: 768px;
+  }
+  
+  .article-card {
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .article-cover {
+    width: 100%;
+    min-width: 100%;
+    height: 200px;
+  }
+}
+
+@media (max-width: 768px) {
+  .navbar {
+    padding: 12px 16px;
+  }
+  
+  .nav-center {
+    display: none;
+  }
+  
+  .classroom-main {
+    margin-top: 16px;
+    margin-bottom: 16px;
+    padding: 16px;
+  }
+  
+  .page-header {
+    margin: 0 -16px 24px;
+    padding: 20px 0;
+  }
+  
+  .page-title {
+    font-size: 24px;
+  }
+  
+  .new-article-btn {
+    position: static;
+    transform: none;
+    margin-top: 16px;
+  }
+  
+  .article-card {
+    padding: 16px;
+  }
+  
+  .article-cover {
+    height: 160px;
+  }
+}
+
+/* 滚动条样式 */
+.classroom-main::-webkit-scrollbar {
+  width: 6px;
+}
+
+.classroom-main::-webkit-scrollbar-track {
+  background: rgba(255, 107, 157, 0.05);
+  border-radius: 3px;
+}
+
+.classroom-main::-webkit-scrollbar-thumb {
+  background: rgba(255, 107, 157, 0.3);
+  border-radius: 3px;
+  transition: background var(--transition-base);
+}
+
+.classroom-main::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 107, 157, 0.5);
 }
 </style>

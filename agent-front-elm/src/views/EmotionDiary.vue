@@ -1,22 +1,26 @@
 <template>
   <div class="emotion-diary-container">
-    <nav class="navbar">
+    <!-- 装饰背景元素 -->
+    <div class="decorative-circle circle-1" style="top: -150px; right: -150px; opacity: 0.3;"></div>
+    <div class="decorative-circle circle-2" style="bottom: -100px; left: -100px; opacity: 0.3;"></div>
+    
+    <nav class="navbar" style="animation: fadeInDown 0.4s ease-out;">
       <div class="nav-left" @click="goToHome" style="cursor: pointer;">
         <span class="nav-logo">❤️</span>
         <span class="nav-title">青少年情感陪伴智能体</span>
       </div>
       <div class="nav-center">
-        <el-button text @click="goToChat">情感陪伴</el-button>
-          <el-button text @click="goToEmotionDiary">情绪日记</el-button>
-          <el-button text @click="goToEmotionClassroom">情感课堂</el-button>
-          <el-button text @click="goToKnowledgeManagement" v-if="user?.isAdmin === 1">知识库管理</el-button>
-          <el-button text @click="goToFeedback">反馈与建议</el-button>
+        <el-button class="nav-btn" @click="goToChat">情感陪伴</el-button>
+        <el-button class="nav-btn" @click="goToEmotionDiary">情绪日记</el-button>
+        <el-button class="nav-btn" @click="goToEmotionClassroom">情感课堂</el-button>
+        <el-button class="nav-btn" @click="goToKnowledgeManagement" v-if="user?.isAdmin === 1">知识库管理</el-button>
+        <el-button class="nav-btn" @click="goToFeedback">反馈与建议</el-button>
       </div>
       <div class="nav-right">
         <el-dropdown @command="handleCommand">
           <span class="el-dropdown-link">
-            <el-avatar :size="36" :src="user.avatar" v-if="user.avatar"></el-avatar>
-            <el-avatar :size="36" v-else>{{ user.username?.charAt(0) || 'U' }}</el-avatar>
+            <el-avatar :size="36" :src="user.avatar" v-if="user.avatar" class="user-avatar"></el-avatar>
+            <el-avatar :size="36" v-else class="user-avatar">{{ user.username?.charAt(0) || 'U' }}</el-avatar>
             <span class="user-name">{{ user.username }}</span>
             <el-icon class="el-icon--right"><arrow-down /></el-icon>
           </span>
@@ -33,10 +37,10 @@
     </nav>
 
     <div class="diary-main">
-      <aside class="timeline-sidebar">
+      <aside class="timeline-sidebar" style="animation: fadeInUp 0.4s ease-out 0.1s both;">
         <div class="timeline-header">
           <h3>我的日记</h3>
-          <el-button type="primary" circle @click="resetForm" title="新建日记">
+          <el-button type="primary" circle @click="resetForm" title="新建日记" class="new-diary-btn">
             <el-icon><plus /></el-icon>
           </el-button>
         </div>
@@ -59,13 +63,12 @@
               <div class="timeline-title">{{ diary.title || '无标题' }}</div>
               <div class="timeline-mood-text">{{ diary.mood }}</div>
               <div class="timeline-time">{{ formatTime(diary.createTime) }}</div>
-              <!-- <div class="timeline-score">情绪分: {{ diary.moodScore }}/10</div> -->
             </div>
             <el-button
               type="danger"
               text
               circle
-              size="large"
+              size="small"
               @click.stop="deleteDiary(diary.id)"
               title="删除日记"
               class="delete-diary-btn"
@@ -76,7 +79,7 @@
         </div>
       </aside>
 
-      <main class="diary-area">
+      <main class="diary-area" style="animation: fadeInUp 0.4s ease-out 0.2s both;">
         <div v-if="isPreview" class="diary-preview">
           <div class="preview-header">
             <div class="preview-mood-section">
@@ -103,6 +106,7 @@
                       :src="imageUrl.trim()" 
                       fit="cover" 
                       class="uploaded-image"
+                      :preview-src-list="[imageUrl.trim()]"
                     />
                   </div>
                 </div>
@@ -118,6 +122,7 @@
             top="5vh"
             width="80%"
             append-to-body
+            class="image-preview-dialog"
           >
             <div class="dialog-image-container">
               <el-image
@@ -142,13 +147,14 @@
                 placeholder="请输入日记标题..."
                 maxlength="100"
                 show-word-limit
+                class="title-input"
               />
             </div>
 
             <div class="mood-score-row">
               <div class="form-group">
                 <label>选择情绪</label>
-                <el-select v-model="formData.mood" placeholder="请选择..." @change="updateMoodScore" style="width: 100%">
+                <el-select v-model="formData.mood" placeholder="请选择..." @change="updateMoodScore" style="width: 100%" class="mood-select">
                   <el-option
                     v-for="mood in moodOptions"
                     :key="mood.value"
@@ -167,6 +173,7 @@
                     :max="10"
                     :show-tooltip="false"
                     style="flex: 1"
+                    class="mood-slider"
                   />
                   <span class="score-display">{{ formData.moodScore }}/10</span>
                 </div>
@@ -181,8 +188,9 @@
                 :rows="10"
                 placeholder="记录今天的心情和感受..."
                 resize="none"
+                class="content-textarea"
               />
-              <div style="font-size: 12px; color: #909399; margin-top: 4px;">支持 Markdown 格式</div>
+              <div class="markdown-hint">支持 Markdown 格式</div>
             </div>
 
             <div class="form-group">
@@ -197,9 +205,8 @@
                 />
                 <div class="image-upload-content">
                   <div class="upload-button-section">
-                    <el-button type="primary" @click="handleImageClick" size="large">
-                      <!-- <el-icon><picture /></el-icon> -->
-                      添加图片
+                    <el-button type="primary" @click="handleImageClick" size="large" class="upload-btn">
+                      <el-icon><picture /></el-icon> 添加图片
                     </el-button>
                   </div>
                   <div v-if="formData.imageUrls.length > 0" class="image-preview-container">
@@ -220,17 +227,12 @@
                   </div>
                 </div>
                 <div class="save-button-section">
-                  <el-button type="primary" :loading="isSaving" :disabled="!formData.mood || !formData.title" @click="saveDiary" size="large">
+                  <el-button type="primary" :loading="isSaving" :disabled="!formData.mood || !formData.title" @click="saveDiary" size="large" class="save-btn">
                     保存日记
                   </el-button>
                 </div>
               </div>
             </div>
-            <!-- <div class="form-actions">
-              <el-button type="primary" :loading="isSaving" :disabled="!formData.mood" @click="saveDiary" size="large">
-                保存日记
-              </el-button>
-            </div> -->
           </div>
         </div>
       </main>
@@ -524,113 +526,170 @@ onMounted(async () => {
 
 <style scoped>
 .emotion-diary-container {
-  height: 100vh;
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background-image: url('../image/bg.jpg');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  background-attachment: fixed;
+  background: var(--color-background);
+  position: relative;
+  overflow: hidden;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
+/* 导航栏 */
 .navbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 24px;
-  background: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  padding: 12px 32px;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: var(--shadow-soft);
+  border-bottom: 1px solid rgba(255, 107, 157, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
 
 .nav-left {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
+  transition: transform var(--transition-fast);
+}
+
+.nav-left:hover {
+  transform: translateX(4px);
 }
 
 .nav-logo {
   font-size: 32px;
+  animation: pulse 3s ease-in-out infinite;
 }
 
 .nav-title {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 600;
-  color: #334155;
+  color: var(--color-text-primary);
 }
 
 .nav-center {
   display: flex;
-  gap: 16px;
+  gap: 8px;
 }
 
-.nav-center .el-button {
-  font-size: 16px;
+.nav-btn {
+  font-size: 14px;
   font-weight: 500;
+  color: var(--color-text-secondary);
+  border: none;
+  background: transparent;
+  border-radius: var(--radius-full);
+  padding: 8px 16px;
+  transition: all var(--transition-base);
+}
+
+.nav-btn:hover {
+  color: var(--color-primary);
+  background: rgba(255, 107, 157, 0.1);
 }
 
 .nav-right {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-right: 15px;
 }
 
 .el-dropdown-link {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   cursor: pointer;
-  color: #333;
+  color: var(--color-text-primary);
+  padding: 8px 16px;
+  border-radius: var(--radius-full);
+  transition: all var(--transition-base);
+}
+
+.el-dropdown-link:hover {
+  background: var(--color-surface-soft);
+}
+
+.user-avatar {
+  border: 2px solid var(--color-primary-light);
 }
 
 .user-name {
   font-weight: 500;
-  font-size: 16px;
+  font-size: 14px;
 }
 
+/* 主内容区 */
 .diary-main {
   flex: 1;
   display: flex;
   overflow: hidden;
-  padding: 16px;
-  gap: 16px;
+  padding: 24px;
+  gap: 24px;
+  max-width: 1600px;
+  margin: 0 auto;
+  width: 100%;
 }
 
+/* 侧边栏 */
 .timeline-sidebar {
   width: 320px;
   background: rgba(255, 255, 255, 0.9);
-  border-radius: 16px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-soft);
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  border: 1px solid rgba(255, 107, 157, 0.1);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .timeline-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 18px;
-  border-bottom: 1px solid #e2e8f0;
+  padding: 20px;
+  border-bottom: 1px solid rgba(255, 107, 157, 0.1);
   flex-shrink: 0;
 }
 
 .timeline-header h3 {
   margin: 0;
-  font-size: 18px;
-  color: #334155;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.new-diary-btn {
+  background: var(--gradient-1);
+  border: none;
+  box-shadow: var(--shadow-soft);
+  transition: all var(--transition-base);
+}
+
+.new-diary-btn:hover {
+  transform: scale(1.1);
+  box-shadow: var(--shadow-medium);
 }
 
 .timeline-list {
   flex: 1;
   padding: 12px;
   overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .empty-diary-icon {
   font-size: 48px;
+  animation: float 3s ease-in-out infinite;
 }
 
 .timeline-item {
@@ -638,21 +697,22 @@ onMounted(async () => {
   align-items: center;
   gap: 12px;
   padding: 16px;
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   cursor: pointer;
-  margin-bottom: 8px;
   position: relative;
-  transition: all 0.2s;
+  transition: all var(--transition-base);
   border: 1px solid transparent;
 }
 
 .timeline-item:hover {
-  background: #f8fafc;
+  background: rgba(255, 107, 157, 0.05);
+  border-color: rgba(255, 107, 157, 0.15);
+  transform: translateX(4px);
 }
 
 .timeline-item.active {
-  background: #eff6ff;
-  border-color: #bfdbfe;
+  background: linear-gradient(135deg, rgba(255, 107, 157, 0.1) 0%, rgba(167, 139, 250, 0.1) 100%);
+  border-color: var(--color-primary-light);
 }
 
 .timeline-mood {
@@ -664,7 +724,12 @@ onMounted(async () => {
   justify-content: center;
   font-size: 24px;
   flex-shrink: 0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-soft);
+  transition: all var(--transition-base);
+}
+
+.timeline-item:hover .timeline-mood {
+  transform: scale(1.1);
 }
 
 .timeline-content {
@@ -675,7 +740,7 @@ onMounted(async () => {
 .timeline-title {
   font-size: 15px;
   font-weight: 600;
-  color: #334155;
+  color: var(--color-text-primary);
   margin-bottom: 4px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -684,19 +749,14 @@ onMounted(async () => {
 
 .timeline-mood-text {
   font-size: 14px;
-  color: #64748b;
+  color: var(--color-text-secondary);
   margin-bottom: 2px;
 }
 
 .timeline-time {
   font-size: 12px;
-  color: #94a3b8;
+  color: var(--color-text-tertiary);
   margin-bottom: 2px;
-}
-
-.timeline-score {
-  font-size: 11px;
-  color: #64748b;
 }
 
 .delete-diary-btn {
@@ -705,21 +765,29 @@ onMounted(async () => {
   top: 50%;
   transform: translateY(-50%);
   opacity: 0;
-  transition: opacity 0.2s;
+  transition: all var(--transition-base);
 }
 
 .timeline-item:hover .delete-diary-btn {
   opacity: 1;
 }
 
+.delete-diary-btn:hover {
+  background: rgba(245, 101, 101, 0.1);
+}
+
+/* 日记区域 */
 .diary-area {
   flex: 1;
   background: rgba(255, 255, 255, 0.9);
-  border-radius: 16px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-soft);
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  border: 1px solid rgba(255, 107, 157, 0.1);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .diary-preview,
@@ -730,13 +798,15 @@ onMounted(async () => {
   overflow-y: auto;
 }
 
+/* 预览区域 */
 .preview-header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   padding: 24px;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid rgba(255, 107, 157, 0.1);
   flex-shrink: 0;
+  background: linear-gradient(135deg, rgba(255, 107, 157, 0.05) 0%, rgba(167, 139, 250, 0.05) 100%);
 }
 
 .preview-mood-section {
@@ -753,36 +823,41 @@ onMounted(async () => {
   align-items: center;
   justify-content: center;
   font-size: 32px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-soft);
+  transition: all var(--transition-base);
+}
+
+.preview-mood:hover {
+  transform: scale(1.1);
 }
 
 .preview-mood-info h2 {
   margin: 0 0 8px 0;
   font-size: 20px;
-  color: #334155;
+  color: var(--color-text-primary);
 }
 
 .preview-mood-label {
   font-size: 14px;
-  color: #64748b;
+  color: var(--color-text-secondary);
   margin-bottom: 4px;
 }
 
 .preview-time {
   font-size: 14px;
-  color: #64748b;
+  color: var(--color-text-secondary);
   margin-bottom: 4px;
 }
 
 .preview-score {
   font-size: 14px;
-  color: #64748b;
+  color: var(--color-text-secondary);
 }
 
 .score-value {
   font-size: 20px;
   font-weight: 600;
-  color: #409eff;
+  color: var(--color-primary);
 }
 
 .preview-content {
@@ -791,33 +866,74 @@ onMounted(async () => {
   overflow-y: auto;
 }
 
-.preview-image {
+.preview-images {
   margin-bottom: 24px;
 }
 
-.preview-image :deep(.el-image) {
-  max-width: 100%;
-  max-height: 400px;
-  border-radius: 12px;
+.image-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 16px;
+}
+
+.image-item {
+  position: relative;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-soft);
+  aspect-ratio: 1;
+  transition: all var(--transition-base);
+}
+
+.image-item:hover {
+  transform: scale(1.02);
+  box-shadow: var(--shadow-medium);
+}
+
+.uploaded-image {
+  width: 100%;
+  height: 100%;
   object-fit: cover;
+  border-radius: var(--radius-lg);
+}
+
+.preview-image-wrapper {
+  position: relative;
+  cursor: pointer;
+  transition: transform var(--transition-base);
+  width: 100%;
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.preview-image-wrapper:hover {
+  transform: scale(1.02);
+  box-shadow: var(--shadow-medium);
 }
 
 .preview-text {
   font-size: 15px;
   line-height: 1.8;
-  color: #334155;
+  color: var(--color-text-primary);
 }
 
+/* 编辑器区域 */
 .editor-header {
   padding: 24px 24px 0;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid rgba(255, 107, 157, 0.1);
   flex-shrink: 0;
+  background: linear-gradient(135deg, rgba(255, 107, 157, 0.05) 0%, rgba(167, 139, 250, 0.05) 100%);
 }
 
 .editor-header h2 {
   margin: 0 0 20px 0;
   font-size: 18px;
-  color: #334155;
+  color: var(--color-text-primary);
 }
 
 .editor-form {
@@ -843,7 +959,53 @@ onMounted(async () => {
 .form-group label {
   font-size: 14px;
   font-weight: 500;
-  color: #334155;
+  color: var(--color-text-primary);
+}
+
+/* 输入框样式 */
+.title-input :deep(.el-input__inner) {
+  border-radius: var(--radius-lg);
+  border: 2px solid rgba(255, 107, 157, 0.15);
+  padding: 12px 16px;
+  font-size: 15px;
+  transition: all var(--transition-base);
+}
+
+.title-input :deep(.el-input__inner:focus) {
+  border-color: var(--color-primary-light);
+  box-shadow: 0 0 0 4px rgba(255, 107, 157, 0.1);
+}
+
+.mood-select :deep(.el-select__wrapper) {
+  border-radius: var(--radius-lg);
+  border: 2px solid rgba(255, 107, 157, 0.15);
+  transition: all var(--transition-base);
+}
+
+.mood-select :deep(.el-select__wrapper:focus) {
+  border-color: var(--color-primary-light);
+  box-shadow: 0 0 0 4px rgba(255, 107, 157, 0.1);
+}
+
+.content-textarea :deep(.el-textarea__inner) {
+  border-radius: var(--radius-lg);
+  border: 2px solid rgba(255, 107, 157, 0.15);
+  padding: 16px;
+  font-size: 15px;
+  line-height: 1.6;
+  transition: all var(--transition-base);
+  resize: none;
+}
+
+.content-textarea :deep(.el-textarea__inner:focus) {
+  border-color: var(--color-primary-light);
+  box-shadow: 0 0 0 4px rgba(255, 107, 157, 0.1);
+}
+
+.markdown-hint {
+  font-size: 12px;
+  color: var(--color-text-tertiary);
+  margin-top: 4px;
 }
 
 .score-slider-container {
@@ -853,14 +1015,41 @@ onMounted(async () => {
   width: 100%;
 }
 
+.mood-slider :deep(.el-slider__runway) {
+  background-color: rgba(255, 107, 157, 0.1);
+  height: 8px;
+  border-radius: 4px;
+}
+
+.mood-slider :deep(.el-slider__bar) {
+  background: var(--gradient-1);
+  height: 8px;
+  border-radius: 4px;
+}
+
+.mood-slider :deep(.el-slider__button) {
+  border: 2px solid var(--color-primary);
+  background: white;
+  width: 20px;
+  height: 20px;
+  box-shadow: var(--shadow-soft);
+  transition: all var(--transition-base);
+}
+
+.mood-slider :deep(.el-slider__button:hover) {
+  transform: scale(1.2);
+  box-shadow: var(--shadow-medium);
+}
+
 .score-display {
   min-width: 60px;
   text-align: right;
   font-size: 18px;
   font-weight: 600;
-  color: #409eff;
+  color: var(--color-primary);
 }
 
+/* 图片上传区域 */
 .image-upload-area {
   width: 100%;
   padding: 8px 0;
@@ -877,39 +1066,47 @@ onMounted(async () => {
   margin-bottom: 20px;
 }
 
+.upload-btn {
+  background: var(--gradient-1);
+  border: none;
+  border-radius: var(--radius-lg);
+  padding: 12px 24px;
+  transition: all var(--transition-base);
+  box-shadow: var(--shadow-soft);
+}
+
+.upload-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-medium);
+}
+
 .save-button-section {
   display: flex;
   justify-content: flex-end;
   width: 100%;
 }
 
+.save-btn {
+  background: var(--gradient-1);
+  border: none;
+  border-radius: var(--radius-lg);
+  padding: 12px 32px;
+  transition: all var(--transition-base);
+  box-shadow: var(--shadow-soft);
+}
+
+.save-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-medium);
+}
+
 .image-preview-container {
   padding: 16px;
   width: 100%;
-  background: #f8fafc;
-  border-radius: 8px;
-  border: 1px solid #e2e8f0;
+  background: rgba(255, 107, 157, 0.05);
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(255, 107, 157, 0.15);
   margin-bottom: 20px;
-}
-
-.image-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 12px;
-}
-
-.image-item {
-  position: relative;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  aspect-ratio: 1;
-}
-
-.uploaded-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
 }
 
 .remove-image-btn {
@@ -918,47 +1115,41 @@ onMounted(async () => {
   right: 4px;
   z-index: 10;
   background: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  box-shadow: var(--shadow-soft);
+  transition: all var(--transition-base);
 }
 
-/* 预览图片样式 */
-.preview-image-wrapper {
-  position: relative;
-  cursor: pointer;
-  transition: transform 0.2s;
-  width: 100%;
-  aspect-ratio: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #ffffff00;
-  border-radius: 8px;
-  overflow: hidden;
-  object-fit: cover;
-}
-
-.preview-image-wrapper:hover {
-  transform: scale(1.02);
-  box-shadow: 0 4px 16px rgb(255, 255, 255);
-}
-
-.preview-image {
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: cover;
-  transition: all 0.2s;
+.remove-image-btn:hover {
+  background: rgba(245, 101, 101, 1);
+  transform: scale(1.1);
 }
 
 /* 图片预览对话框样式 */
+:deep(.image-preview-dialog .el-dialog) {
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+}
+
+:deep(.image-preview-dialog .el-dialog__header) {
+  background: linear-gradient(135deg, rgba(255, 107, 157, 0.05) 0%, rgba(167, 139, 250, 0.05) 100%);
+  padding: 20px 24px;
+  margin: 0;
+  border-bottom: 1px solid rgba(255, 107, 157, 0.1);
+}
+
+:deep(.image-preview-dialog .el-dialog__title) {
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
 .dialog-image-container {
   width: 100%;
-  height: 100%;
   height: 80vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f0f0f0;
-  border-radius: 8px;
+  background: var(--color-surface-soft);
+  border-radius: var(--radius-lg);
 }
 
 .dialog-image {
@@ -966,19 +1157,11 @@ onMounted(async () => {
   height: 100%;
   max-width: 100%;
   max-height: 100%;
-  object-fit: cover;
+  object-fit: contain;
+  border-radius: var(--radius-lg);
 }
 
-.form-actions {
-  display: flex;
-  justify-content: flex-start;
-  gap: 12px;
-  margin-top: 32px;
-  padding-top: 24px;
-  border-top: 1px solid #e2e8f0;
-  width: 100%;
-}
-
+/* Markdown 内容样式 */
 :deep(.markdown-content) h1,
 :deep(.markdown-content) h2,
 :deep(.markdown-content) h3,
@@ -988,6 +1171,7 @@ onMounted(async () => {
   margin-top: 1em;
   margin-bottom: 0.5em;
   font-weight: 600;
+  color: var(--color-text-primary);
 }
 
 :deep(.markdown-content) h1 { font-size: 1.5em; }
@@ -999,32 +1183,35 @@ onMounted(async () => {
 
 :deep(.markdown-content) p {
   margin: 0.5em 0;
-  line-height: 1.6;
+  line-height: 1.7;
+  color: var(--color-text-primary);
 }
 
 :deep(.markdown-content) ul,
 :deep(.markdown-content) ol {
   margin: 0.5em 0;
   padding-left: 1.5em;
+  color: var(--color-text-primary);
 }
 
 :deep(.markdown-content) li {
-  margin: 0.25em 0;
+  margin: 0.3em 0;
 }
 
 :deep(.markdown-content) code {
-  background: #f3f4f6;
+  background: rgba(255, 107, 157, 0.1);
   padding: 0.2em 0.4em;
   border-radius: 4px;
   font-family: 'Courier New', monospace;
   font-size: 0.9em;
+  color: var(--color-text-primary);
 }
 
 :deep(.markdown-content) pre {
   background: #1f2937;
   color: #e5e7eb;
   padding: 1em;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   overflow-x: auto;
   margin: 0.5em 0;
 }
@@ -1036,25 +1223,31 @@ onMounted(async () => {
 }
 
 :deep(.markdown-content) blockquote {
-  border-left: 4px solid #409eff;
+  border-left: 3px solid var(--color-primary);
   padding-left: 1em;
   margin: 0.5em 0;
-  color: #64748b;
+  color: var(--color-text-secondary);
   font-style: italic;
+  background: rgba(255, 107, 157, 0.05);
+  padding: 12px 16px;
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
 }
 
 :deep(.markdown-content) a {
-  color: #409eff;
-  text-decoration: underline;
+  color: var(--color-primary);
+  text-decoration: none;
+  transition: all var(--transition-fast);
 }
 
 :deep(.markdown-content) a:hover {
-  color: #66b1ff;
+  color: var(--color-primary-dark);
+  text-decoration: underline;
 }
 
 :deep(.markdown-content) strong,
 :deep(.markdown-content) b {
   font-weight: 600;
+  color: var(--color-text-primary);
 }
 
 :deep(.markdown-content) em,
@@ -1064,7 +1257,7 @@ onMounted(async () => {
 
 :deep(.markdown-content) hr {
   border: none;
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid rgba(255, 107, 157, 0.15);
   margin: 1em 0;
 }
 
@@ -1076,13 +1269,181 @@ onMounted(async () => {
 
 :deep(.markdown-content) th,
 :deep(.markdown-content) td {
-  border: 1px solid #e2e8f0;
+  border: 1px solid rgba(255, 107, 157, 0.15);
   padding: 0.5em;
   text-align: left;
+  color: var(--color-text-primary);
 }
 
 :deep(.markdown-content) th {
-  background: #f8fafc;
+  background: rgba(255, 107, 157, 0.05);
   font-weight: 600;
+}
+
+/* 装饰背景元素 */
+.decorative-circle {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--color-primary-light) 0%, transparent 70%);
+  filter: blur(100px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.circle-1 {
+  width: 600px;
+  height: 600px;
+  top: -150px;
+  right: -150px;
+  opacity: 0.3;
+  animation: float 6s ease-in-out infinite;
+}
+
+.circle-2 {
+  width: 400px;
+  height: 400px;
+  bottom: -100px;
+  left: -100px;
+  opacity: 0.3;
+  animation: float 8s ease-in-out infinite reverse;
+}
+
+/* 动画 */
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+/* 响应式设计 */
+@media (max-width: 1200px) {
+  .diary-main {
+    padding: 16px;
+    gap: 16px;
+  }
+  
+  .timeline-sidebar {
+    width: 280px;
+  }
+  
+  .preview-content,
+  .editor-form {
+    padding: 20px;
+  }
+}
+
+@media (max-width: 992px) {
+  .diary-main {
+    flex-direction: column;
+  }
+  
+  .timeline-sidebar {
+    width: 100%;
+    max-height: 300px;
+  }
+  
+  .timeline-list {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  
+  .timeline-item {
+    width: calc(50% - 4px);
+    margin-bottom: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .navbar {
+    padding: 12px 16px;
+  }
+  
+  .nav-center {
+    display: none;
+  }
+  
+  .diary-main {
+    padding: 12px;
+  }
+  
+  .timeline-sidebar {
+    max-height: 250px;
+  }
+  
+  .timeline-item {
+    width: 100%;
+  }
+  
+  .mood-score-row {
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .image-grid {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 12px;
+  }
+}
+
+/* 滚动条样式 */
+.timeline-list::-webkit-scrollbar,
+.preview-content::-webkit-scrollbar,
+.editor-form::-webkit-scrollbar {
+  width: 6px;
+}
+
+.timeline-list::-webkit-scrollbar-track,
+.preview-content::-webkit-scrollbar-track,
+.editor-form::-webkit-scrollbar-track {
+  background: rgba(255, 107, 157, 0.05);
+  border-radius: 3px;
+}
+
+.timeline-list::-webkit-scrollbar-thumb,
+.preview-content::-webkit-scrollbar-thumb,
+.editor-form::-webkit-scrollbar-thumb {
+  background: rgba(255, 107, 157, 0.3);
+  border-radius: 3px;
+  transition: background var(--transition-base);
+}
+
+.timeline-list::-webkit-scrollbar-thumb:hover,
+.preview-content::-webkit-scrollbar-thumb:hover,
+.editor-form::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 107, 157, 0.5);
 }
 </style>
