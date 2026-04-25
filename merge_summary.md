@@ -9,3 +9,9 @@
 | agent-front-elm/src/views/EmotionDiary.vue | - 优化侧边栏时间线，添加动画效果和交互反馈<br>- 改进日记预览和编辑器样式，支持Markdown格式<br>- 优化图片上传和预览功能，添加网格布局<br>- 添加响应式设计，适配不同屏幕尺寸 |
 | agent-front-elm/src/views/Home.vue | - 优化英雄区域，添加数据统计和视觉效果<br>- 改进功能展示区域，添加动画效果和交互反馈<br>- 优化关于我们部分，添加卡片式布局<br>- 添加响应式设计，适配不同屏幕尺寸 |
 | agent-front-elm/src/views/Profile.vue | - 优化头像上传功能，添加悬停效果和动画<br>- 改进表单样式，添加输入反馈和视觉效果<br>- 优化密码修改区域，添加展开/收起动画<br>- 添加响应式设计，适配不同屏幕尺寸 |
+| agent-front-elm/src/views/KnowledgeManagement.vue | - 待更新：需应用设计系统样式，优化导航栏、表格、对话框和响应式设计 |
+| agent-front-elm/src/views/UserManagement.vue | - 待更新：需应用设计系统样式，优化导航栏、用户表格、时间线和响应式设计 |
+| agent-front-elm/src/views/Feedback.vue | - 待更新：需应用设计系统样式，优化导航栏、反馈列表和对话框 |
+| agent-front-elm/src/views/FeedbackManagement.vue | - 待更新：需应用设计系统样式，优化管理员端反馈管理功能 |
+| agent-front-elm/src/views/ArticleEditor.vue | - 待更新：需应用设计系统样式，优化编辑器界面和用户体验 |
+| agent-front-elm/src/views/ArticleDetail.vue | - 待更新：需应用设计系统样式，优化文章详情页面展示 |

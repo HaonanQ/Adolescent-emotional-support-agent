@@ -1,22 +1,26 @@
 <template>
   <div class="knowledge-management-container">
-    <nav class="navbar">
+    <!-- 装饰背景元素 -->
+    <div class="decorative-circle circle-1" style="top: -150px; right: -150px; opacity: 0.3;"></div>
+    <div class="decorative-circle circle-2" style="bottom: -100px; left: -100px; opacity: 0.3;"></div>
+
+    <nav class="navbar" style="animation: fadeInDown 0.4s ease-out;">
       <div class="nav-left" @click="goToHome" style="cursor: pointer;">
         <span class="nav-logo">❤️</span>
         <span class="nav-title">青少年情感陪伴智能体</span>
       </div>
       <div class="nav-center">
-          <el-button text @click="goToChat">情感陪伴</el-button>
-          <el-button text @click="goToEmotionDiary">情绪日记</el-button>
-          <el-button text @click="goToEmotionClassroom">情感课堂</el-button>
-          <el-button text @click="goToKnowledgeManagement">知识库管理</el-button>
-          <el-button text @click="goToFeedback">反馈与建议</el-button>
+          <el-button class="nav-btn" @click="goToChat">情感陪伴</el-button>
+          <el-button class="nav-btn" @click="goToEmotionDiary">情绪日记</el-button>
+          <el-button class="nav-btn" @click="goToEmotionClassroom">情感课堂</el-button>
+          <el-button class="nav-btn" @click="goToKnowledgeManagement">知识库管理</el-button>
+          <el-button class="nav-btn" @click="goToFeedback">反馈与建议</el-button>
         </div>
       <div class="nav-right">
         <el-dropdown @command="handleCommand" v-if="user">
           <span class="el-dropdown-link">
-            <el-avatar :size="36" :src="user.avatar" v-if="user.avatar"></el-avatar>
-            <el-avatar :size="36" v-else>{{ user.username?.charAt(0) || 'U' }}</el-avatar>
+            <el-avatar :size="36" :src="user.avatar" v-if="user.avatar" class="user-avatar"></el-avatar>
+            <el-avatar :size="36" v-else class="user-avatar">{{ user.username?.charAt(0) || 'U' }}</el-avatar>
             <span class="user-name">{{ user.username }}</span>
             <el-icon class="el-icon--right"><arrow-down /></el-icon>
           </span>
@@ -32,7 +36,7 @@
       </div>
     </nav>
 
-    <div class="management-main">
+    <div class="management-main" style="animation: fadeInUp 0.4s ease-out 0.1s both;">
       <div class="page-header">
         <h2>📚 知识库管理</h2>
         <p class="header-desc">管理知识库和文档，支持在线热更新</p>
@@ -46,6 +50,7 @@
               placeholder="搜索知识库名称"
               clearable
               style="width: 220px"
+              class="search-input"
               @keyup.enter="handleSearch"
               @clear="handleSearch"
             >
@@ -53,14 +58,14 @@
                 <el-icon><Search /></el-icon>
               </template>
             </el-input>
-            <el-button type="primary" @click="handleSearch">
+            <el-button type="primary" class="search-btn" @click="handleSearch">
               <el-icon><Search /></el-icon>
               <span style="margin-left: 6px;">搜索</span>
             </el-button>
-            <el-button @click="resetFilters">重置</el-button>
+            <el-button class="reset-btn" @click="resetFilters">重置</el-button>
           </div>
           <div class="filter-right">
-            <el-button type="primary" @click="showAddDialog">
+            <el-button type="primary" class="add-btn" @click="showAddDialog">
               <el-icon><Plus /></el-icon>
               <span style="margin-left: 6px;">新建知识库</span>
             </el-button>
@@ -89,19 +94,19 @@
 
           <el-table-column label="表名" width="150">
             <template #default="{ row }">
-              <el-tag size="small" type="info">{{ row.tableName }}</el-tag>
+              <el-tag size="small" class="table-tag">{{ row.tableName }}</el-tag>
             </template>
           </el-table-column>
 
           <el-table-column label="文档数量" width="100" align="center">
             <template #default="{ row }">
-              <el-tag size="small">{{ row.documentCount || 0 }} 个</el-tag>
+              <el-tag size="small" class="table-tag">{{ row.documentCount || 0 }} 个</el-tag>
             </template>
           </el-table-column>
 
           <el-table-column label="状态" width="90" align="center">
             <template #default="{ row }">
-              <el-tag :type="row.status === 1 ? 'success' : 'danger'" size="small">
+              <el-tag :type="row.status === 1 ? 'success' : 'danger'" size="small" class="table-tag">
                 {{ row.status === 1 ? '已启用' : '已停用' }}
               </el-tag>
             </template>
@@ -109,7 +114,7 @@
 
           <el-table-column label="自动加载" width="90" align="center">
             <template #default="{ row }">
-              <el-tag :type="row.autoLoad === 1 ? 'primary' : 'info'" size="small">
+              <el-tag :type="row.autoLoad === 1 ? 'primary' : 'info'" size="small" class="table-tag">
                 {{ row.autoLoad === 1 ? '是' : '否' }}
               </el-tag>
             </template>
@@ -124,19 +129,19 @@
           <el-table-column label="操作" width="180" align="center" fixed="right">
             <template #default="{ row }">
               <div class="action-buttons">
-                <el-button type="primary" size="medium" text @click="showDocuments(row)">
+                <el-button type="primary" size="medium" text class="action-btn" @click="showDocuments(row)">
                   <el-icon><FolderOpened /></el-icon>
                   文档
                 </el-button>
-                <el-button type="warning" size="medium" text @click="handleHotReload(row)">
+                <el-button type="warning" size="medium" text class="action-btn" @click="handleHotReload(row)">
                   <el-icon><Refresh /></el-icon>
                   热更新
                 </el-button>
-                <el-button type="primary" size="medium" text @click="showEditDialog(row)">
+                <el-button type="primary" size="medium" text class="action-btn" @click="showEditDialog(row)">
                   <el-icon><Edit /></el-icon>
                   编辑
                 </el-button>
-                <el-button type="danger" size="medium" text @click="handleDelete(row)">
+                <el-button type="danger" size="medium" text class="action-btn" @click="handleDelete(row)">
                   <el-icon><Delete /></el-icon>
                   删除
                 </el-button>
@@ -153,9 +158,9 @@
       width="500px"
       class="knowledge-dialog"
     >
-      <el-form :model="form" :rules="rules" ref="formRef" label-width="100px">
+      <el-form :model="form" :rules="rules" ref="formRef" label-width="100px" class="knowledge-form">
         <el-form-item label="知识库名称" prop="name">
-          <el-input v-model="form.name" placeholder="请输入知识库名称" maxlength="50" />
+          <el-input v-model="form.name" placeholder="请输入知识库名称" maxlength="50" class="form-input" />
         </el-form-item>
         <el-form-item label="描述" prop="description">
           <el-input
@@ -164,10 +169,11 @@
             :rows="3"
             placeholder="请输入知识库描述"
             maxlength="200"
+            class="form-textarea"
           />
         </el-form-item>
         <el-form-item label="表名" prop="tableName">
-          <el-input v-model="form.tableName" placeholder="向量数据库表名" maxlength="30" :disabled="isEdit" />
+          <el-input v-model="form.tableName" placeholder="向量数据库表名" maxlength="30" :disabled="isEdit" class="form-input" />
           <template #extra>
             <div class="form-tip">
               表名规范：只能包含小写字母(a-z)、数字(0-9)和下划线(_)，且必须以字母开头，长度不超过30
@@ -182,8 +188,10 @@
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleSubmit" :loading="submitLoading">确定</el-button>
+        <div class="dialog-footer">
+          <el-button class="cancel-btn" @click="dialogVisible = false">取消</el-button>
+          <el-button type="primary" class="confirm-btn" @click="handleSubmit" :loading="submitLoading">确定</el-button>
+        </div>
       </template>
     </el-dialog>
 
@@ -205,7 +213,7 @@
             :before-upload="beforeUpload"
             accept=".md"
           >
-            <el-button type="primary">
+            <el-button type="primary" class="upload-btn">
               <el-icon><Upload /></el-icon>
               <span style="margin-left: 6px;">上传文档</span>
             </el-button>
@@ -214,15 +222,15 @@
         </div>
         <div class="document-header-right" v-if="selectedDocuments.length > 0">
           <span class="selected-count">已选择 {{ selectedDocuments.length }} 项</span>
-          <el-button type="success" size="medium" @click="handleBatchEnable">
+          <el-button type="success" size="medium" class="batch-btn" @click="handleBatchEnable">
             <el-icon><Check /></el-icon>
             批量启用
           </el-button>
-          <el-button type="warning" size="medium" @click="handleBatchDisable">
+          <el-button type="warning" size="medium" class="batch-btn" @click="handleBatchDisable">
             <el-icon><Close /></el-icon>
             批量停用
           </el-button>
-          <el-button type="danger" size="medium" @click="handleBatchDelete">
+          <el-button type="danger" size="medium" class="batch-btn" @click="handleBatchDelete">
             <el-icon><Delete /></el-icon>
             批量删除
           </el-button>
@@ -254,7 +262,7 @@
         </el-table-column>
         <el-table-column label="状态" width="90" align="center">
           <template #default="{ row }">
-            <el-tag :type="row.status === 1 ? 'success' : 'danger'" size="small">
+            <el-tag :type="row.status === 1 ? 'success' : 'danger'" size="small" class="table-tag">
               {{ row.status === 1 ? '已启用' : '已停用' }}
             </el-tag>
           </template>
@@ -266,7 +274,7 @@
         </el-table-column>
         <el-table-column label="操作" width="240" align="center">
           <template #default="{ row }">
-            <el-button type="primary" size="medium" text @click="handleDownloadDocument(row)">
+            <el-button type="primary" size="medium" text class="action-btn" @click="handleDownloadDocument(row)">
               <el-icon><Download /></el-icon>
               下载
             </el-button>
@@ -274,11 +282,12 @@
               :type="row.status === 1 ? 'warning' : 'success'"
               size="medium"
               text
+              class="action-btn"
               @click="handleToggleDocStatus(row)"
             >
               {{ row.status === 1 ? '停用' : '启用' }}
             </el-button>
-            <el-button type="danger" size="medium" text @click="handleDeleteDocument(row)">
+            <el-button type="danger" size="medium" text class="action-btn" @click="handleDeleteDocument(row)">
               删除
             </el-button>
           </template>
@@ -775,77 +784,100 @@ onMounted(() => {
 <style scoped>
 .knowledge-management-container {
   min-height: 100vh;
-  background-image: url('../image/bg.jpg');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  background-attachment: fixed;
+  background: var(--color-background);
+  position: relative;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
+/* 导航栏 */
 .navbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 24px;
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid #e8e8e8;
+  padding: 12px 32px;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255, 107, 157, 0.1);
+  box-shadow: var(--shadow-soft);
   position: sticky;
   top: 0;
   z-index: 100;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
 }
 
 .nav-left {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
+  transition: transform var(--transition-fast);
+}
+
+.nav-left:hover {
+  transform: translateX(4px);
 }
 
 .nav-logo {
   font-size: 32px;
+  animation: pulse 3s ease-in-out infinite;
 }
 
 .nav-title {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 600;
-  color: #303133;
+  color: var(--color-text-primary);
 }
 
 .nav-center {
   display: flex;
-  gap: 16px;
+  gap: 8px;
 }
 
-.nav-center .el-button {
-  font-size: 16px;
+.nav-btn {
+  font-size: 14px;
   font-weight: 500;
-  color: #606266;
+  color: var(--color-text-secondary);
+  border: none;
+  background: transparent;
+  border-radius: var(--radius-full);
+  padding: 8px 16px;
+  transition: all var(--transition-base);
 }
 
-.nav-center .el-button:hover {
-  color: #409eff;
+.nav-btn:hover {
+  color: var(--color-primary);
+  background: rgba(255, 107, 157, 0.1);
 }
 
 .nav-right {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-right: 15px;
 }
 
 .el-dropdown-link {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   cursor: pointer;
-  color: #303133;
+  color: var(--color-text-primary);
   font-size: 14px;
+  padding: 8px 16px;
+  border-radius: var(--radius-full);
+  transition: all var(--transition-base);
+}
+
+.el-dropdown-link:hover {
+  background: var(--color-surface-soft);
+}
+
+.user-avatar {
+  border: 2px solid var(--color-primary-light);
 }
 
 .user-name {
   font-weight: 500;
-  font-size: 16px;
+  font-size: 14px;
   max-width: 80px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -857,31 +889,43 @@ onMounted(() => {
   margin: 32px auto;
   padding: 0 24px;
   background: rgba(255, 255, 255, 0.9);
-  border-radius: 20px;
+  border-radius: var(--radius-xl);
   padding: 24px;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-soft);
+  border: 1px solid rgba(255, 107, 157, 0.1);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .page-header {
   margin-bottom: 24px;
+  text-align: center;
+  padding: 24px 0;
+  background: linear-gradient(135deg, rgba(255, 107, 157, 0.05) 0%, rgba(167, 139, 250, 0.05) 100%);
+  border-radius: var(--radius-lg);
+  margin: 0 -24px 24px;
 }
 
 .page-header h2 {
   font-size: 26px;
-  color: #303133;
+  color: var(--color-text-primary);
   margin-bottom: 6px;
+  background: var(--gradient-1);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .header-desc {
-  color: #909399;
+  color: var(--color-text-secondary);
   font-size: 14px;
 }
 
 .knowledge-list-section {
-  background: #fff;
-  border-radius: 12px;
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
   padding: 20px;
-  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.06);
+  box-shadow: var(--shadow-soft);
 }
 
 .filter-bar {
@@ -890,7 +934,7 @@ onMounted(() => {
   align-items: center;
   margin-bottom: 16px;
   padding-bottom: 16px;
-  border-bottom: 1px solid #ebeef5;
+  border-bottom: 1px solid rgba(255, 107, 157, 0.1);
 }
 
 .filter-left {
@@ -903,6 +947,43 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 12px;
+}
+
+.search-input :deep(.el-input__inner) {
+  border-radius: var(--radius-lg);
+  border: 2px solid rgba(255, 107, 157, 0.15);
+  padding: 10px 16px;
+  transition: all var(--transition-base);
+}
+
+.search-input :deep(.el-input__inner:focus) {
+  border-color: var(--color-primary-light);
+  box-shadow: 0 0 0 4px rgba(255, 107, 157, 0.1);
+}
+
+.search-btn, .add-btn, .upload-btn, .confirm-btn {
+  background: var(--gradient-1);
+  border: none;
+  border-radius: var(--radius-lg);
+  transition: all var(--transition-base);
+  box-shadow: var(--shadow-soft);
+}
+
+.search-btn:hover, .add-btn:hover, .upload-btn:hover, .confirm-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-medium);
+}
+
+.reset-btn {
+  background: transparent;
+  border: 2px solid var(--color-primary-light);
+  border-radius: var(--radius-lg);
+  transition: all var(--transition-base);
+}
+
+.reset-btn:hover {
+  background: var(--color-primary-light);
+  border-color: var(--color-primary);
 }
 
 .knowledge-info-cell {
@@ -918,8 +999,8 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f0f7ff;
-  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(255, 107, 157, 0.1) 0%, rgba(167, 139, 250, 0.1) 100%);
+  border-radius: var(--radius-lg);
 }
 
 .knowledge-detail {
@@ -929,13 +1010,13 @@ onMounted(() => {
 
 .knowledge-name {
   font-weight: 600;
-  color: #303133;
+  color: var(--color-text-primary);
   font-size: 15px;
 }
 
 .knowledge-desc {
   font-size: 12px;
-  color: #909399;
+  color: var(--color-text-secondary);
   margin-top: 2px;
   max-width: 200px;
   overflow: hidden;
@@ -944,7 +1025,27 @@ onMounted(() => {
 }
 
 :deep(.knowledge-row:hover > td) {
-  background-color: #f0f7ff !important;
+  background: rgba(255, 107, 157, 0.05) !important;
+}
+
+.table-tag {
+  border-radius: var(--radius-full);
+}
+
+.action-buttons {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 4px 8px;
+  justify-items: center;
+}
+
+.action-btn {
+  transition: all var(--transition-base);
+  border-radius: var(--radius-full);
+}
+
+.action-btn:hover {
+  background: rgba(255, 107, 157, 0.05);
 }
 
 .document-header {
@@ -968,13 +1069,13 @@ onMounted(() => {
 
 .selected-count {
   font-size: 14px;
-  color: #409eff;
+  color: var(--color-primary);
   font-weight: 500;
 }
 
 .upload-tip {
   font-size: 12px;
-  color: #909399;
+  color: var(--color-text-secondary);
 }
 
 .file-name-cell {
@@ -984,18 +1085,215 @@ onMounted(() => {
 }
 
 .file-icon {
-  color: #409eff;
+  color: var(--color-primary);
   font-size: 18px;
 }
 
-.action-buttons {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 4px 8px;
-  justify-items: center;
+.batch-btn {
+  border-radius: var(--radius-lg);
+  transition: all var(--transition-base);
 }
 
-.action-buttons .el-button {
-  margin: 0;
+.batch-btn:hover {
+  transform: translateY(-2px);
+}
+
+.knowledge-form {
+  padding: 16px 0;
+}
+
+.form-input :deep(.el-input__inner),
+.form-textarea :deep(.el-textarea__inner) {
+  border-radius: var(--radius-lg);
+  border: 2px solid rgba(255, 107, 157, 0.15);
+  padding: 12px 16px;
+  transition: all var(--transition-base);
+}
+
+.form-input :deep(.el-input__inner:focus),
+.form-textarea :deep(.el-textarea__inner:focus) {
+  border-color: var(--color-primary-light);
+  box-shadow: 0 0 0 4px rgba(255, 107, 157, 0.1);
+}
+
+.form-tip {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  margin-top: 4px;
+}
+
+.dialog-footer {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  padding-top: 16px;
+}
+
+.cancel-btn {
+  border-color: rgba(255, 107, 157, 0.2);
+  color: var(--color-text-secondary);
+  border-radius: var(--radius-full);
+  padding: 10px 24px;
+  transition: all var(--transition-base);
+}
+
+.cancel-btn:hover {
+  border-color: var(--color-primary-light);
+  color: var(--color-primary);
+}
+
+/* 装饰背景元素 */
+.decorative-circle {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--color-primary-light) 0%, transparent 70%);
+  filter: blur(100px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.circle-1 {
+  width: 600px;
+  height: 600px;
+  top: -150px;
+  right: -150px;
+  opacity: 0.3;
+  animation: float 6s ease-in-out infinite;
+}
+
+.circle-2 {
+  width: 400px;
+  height: 400px;
+  bottom: -100px;
+  left: -100px;
+  opacity: 0.3;
+  animation: float 8s ease-in-out infinite reverse;
+}
+
+/* 动画 */
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+/* 响应式设计 */
+@media (max-width: 1200px) {
+  .management-main {
+    max-width: 1000px;
+    padding: 20px;
+  }
+
+  .page-header {
+    margin: 0 -20px 20px;
+  }
+}
+
+@media (max-width: 992px) {
+  .management-main {
+    max-width: 100%;
+    padding: 16px;
+  }
+
+  .filter-bar {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .filter-left, .filter-right {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .document-header {
+    flex-direction: column;
+    gap: 16px;
+  }
+}
+
+@media (max-width: 768px) {
+  .navbar {
+    padding: 12px 16px;
+  }
+
+  .nav-center {
+    display: none;
+  }
+
+  .management-main {
+    margin: 16px;
+    padding: 16px;
+  }
+
+  .page-header {
+    margin: 0 -16px 16px;
+    padding: 16px 0;
+  }
+
+  .page-header h2 {
+    font-size: 20px;
+  }
+
+  .filter-left, .filter-right {
+    flex-wrap: wrap;
+  }
+
+  .search-input {
+    width: 100% !important;
+  }
+}
+
+/* 滚动条样式 */
+.management-main::-webkit-scrollbar {
+  width: 6px;
+}
+
+.management-main::-webkit-scrollbar-track {
+  background: rgba(255, 107, 157, 0.05);
+  border-radius: 3px;
+}
+
+.management-main::-webkit-scrollbar-thumb {
+  background: rgba(255, 107, 157, 0.3);
+  border-radius: 3px;
+  transition: background var(--transition-base);
+}
+
+.management-main::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 107, 157, 0.5);
 }
 </style>
