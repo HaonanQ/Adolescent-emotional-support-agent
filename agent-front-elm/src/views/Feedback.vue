@@ -1,7 +1,11 @@
 <template>
   <div class="feedback-container">
-    <div class="navbar">
-      <div class="nav-left" @click="goBack">
+    <!-- 装饰背景元素 -->
+    <div class="decorative-circle circle-1" style="top: -150px; right: -150px; opacity: 0.3;"></div>
+    <div class="decorative-circle circle-2" style="bottom: -100px; left: -100px; opacity: 0.3;"></div>
+
+    <div class="navbar" style="animation: fadeInDown 0.4s ease-out;">
+      <div class="nav-left" @click="goBack" style="cursor: pointer;">
         <el-icon><arrow-left /></el-icon>
         <span>返回</span>
       </div>
@@ -9,27 +13,27 @@
         <h1>反馈与建议</h1>
       </div>
       <div class="nav-right">
-        <el-button type="primary" @click="showAddDialog = true">提交反馈</el-button>
+        <el-button type="primary" class="submit-btn" @click="showAddDialog = true">提交反馈</el-button>
       </div>
     </div>
 
-    <div class="feedback-main">
+    <div class="feedback-main" style="animation: fadeInUp 0.4s ease-out 0.1s both;">
       <div v-if="feedbackList.length === 0" class="empty-state">
         <el-empty description="暂无反馈记录" :image-size="120" />
       </div>
       
       <div v-else class="feedback-list">
-        <div v-for="item in feedbackList" :key="item.id" class="feedback-item">
+        <div v-for="(item, index) in feedbackList" :key="item.id" class="feedback-item" :style="{ animationDelay: `${index * 0.1}s` }">
           <div class="feedback-header">
             <div class="feedback-title">{{ item.title }}</div>
-            <el-tag :type="getStatusType(item.status)" size="small">
+            <el-tag :type="getStatusType(item.status)" size="small" class="status-tag">
               {{ getStatusText(item.status) }}
             </el-tag>
           </div>
           <div class="feedback-content">{{ item.content }}</div>
           <div class="feedback-footer">
             <div class="feedback-info">
-              <el-tag :type="getTypeColor(item.type)" size="small" effect="plain">
+              <el-tag :type="getTypeColor(item.type)" size="small" effect="plain" class="type-tag">
                 {{ getTypeText(item.type) }}
               </el-tag>
               <span class="feedback-time">{{ formatTime(item.createTime) }}</span>
@@ -49,6 +53,7 @@
           :total="total"
           layout="prev, pager, next"
           @current-change="loadFeedbackList"
+          class="pagination"
         />
       </div>
     </div>
@@ -59,6 +64,7 @@
       title="提交反馈"
       width="600px"
       :close-on-click-modal="false"
+      class="feedback-dialog"
     >
       <el-form :model="formData" :rules="rules" ref="formRef" label-width="80px">
         <el-form-item label="标题" prop="title">
@@ -67,13 +73,14 @@
             placeholder="请输入反馈标题"
             maxlength="100"
             show-word-limit
+            class="form-input"
           />
         </el-form-item>
         <el-form-item label="类型" prop="type">
-          <el-radio-group v-model="formData.type">
-            <el-radio label="suggestion">建议</el-radio>
-            <el-radio label="problem">问题</el-radio>
-            <el-radio label="other">其他</el-radio>
+          <el-radio-group v-model="formData.type" class="radio-group">
+            <el-radio label="suggestion" class="radio-item">建议</el-radio>
+            <el-radio label="problem" class="radio-item">问题</el-radio>
+            <el-radio label="other" class="radio-item">其他</el-radio>
           </el-radio-group>
         </el-form-item>
         <el-form-item label="内容" prop="content">
@@ -84,13 +91,14 @@
             placeholder="请详细描述您的反馈内容..."
             maxlength="500"
             show-word-limit
+            class="form-textarea"
           />
         </el-form-item>
       </el-form>
       <template #footer>
         <span class="dialog-footer">
-          <el-button @click="showAddDialog = false">取消</el-button>
-          <el-button type="primary" @click="submitFeedback" :loading="submitting">
+          <el-button class="cancel-btn" @click="showAddDialog = false">取消</el-button>
+          <el-button type="primary" class="submit-btn" @click="submitFeedback" :loading="submitting">
             提交
           </el-button>
         </span>
@@ -228,20 +236,23 @@ onMounted(() => {
 <style scoped>
 .feedback-container {
   min-height: 100vh;
-  background-image: url('../image/bg.jpg');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  background-attachment: fixed;
+  background: var(--color-background);
+  position: relative;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
+/* 导航栏 */
 .navbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 24px;
-  background: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  padding: 0 32px;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255, 107, 157, 0.1);
+  box-shadow: var(--shadow-soft);
   height: 56px;
   position: sticky;
   top: 0;
@@ -253,50 +264,75 @@ onMounted(() => {
   align-items: center;
   gap: 8px;
   cursor: pointer;
-  color: #64748b;
+  color: var(--color-text-secondary);
   font-size: 15px;
+  padding: 8px 16px;
+  border-radius: var(--radius-full);
+  transition: all var(--transition-base);
 }
 
 .nav-left:hover {
-  color: #334155;
+  color: var(--color-text-primary);
+  background: var(--color-surface-soft);
 }
 
 .nav-center h1 {
   margin: 0;
   font-size: 18px;
   font-weight: 600;
-  color: #333;
+  color: var(--color-text-primary);
+}
+
+.submit-btn {
+  background: var(--gradient-1);
+  border: none;
+  border-radius: var(--radius-lg);
+  transition: all var(--transition-base);
+  box-shadow: var(--shadow-soft);
+  padding: 8px 16px;
+}
+
+.submit-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-medium);
 }
 
 .feedback-main {
   max-width: 900px;
-  margin: 20px auto;
-  padding: 20px;
+  margin: 32px auto;
+  padding: 24px;
   background: rgba(255, 255, 255, 0.9);
-  border-radius: 20px;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-soft);
+  border: 1px solid rgba(255, 107, 157, 0.1);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .empty-state {
   padding: 60px 0;
+  text-align: center;
 }
 
 .feedback-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
 }
 
 .feedback-item {
-  padding: 20px;
-  background: #f8fafc;
-  border-radius: 12px;
-  border: 1px solid #e2e8f0;
-  transition: all 0.3s;
+  padding: 24px;
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(255, 107, 157, 0.1);
+  transition: all var(--transition-base);
+  animation: fadeInUp 0.4s ease-out both;
+  box-shadow: var(--shadow-soft);
 }
 
 .feedback-item:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-medium);
 }
 
 .feedback-header {
@@ -309,62 +345,317 @@ onMounted(() => {
 .feedback-title {
   font-size: 16px;
   font-weight: 600;
-  color: #334155;
+  color: var(--color-text-primary);
+  flex: 1;
+  margin-right: 12px;
+}
+
+.status-tag {
+  border-radius: var(--radius-full);
+  padding: 2px 10px;
 }
 
 .feedback-content {
   font-size: 14px;
-  color: #64748b;
+  color: var(--color-text-secondary);
   line-height: 1.6;
-  margin-bottom: 12px;
+  margin-bottom: 16px;
+  padding: 12px;
+  background: rgba(255, 107, 157, 0.05);
+  border-radius: var(--radius-lg);
 }
 
 .feedback-footer {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
 }
 
 .feedback-info {
   display: flex;
   align-items: center;
   gap: 12px;
+  flex-wrap: wrap;
+}
+
+.type-tag {
+  border-radius: var(--radius-full);
+  padding: 2px 10px;
+  border: 1px solid var(--color-primary-light);
 }
 
 .feedback-time {
   font-size: 12px;
-  color: #94a3b8;
+  color: var(--color-text-tertiary);
 }
 
 .admin-reply {
-  padding: 12px;
-  background: #ecf5ff;
-  border-radius: 8px;
-  border-left: 3px solid #409eff;
+  padding: 16px;
+  background: rgba(64, 158, 255, 0.05);
+  border-radius: var(--radius-lg);
+  border-left: 3px solid var(--color-primary);
+  animation: fadeInLeft 0.4s ease-out;
 }
 
 .reply-label {
   font-size: 13px;
   font-weight: 600;
-  color: #409eff;
+  color: var(--color-primary);
   margin-bottom: 6px;
 }
 
 .reply-content {
   font-size: 14px;
-  color: #334155;
+  color: var(--color-text-primary);
   line-height: 1.6;
 }
 
 .pagination {
   display: flex;
   justify-content: center;
-  margin-top: 24px;
+  margin-top: 32px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 107, 157, 0.1);
+}
+
+.pagination :deep(.el-pagination__button) {
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(255, 107, 157, 0.15);
+  transition: all var(--transition-base);
+}
+
+.pagination :deep(.el-pagination__button:hover) {
+  border-color: var(--color-primary-light);
+  color: var(--color-primary);
+}
+
+.pagination :deep(.el-pagination__button.is-current) {
+  background: var(--gradient-1);
+  border-color: var(--color-primary);
+  color: white;
+}
+
+/* 对话框样式 */
+.feedback-dialog :deep(.el-dialog) {
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow: var(--shadow-soft);
+}
+
+.feedback-dialog :deep(.el-dialog__header) {
+  background: linear-gradient(135deg, rgba(255, 107, 157, 0.05) 0%, rgba(167, 139, 250, 0.05) 100%);
+  padding: 20px 24px;
+  margin: 0;
+  border-bottom: 1px solid rgba(255, 107, 157, 0.1);
+}
+
+.feedback-dialog :deep(.el-dialog__title) {
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.feedback-dialog :deep(.el-dialog__body) {
+  padding: 24px;
+}
+
+.form-input :deep(.el-input__inner) {
+  border-radius: var(--radius-lg);
+  border: 2px solid rgba(255, 107, 157, 0.15);
+  padding: 10px 16px;
+  transition: all var(--transition-base);
+}
+
+.form-input :deep(.el-input__inner:focus) {
+  border-color: var(--color-primary-light);
+  box-shadow: 0 0 0 4px rgba(255, 107, 157, 0.1);
+}
+
+.form-textarea :deep(.el-textarea__inner) {
+  border-radius: var(--radius-lg);
+  border: 2px solid rgba(255, 107, 157, 0.15);
+  padding: 12px 16px;
+  transition: all var(--transition-base);
+  resize: vertical;
+}
+
+.form-textarea :deep(.el-textarea__inner:focus) {
+  border-color: var(--color-primary-light);
+  box-shadow: 0 0 0 4px rgba(255, 107, 157, 0.1);
+}
+
+.radio-group {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.radio-item :deep(.el-radio__label) {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+}
+
+.radio-item :deep(.el-radio__input.is-checked .el-radio__inner) {
+  background: var(--gradient-1);
+  border-color: var(--color-primary);
 }
 
 .dialog-footer {
   display: flex;
   justify-content: flex-end;
   gap: 12px;
+  padding: 16px 24px;
+  border-top: 1px solid rgba(255, 107, 157, 0.1);
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.cancel-btn {
+  background: transparent;
+  border: 2px solid var(--color-primary-light);
+  border-radius: var(--radius-lg);
+  transition: all var(--transition-base);
+}
+
+.cancel-btn:hover {
+  background: var(--color-primary-light);
+  border-color: var(--color-primary);
+}
+
+/* 装饰背景元素 */
+.decorative-circle {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--color-primary-light) 0%, transparent 70%);
+  filter: blur(100px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.circle-1 {
+  width: 600px;
+  height: 600px;
+  top: -150px;
+  right: -150px;
+  opacity: 0.3;
+  animation: float 6s ease-in-out infinite;
+}
+
+.circle-2 {
+  width: 400px;
+  height: 400px;
+  bottom: -100px;
+  left: -100px;
+  opacity: 0.3;
+  animation: float 8s ease-in-out infinite reverse;
+}
+
+/* 动画 */
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+/* 响应式设计 */
+@media (max-width: 1200px) {
+  .feedback-main {
+    max-width: 800px;
+    padding: 20px;
+  }
+}
+
+@media (max-width: 992px) {
+  .feedback-main {
+    max-width: 100%;
+    margin: 24px;
+    padding: 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  .navbar {
+    padding: 0 16px;
+  }
+
+  .nav-center h1 {
+    font-size: 16px;
+  }
+
+  .feedback-main {
+    margin: 16px;
+    padding: 16px;
+  }
+
+  .feedback-item {
+    padding: 16px;
+  }
+
+  .radio-group {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .feedback-dialog :deep(.el-dialog) {
+    width: 95% !important;
+  }
+
+  .feedback-dialog :deep(.el-dialog__body) {
+    padding: 16px;
+  }
+}
+
+/* 滚动条样式 */
+.feedback-main::-webkit-scrollbar {
+  width: 6px;
+}
+
+.feedback-main::-webkit-scrollbar-track {
+  background: rgba(255, 107, 157, 0.05);
+  border-radius: 3px;
+}
+
+.feedback-main::-webkit-scrollbar-thumb {
+  background: rgba(255, 107, 157, 0.3);
+  border-radius: 3px;
+  transition: background var(--transition-base);
+}
+
+.feedback-main::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 107, 157, 0.5);
 }
 </style>

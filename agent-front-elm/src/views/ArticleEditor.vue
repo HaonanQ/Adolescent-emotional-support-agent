@@ -1,6 +1,10 @@
 <template>
   <div class="editor-container">
-    <nav class="navbar">
+    <!-- 装饰背景元素 -->
+    <div class="decorative-circle circle-1" style="top: -150px; right: -150px; opacity: 0.3;"></div>
+    <div class="decorative-circle circle-2" style="bottom: -100px; left: -100px; opacity: 0.3;"></div>
+
+    <nav class="navbar" style="animation: fadeInDown 0.4s ease-out;">
       <div class="nav-left" @click="handleGoBack" style="cursor: pointer;">
         <el-icon class="back-icon"><arrow-left /></el-icon>
         <span>返回</span>
@@ -9,16 +13,16 @@
         <span class="nav-label">{{ isEdit ? '编辑文章' : '新建文章' }}</span>
       </div>
       <div class="nav-right">
-        <el-button type="primary" :loading="saving" @click="handleSave" v-if="!isEdit">
+        <el-button type="primary" :loading="saving" @click="handleSave" v-if="!isEdit" class="save-btn">
           发布文章
         </el-button>
-        <el-button type="primary" :loading="saving" @click="handleUpdate" v-else>
+        <el-button type="primary" :loading="saving" @click="handleUpdate" v-else class="save-btn">
           保存修改
         </el-button>
       </div>
     </nav>
 
-    <div class="editor-main">
+    <div class="editor-main" style="animation: fadeInUp 0.4s ease-out 0.1s both;">
       <div class="editor-form">
         <!-- 标题 -->
         <div class="form-item">
@@ -361,20 +365,23 @@ const handleGoBack = async () => {
 <style scoped>
 .editor-container {
   min-height: 100vh;
-  background-image: url('../image/bg.jpg');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  background-attachment: fixed;
+  background: var(--color-background);
+  position: relative;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
+/* 导航栏 */
 .navbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0 24px;
-  background: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  padding: 0 32px;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255, 107, 157, 0.1);
+  box-shadow: var(--shadow-soft);
   height: 56px;
   position: sticky;
   top: 0;
@@ -384,15 +391,18 @@ const handleGoBack = async () => {
 .nav-left {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   cursor: pointer;
-  color: #666;
+  color: var(--color-text-secondary);
   font-size: 15px;
-  transition: color 0.2s;
+  padding: 8px 16px;
+  border-radius: var(--radius-full);
+  transition: all var(--transition-base);
 }
 
 .nav-left:hover {
-  color: #409eff;
+  color: var(--color-text-primary);
+  background: var(--color-surface-soft);
 }
 
 .back-icon {
@@ -406,27 +416,42 @@ const handleGoBack = async () => {
 }
 
 .nav-label {
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 600;
-  color: #333;
+  color: var(--color-text-primary);
+}
+
+.save-btn {
+  background: var(--gradient-1);
+  border: none;
+  border-radius: var(--radius-lg);
+  transition: all var(--transition-base);
+  box-shadow: var(--shadow-soft);
+  padding: 8px 16px;
+}
+
+.save-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-medium);
 }
 
 .editor-main {
   max-width: 900px;
-  margin: 0 auto;
-  padding: 24px 20px 60px;
+  margin: 32px auto;
+  padding: 24px;
   background: rgba(255, 255, 255, 0.9);
-  border-radius: 20px;
-  margin-top: 20px;
-  margin-bottom: 20px;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-soft);
+  border: 1px solid rgba(255, 107, 157, 0.1);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .editor-form {
-  background: #fff;
-  border-radius: 12px;
-  padding: 28px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  padding: 32px;
+  box-shadow: var(--shadow-soft);
 }
 
 .form-item {
@@ -438,39 +463,41 @@ const handleGoBack = async () => {
   display: block;
   font-size: 14px;
   font-weight: 600;
-  color: #555;
-  margin-bottom: 10px;
+  color: var(--color-text-primary);
+  margin-bottom: 12px;
 }
 
 .title-input {
   width: 100%;
   border: none;
-  border-bottom: 2px solid #eee;
+  border-bottom: 2px solid rgba(255, 107, 157, 0.15);
   font-size: 26px;
   font-weight: 700;
-  color: #222;
-  padding: 8px 4px;
+  color: var(--color-text-primary);
+  padding: 12px 8px;
   outline: none;
-  transition: border-color 0.2s;
+  transition: border-color var(--transition-base);
   background: transparent;
+  font-family: inherit;
 }
 
 .title-input:focus {
-  border-bottom-color: #409eff;
+  border-bottom-color: var(--color-primary);
 }
 
 .char-count {
   position: absolute;
   right: 0;
-  bottom: -22px;
+  bottom: -24px;
   font-size: 12px;
-  color: #bbb;
+  color: var(--color-text-tertiary);
 }
 
 .form-row {
   display: flex;
   gap: 24px;
-  margin-top: 22px;
+  margin-top: 24px;
+  flex-wrap: wrap;
 }
 
 .cover-section {
@@ -481,25 +508,29 @@ const handleGoBack = async () => {
 .cover-upload {
   width: 220px;
   height: 140px;
-  border-radius: 10px;
-  border: 2px dashed #ddd;
+  border-radius: var(--radius-lg);
+  border: 2px dashed rgba(255, 107, 157, 0.2);
   cursor: pointer;
   overflow: hidden;
-  transition: all 0.2s;
+  transition: all var(--transition-base);
   display: flex;
   align-items: center;
   justify-content: center;
+  background: var(--color-surface-soft);
 }
 
 .cover-upload:hover {
-  border-color: #409eff;
-  background: #f5f9ff;
+  border-color: var(--color-primary);
+  background: rgba(255, 107, 157, 0.05);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-soft);
 }
 
 .cover-preview {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  border-radius: var(--radius-lg);
 }
 
 .cover-placeholder {
@@ -507,12 +538,18 @@ const handleGoBack = async () => {
   flex-direction: column;
   align-items: center;
   gap: 8px;
-  color: #ccc;
+  color: var(--color-text-tertiary);
   font-size: 13px;
+  transition: all var(--transition-base);
+}
+
+.cover-upload:hover .cover-placeholder {
+  color: var(--color-primary);
 }
 
 .meta-section {
   flex: 1;
+  min-width: 300px;
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -520,39 +557,194 @@ const handleGoBack = async () => {
 
 .summary-input {
   width: 100%;
-  border: 1px solid #e8e8e8;
-  border-radius: 8px;
-  padding: 10px 12px;
+  border: 2px solid rgba(255, 107, 157, 0.15);
+  border-radius: var(--radius-lg);
+  padding: 12px 16px;
   font-size: 14px;
   line-height: 1.6;
-  color: #333;
+  color: var(--color-text-primary);
   resize: vertical;
   outline: none;
-  transition: border-color 0.2s;
+  transition: all var(--transition-base);
   font-family: inherit;
   box-sizing: border-box;
+  background: var(--color-surface-soft);
 }
 
 .summary-input:focus {
-  border-color: #409eff;
+  border-color: var(--color-primary-light);
+  box-shadow: 0 0 0 4px rgba(255, 107, 157, 0.1);
+  background: white;
 }
 
 .editor-item {
-  margin-top: 16px;
+  margin-top: 32px;
 }
 
 .editor-wrapper {
-  border: 1px solid #e8e8e8;
-  border-radius: 8px;
+  border: 2px solid rgba(255, 107, 157, 0.15);
+  border-radius: var(--radius-lg);
   overflow: hidden;
+  transition: all var(--transition-base);
+}
+
+.editor-wrapper:hover {
+  border-color: var(--color-primary-light);
+  box-shadow: var(--shadow-soft);
 }
 
 .toolbar {
-  border-bottom: 1px solid #e8e8e8;
+  border-bottom: 1px solid rgba(255, 107, 157, 0.1);
+  background: var(--color-surface-soft);
 }
 
 .editor-content {
-  min-height: 400px;
+  min-height: 500px;
   overflow-y: auto;
+  background: white;
+}
+
+/* 装饰背景元素 */
+.decorative-circle {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--color-primary-light) 0%, transparent 70%);
+  filter: blur(100px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.circle-1 {
+  width: 600px;
+  height: 600px;
+  top: -150px;
+  right: -150px;
+  opacity: 0.3;
+  animation: float 6s ease-in-out infinite;
+}
+
+.circle-2 {
+  width: 400px;
+  height: 400px;
+  bottom: -100px;
+  left: -100px;
+  opacity: 0.3;
+  animation: float 8s ease-in-out infinite reverse;
+}
+
+/* 动画 */
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+/* 响应式设计 */
+@media (max-width: 1200px) {
+  .editor-main {
+    max-width: 800px;
+    padding: 20px;
+  }
+}
+
+@media (max-width: 992px) {
+  .editor-main {
+    max-width: 100%;
+    margin: 24px;
+    padding: 20px;
+  }
+
+  .form-row {
+    flex-direction: column;
+  }
+
+  .cover-section {
+    width: 100%;
+  }
+
+  .cover-upload {
+    width: 100%;
+    height: 200px;
+  }
+}
+
+@media (max-width: 768px) {
+  .navbar {
+    padding: 0 16px;
+  }
+
+  .nav-center {
+    display: none;
+  }
+
+  .editor-main {
+    margin: 16px;
+    padding: 16px;
+  }
+
+  .editor-form {
+    padding: 24px;
+  }
+
+  .title-input {
+    font-size: 20px;
+  }
+
+  .cover-upload {
+    height: 160px;
+  }
+
+  .editor-content {
+    min-height: 400px;
+  }
+}
+
+/* 滚动条样式 */
+.editor-main::-webkit-scrollbar,
+.editor-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.editor-main::-webkit-scrollbar-track,
+.editor-content::-webkit-scrollbar-track {
+  background: rgba(255, 107, 157, 0.05);
+  border-radius: 3px;
+}
+
+.editor-main::-webkit-scrollbar-thumb,
+.editor-content::-webkit-scrollbar-thumb {
+  background: rgba(255, 107, 157, 0.3);
+  border-radius: 3px;
+  transition: background var(--transition-base);
+}
+
+.editor-main::-webkit-scrollbar-thumb:hover,
+.editor-content::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 107, 157, 0.5);
 }
 </style>

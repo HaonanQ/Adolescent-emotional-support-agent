@@ -1,22 +1,26 @@
 <template>
   <div class="user-management-container">
-    <nav class="navbar">
+    <!-- 装饰背景元素 -->
+    <div class="decorative-circle circle-1" style="top: -150px; right: -150px; opacity: 0.3;"></div>
+    <div class="decorative-circle circle-2" style="bottom: -100px; left: -100px; opacity: 0.3;"></div>
+
+    <nav class="navbar" style="animation: fadeInDown 0.4s ease-out;">
       <div class="nav-left" @click="goToHome" style="cursor: pointer;">
         <span class="nav-logo">❤️</span>
         <span class="nav-title">青少年情感陪伴智能体</span>
       </div>
       <div class="nav-center">
-          <el-button text @click="goToChat">情感陪伴</el-button>
-          <el-button text @click="goToEmotionDiary">情绪日记</el-button>
-          <el-button text @click="goToEmotionClassroom">情感课堂</el-button>
-          <el-button text @click="goToKnowledgeManagement">知识库管理</el-button>
-          <el-button text @click="goToFeedback">反馈与建议</el-button>
+          <el-button class="nav-btn" @click="goToChat">情感陪伴</el-button>
+          <el-button class="nav-btn" @click="goToEmotionDiary">情绪日记</el-button>
+          <el-button class="nav-btn" @click="goToEmotionClassroom">情感课堂</el-button>
+          <el-button class="nav-btn" @click="goToKnowledgeManagement">知识库管理</el-button>
+          <el-button class="nav-btn" @click="goToFeedback">反馈与建议</el-button>
         </div>
       <div class="nav-right">
         <el-dropdown @command="handleCommand" v-if="user">
           <span class="el-dropdown-link">
-            <el-avatar :size="36" :src="user.avatar" v-if="user.avatar"></el-avatar>
-            <el-avatar :size="36" v-else>{{ user.username?.charAt(0) || 'U' }}</el-avatar>
+            <el-avatar :size="36" :src="user.avatar" v-if="user.avatar" class="user-avatar"></el-avatar>
+            <el-avatar :size="36" v-else class="user-avatar">{{ user.username?.charAt(0) || 'U' }}</el-avatar>
             <span class="user-name">{{ user.username }}</span>
             <el-icon class="el-icon--right"><arrow-down /></el-icon>
           </span>
@@ -32,7 +36,7 @@
       </div>
     </nav>
 
-    <div class="management-main">
+    <div class="management-main" style="animation: fadeInUp 0.4s ease-out 0.1s both;">
       <div class="page-header">
         <h2>用户信息管理</h2>
         <p class="header-desc">查看所有注册用户及其情绪状态</p>
@@ -46,6 +50,7 @@
               placeholder="搜索用户名/昵称"
               clearable
               style="width: 220px"
+              class="search-input"
               @keyup.enter="handleSearch"
               @clear="handleSearch"
             >
@@ -58,6 +63,7 @@
               placeholder="账号状态"
               clearable
               style="width: 140px"
+              class="filter-select"
               @change="handleSearch"
             >
               <el-option label="已启用" :value="0" />
@@ -68,16 +74,17 @@
               placeholder="性别"
               clearable
               style="width: 120px"
+              class="filter-select"
               @change="handleSearch"
             >
               <el-option label="女生" :value="0" />
               <el-option label="男生" :value="1" />
             </el-select>
-            <el-button type="primary" @click="handleSearch">
+            <el-button type="primary" class="search-btn" @click="handleSearch">
               <el-icon><Search /></el-icon>  
               <span style="margin-left:6px;">搜索</span>
             </el-button>
-            <el-button @click="resetFilters">重置</el-button>
+            <el-button class="reset-btn" @click="resetFilters">重置</el-button>
           </div>
         </div>
 
@@ -92,8 +99,8 @@
           <el-table-column label="用户信息" min-width="200">
             <template #default="{ row }">
               <div class="user-info-cell">
-                <el-avatar :size="44" :src="row.avatar" v-if="row.avatar"></el-avatar>
-                <el-avatar :size="44" v-else>{{ row.username?.charAt(0) || 'U' }}</el-avatar>
+                <el-avatar :size="44" :src="row.avatar" v-if="row.avatar" class="user-avatar"></el-avatar>
+                <el-avatar :size="44" v-else class="user-avatar">{{ row.username?.charAt(0) || 'U' }}</el-avatar>
                 <div class="user-detail">
                   <div class="user-username">
                     {{ row.nickname || row.username }}
@@ -113,15 +120,15 @@
 
           <el-table-column label="性别" width="80" align="center">
             <template #default="{ row }">
-              <el-tag v-if="row.sex === 0" type="danger" size="small">女生</el-tag>
-              <el-tag v-else-if="row.sex === 1" type="primary" size="small">男生</el-tag>
+              <el-tag v-if="row.sex === 0" type="danger" size="small" class="table-tag">女生</el-tag>
+              <el-tag v-else-if="row.sex === 1" type="primary" size="small" class="table-tag">男生</el-tag>
               <span v-else class="no-mood">-</span>
             </template>
           </el-table-column>
 
           <el-table-column label="日记数量" width="100" align="center">
             <template #default="{ row }">
-              <el-tag size="small" type="info">{{ row.diaryCount || 0 }} 篇</el-tag>
+              <el-tag size="small" type="info" class="table-tag">{{ row.diaryCount || 0 }} 篇</el-tag>
             </template>
           </el-table-column>
 
@@ -156,7 +163,7 @@
 
           <el-table-column label="账号状态" width="100" align="center">
             <template #default="{ row }">
-              <el-tag :type="row.isDeleted === 1 ? 'danger' : 'success'" size="small">
+              <el-tag :type="row.isDeleted === 1 ? 'danger' : 'success'" size="small" class="table-tag">
                 {{ row.isDeleted === 1 ? '已停用' : '已启用' }}
               </el-tag>
             </template>
@@ -169,6 +176,7 @@
                 :type="row.isDeleted === 1 ? 'success' : 'danger'"
                 size="small"
                 text
+                class="action-btn"
                 @click="handleToggleStatus(row)"
               >
                 {{ row.isDeleted === 1 ? '启用' : '停用' }}
@@ -422,77 +430,100 @@ onMounted(() => {
 <style scoped>
 .user-management-container {
   min-height: 100vh;
-  background-image: url('../image/bg.jpg');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  background-attachment: fixed;
+  background: var(--color-background);
+  position: relative;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
+/* 导航栏 */
 .navbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 24px;
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid #e8e8e8;
+  padding: 12px 32px;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255, 107, 157, 0.1);
+  box-shadow: var(--shadow-soft);
   position: sticky;
   top: 0;
   z-index: 100;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
 }
 
 .nav-left {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
+  transition: transform var(--transition-fast);
+}
+
+.nav-left:hover {
+  transform: translateX(4px);
 }
 
 .nav-logo {
   font-size: 32px;
+  animation: pulse 3s ease-in-out infinite;
 }
 
 .nav-title {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 600;
-  color: #303133;
+  color: var(--color-text-primary);
 }
 
 .nav-center {
   display: flex;
-  gap: 16px;
+  gap: 8px;
 }
 
-.nav-center .el-button {
-  font-size: 16px;
+.nav-btn {
+  font-size: 14px;
   font-weight: 500;
-  color: #606266;
+  color: var(--color-text-secondary);
+  border: none;
+  background: transparent;
+  border-radius: var(--radius-full);
+  padding: 8px 16px;
+  transition: all var(--transition-base);
 }
 
-.nav-center .el-button:hover {
-  color: #409eff;
+.nav-btn:hover {
+  color: var(--color-primary);
+  background: rgba(255, 107, 157, 0.1);
 }
 
 .nav-right {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-right: 15px;
 }
 
 .el-dropdown-link {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   cursor: pointer;
-  color: #303133;
+  color: var(--color-text-primary);
   font-size: 14px;
+  padding: 8px 16px;
+  border-radius: var(--radius-full);
+  transition: all var(--transition-base);
+}
+
+.el-dropdown-link:hover {
+  background: var(--color-surface-soft);
+}
+
+.user-avatar {
+  border: 2px solid var(--color-primary-light);
 }
 
 .user-name {
   font-weight: 500;
-  font-size: 16px;
+  font-size: 14px;
   max-width: 80px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -504,31 +535,43 @@ onMounted(() => {
   margin: 32px auto;
   padding: 0 24px;
   background: rgba(255, 255, 255, 0.9);
-  border-radius: 20px;
+  border-radius: var(--radius-xl);
   padding: 24px;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-soft);
+  border: 1px solid rgba(255, 107, 157, 0.1);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .page-header {
   margin-bottom: 24px;
+  text-align: center;
+  padding: 24px 0;
+  background: linear-gradient(135deg, rgba(255, 107, 157, 0.05) 0%, rgba(167, 139, 250, 0.05) 100%);
+  border-radius: var(--radius-lg);
+  margin: 0 -24px 24px;
 }
 
 .page-header h2 {
   font-size: 26px;
-  color: #303133;
+  color: var(--color-text-primary);
   margin-bottom: 6px;
+  background: var(--gradient-1);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .header-desc {
-  color: #909399;
+  color: var(--color-text-secondary);
   font-size: 14px;
 }
 
 .user-list-section {
-  background: #fff;
-  border-radius: 12px;
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
   padding: 20px;
-  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.06);
+  box-shadow: var(--shadow-soft);
 }
 
 .filter-bar {
@@ -537,13 +580,62 @@ onMounted(() => {
   align-items: center;
   margin-bottom: 16px;
   padding-bottom: 16px;
-  border-bottom: 1px solid #ebeef5;
+  border-bottom: 1px solid rgba(255, 107, 157, 0.1);
 }
 
 .filter-left {
   display: flex;
   align-items: center;
   gap: 12px;
+  flex-wrap: wrap;
+}
+
+.search-input :deep(.el-input__inner) {
+  border-radius: var(--radius-lg);
+  border: 2px solid rgba(255, 107, 157, 0.15);
+  padding: 10px 16px;
+  transition: all var(--transition-base);
+}
+
+.search-input :deep(.el-input__inner:focus) {
+  border-color: var(--color-primary-light);
+  box-shadow: 0 0 0 4px rgba(255, 107, 157, 0.1);
+}
+
+.filter-select :deep(.el-select__wrapper) {
+  border-radius: var(--radius-lg);
+  border: 2px solid rgba(255, 107, 157, 0.15);
+  transition: all var(--transition-base);
+}
+
+.filter-select :deep(.el-select__wrapper:focus) {
+  border-color: var(--color-primary-light);
+  box-shadow: 0 0 0 4px rgba(255, 107, 157, 0.1);
+}
+
+.search-btn {
+  background: var(--gradient-1);
+  border: none;
+  border-radius: var(--radius-lg);
+  transition: all var(--transition-base);
+  box-shadow: var(--shadow-soft);
+}
+
+.search-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-medium);
+}
+
+.reset-btn {
+  background: transparent;
+  border: 2px solid var(--color-primary-light);
+  border-radius: var(--radius-lg);
+  transition: all var(--transition-base);
+}
+
+.reset-btn:hover {
+  background: var(--color-primary-light);
+  border-color: var(--color-primary);
 }
 
 .user-info-cell {
@@ -559,7 +651,7 @@ onMounted(() => {
 
 .user-username {
   font-weight: 600;
-  color: #303133;
+  color: var(--color-text-primary);
   font-size: 14px;
   display: flex;
   align-items: center;
@@ -568,11 +660,12 @@ onMounted(() => {
 
 .admin-tag {
   margin-left: 4px;
+  border-radius: var(--radius-full);
 }
 
 .user-id {
   font-size: 12px;
-  color: #c0c4cc;
+  color: var(--color-text-tertiary);
 }
 
 .mood-score-clickable {
@@ -581,13 +674,20 @@ onMounted(() => {
   align-items: center;
   cursor: pointer;
   gap: 4px;
+  transition: all var(--transition-base);
+}
+
+.mood-score-clickable:hover {
+  transform: scale(1.05);
 }
 
 .mood-tag {
   font-size: 15px;
   font-weight: 700;
   letter-spacing: 1px;
-  transition: transform 0.2s;
+  transition: transform var(--transition-base);
+  border-radius: var(--radius-full);
+  padding: 4px 12px;
 }
 
 .mood-score-clickable:hover .mood-tag {
@@ -596,27 +696,64 @@ onMounted(() => {
 
 .mood-hint {
   font-size: 11px;
-  color: #409eff;
+  color: var(--color-primary);
+  transition: all var(--transition-base);
 }
 
 .no-mood {
-  color: #c0c4cc;
+  color: var(--color-text-tertiary);
   font-size: 13px;
 }
 
 .mood-status {
   font-size: 13px;
-  color: #606266;
+  color: var(--color-text-secondary);
   font-weight: 500;
 }
 
 .no-action {
-  color: #c0c4cc;
+  color: var(--color-text-tertiary);
   font-size: 13px;
 }
 
+.table-tag {
+  border-radius: var(--radius-full);
+}
+
+.action-btn {
+  transition: all var(--transition-base);
+  border-radius: var(--radius-full);
+}
+
+.action-btn:hover {
+  background: rgba(255, 107, 157, 0.05);
+}
+
+.history-dialog :deep(.el-dialog) {
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+}
+
+.history-dialog :deep(.el-dialog__header) {
+  background: linear-gradient(135deg, rgba(255, 107, 157, 0.05) 0%, rgba(167, 139, 250, 0.05) 100%);
+  padding: 20px 24px;
+  margin: 0;
+  border-bottom: 1px solid rgba(255, 107, 157, 0.1);
+}
+
+.history-dialog :deep(.el-dialog__title) {
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
 .history-dialog :deep(.el-dialog__body) {
-  padding: 16px 24px 24px;
+  padding: 24px;
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.history-content {
+  width: 100%;
 }
 
 .history-timeline {
@@ -633,6 +770,7 @@ onMounted(() => {
   gap: 16px;
   padding: 12px 0;
   padding-left: 8px;
+  animation: fadeInUp 0.3s ease-out;
 }
 
 .timeline-dot {
@@ -647,11 +785,13 @@ onMounted(() => {
   font-size: 14px;
   color: #fff;
   z-index: 1;
-  transition: transform 0.2s;
+  transition: transform var(--transition-base);
+  box-shadow: var(--shadow-soft);
 }
 
 .timeline-dot:hover {
   transform: scale(1.12);
+  box-shadow: var(--shadow-medium);
 }
 
 .mood-level-low { background: linear-gradient(135deg, #f56c6c, #e03535); }
@@ -666,23 +806,29 @@ onMounted(() => {
 .timeline-content {
   flex: 1;
   padding-top: 4px;
+  background: white;
+  padding: 12px 16px;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+  border: 1px solid rgba(255, 107, 157, 0.1);
 }
 
 .history-header {
   display: flex;
   align-items: center;
   gap: 10px;
+  margin-bottom: 4px;
 }
 
 .history-mood {
   font-weight: 600;
   font-size: 15px;
-  color: #303133;
+  color: var(--color-text-primary);
 }
 
 .history-date {
   font-size: 12px;
-  color: #909399;
+  color: var(--color-text-secondary);
   margin-top: 4px;
 }
 
@@ -701,6 +847,168 @@ onMounted(() => {
 .line-mood-high { background: #409eff; opacity: 0.35; }
 
 :deep(.user-row:hover > td) {
-  background-color: #f0f7ff !important;
+  background: rgba(255, 107, 157, 0.05) !important;
+}
+
+/* 装饰背景元素 */
+.decorative-circle {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--color-primary-light) 0%, transparent 70%);
+  filter: blur(100px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.circle-1 {
+  width: 600px;
+  height: 600px;
+  top: -150px;
+  right: -150px;
+  opacity: 0.3;
+  animation: float 6s ease-in-out infinite;
+}
+
+.circle-2 {
+  width: 400px;
+  height: 400px;
+  bottom: -100px;
+  left: -100px;
+  opacity: 0.3;
+  animation: float 8s ease-in-out infinite reverse;
+}
+
+/* 动画 */
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+/* 响应式设计 */
+@media (max-width: 1200px) {
+  .management-main {
+    max-width: 1000px;
+    padding: 20px;
+  }
+
+  .page-header {
+    margin: 0 -20px 20px;
+  }
+}
+
+@media (max-width: 992px) {
+  .management-main {
+    max-width: 100%;
+    padding: 16px;
+  }
+
+  .filter-bar {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .filter-left {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 768px) {
+  .navbar {
+    padding: 12px 16px;
+  }
+
+  .nav-center {
+    display: none;
+  }
+
+  .management-main {
+    margin: 16px;
+    padding: 16px;
+  }
+
+  .page-header {
+    margin: 0 -16px 16px;
+    padding: 16px 0;
+  }
+
+  .page-header h2 {
+    font-size: 20px;
+  }
+
+  .filter-left {
+    flex-wrap: wrap;
+  }
+
+  .search-input {
+    width: 100% !important;
+  }
+
+  .filter-select {
+    flex: 1;
+  }
+
+  .history-dialog :deep(.el-dialog) {
+    width: 95% !important;
+  }
+}
+
+/* 滚动条样式 */
+.management-main::-webkit-scrollbar,
+.history-timeline::-webkit-scrollbar {
+  width: 6px;
+}
+
+.management-main::-webkit-scrollbar-track,
+.history-timeline::-webkit-scrollbar-track {
+  background: rgba(255, 107, 157, 0.05);
+  border-radius: 3px;
+}
+
+.management-main::-webkit-scrollbar-thumb,
+.history-timeline::-webkit-scrollbar-thumb {
+  background: rgba(255, 107, 157, 0.3);
+  border-radius: 3px;
+  transition: background var(--transition-base);
+}
+
+.management-main::-webkit-scrollbar-thumb:hover,
+.history-timeline::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 107, 157, 0.5);
 }
 </style>
