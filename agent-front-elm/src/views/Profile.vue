@@ -50,7 +50,13 @@
 
             <el-form-item label="昵称">
               <div class="input-wrapper">
-                <el-input v-model="editNickname" placeholder="请输入昵称" style="flex: 1" />
+                <el-input 
+                  v-model="editNickname" 
+                  placeholder="请输入昵称（2-10个字符）" 
+                  style="flex: 1"
+                  maxlength="10"
+                  show-word-limit
+                />
                 <el-button type="primary" @click="handleUpdateNickname">保存</el-button>
               </div>
             </el-form-item>
@@ -97,8 +103,9 @@
                 <el-input
                   v-model="newPassword"
                   type="password"
-                  placeholder="请输入新密码"
+                  placeholder="请输入新密码（6-16个字符）"
                   show-password
+                  maxlength="16"
                 />
               </el-form-item>
               <el-form-item label="确认新密码">
@@ -107,6 +114,7 @@
                   type="password"
                   placeholder="请再次输入新密码"
                   show-password
+                  maxlength="16"
                 />
               </el-form-item>
               <el-form-item>
@@ -194,6 +202,11 @@ const handleUpdateNickname = async () => {
     ElMessage.warning('昵称不能为空');
     return;
   }
+  
+  if (editNickname.value.trim().length < 2 || editNickname.value.trim().length > 10) {
+    ElMessage.warning('昵称长度必须在2-10个字符之间');
+    return;
+  }
 
   try {
     const response = await updateNickname(editNickname.value);
@@ -225,6 +238,11 @@ const handleUpdateSex = async (sex) => {
 const handleUpdatePassword = async () => {
   if (!oldPassword.value || !newPassword.value || !confirmPassword.value) {
     ElMessage.warning('请填写完整的密码信息');
+    return;
+  }
+
+  if (newPassword.value.trim().length < 6 || newPassword.value.trim().length > 16) {
+    ElMessage.warning('新密码长度必须在6-20个字符之间');
     return;
   }
 

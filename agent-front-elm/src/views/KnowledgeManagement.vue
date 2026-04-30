@@ -155,7 +155,11 @@
     >
       <el-form :model="form" :rules="rules" ref="formRef" label-width="100px">
         <el-form-item label="知识库名称" prop="name">
-          <el-input v-model="form.name" placeholder="请输入知识库名称" maxlength="50" />
+          <el-input 
+            v-model="form.name" 
+            placeholder="请输入知识库名称（不超过10个字）" 
+            maxlength="10"
+          />
         </el-form-item>
         <el-form-item label="描述" prop="description">
           <el-input
@@ -167,10 +171,15 @@
           />
         </el-form-item>
         <el-form-item label="表名" prop="tableName">
-          <el-input v-model="form.tableName" placeholder="向量数据库表名" maxlength="30" :disabled="isEdit" />
+          <el-input 
+            v-model="form.tableName" 
+            placeholder="向量数据库表名（不超过15个字符）" 
+            maxlength="15"
+            :disabled="isEdit" 
+          />
           <template #extra>
             <div class="form-tip">
-              表名规范：只能包含小写字母(a-z)、数字(0-9)和下划线(_)，且必须以字母开头，长度不超过30
+              表名规范：只能包含小写字母(a-z)、数字(0-9)和下划线(_)，且必须以字母开头，长度不超过15个字符
             </div>
           </template>
         </el-form-item>
@@ -329,7 +338,19 @@ const form = ref({
   autoLoad: 1
 });
 const rules = {
-  name: [{ required: true, message: '请输入知识库名称', trigger: 'blur' }],
+  name: [
+    { required: true, message: '请输入知识库名称', trigger: 'blur' },
+    {
+      validator: (rule, value, callback) => {
+        if (value && value.trim().length > 10) {
+          callback(new Error('知识库名称长度不能超过10个字符'));
+        } else {
+          callback();
+        }
+      },
+      trigger: 'blur'
+    }
+  ],
   tableName: [
     { required: true, message: '请输入表名', trigger: 'blur' },
     {
@@ -339,8 +360,8 @@ const rules = {
     },
     {
       validator: (rule, value, callback) => {
-        if (value.length > 30) {
-          callback(new Error('表名长度不能超过30个字符'));
+        if (value.length > 15) {
+          callback(new Error('表名长度不能超过15个字符'));
         } else {
           callback();
         }

@@ -36,6 +36,10 @@ public class FeedbackServiceImpl extends ServiceImpl<FeedbackMapper, Feedback> i
         if (request.getTitle() == null || request.getTitle().trim().isEmpty()) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "标题不能为空");
         }
+        String title = request.getTitle().trim();
+        if (title.length() > 10) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "标题长度不能超过10个字符");
+        }
         if (request.getContent() == null || request.getContent().trim().isEmpty()) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "内容不能为空");
         }

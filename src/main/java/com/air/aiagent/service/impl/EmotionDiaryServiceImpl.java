@@ -42,16 +42,28 @@ public class EmotionDiaryServiceImpl extends ServiceImpl<EmotionDiaryMapper, Emo
         if (request.getTitle() == null || request.getTitle().trim().isEmpty()) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "标题不能为空");
         }
+        // 校验标题长度
+        String title = request.getTitle().trim();
+        if (title.length() > 10) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "标题长度不能超过10个字符");
+        }
         if (request.getMood() == null || request.getMood().isEmpty()) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "情绪不能为空");
         }
         if (request.getMoodScore() == null || request.getMoodScore() < 1 || request.getMoodScore() > 10) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "情绪分数必须在1-10之间");
         }
+        // 校验图片数量
+        if (request.getImageUrl() != null && !request.getImageUrl().isEmpty()) {
+            String[] images = request.getImageUrl().split(";");
+            if (images.length > 9) {
+                throw new BusinessException(ErrorCode.PARAMS_ERROR, "图片数量不能超过9张");
+            }
+        }
 
         EmotionDiary emotionDiary = EmotionDiary.builder()
                 .userId(request.getUserId())
-                .title(request.getTitle())
+                .title(title)
                 .mood(request.getMood())
                 .moodScore(request.getMoodScore())
                 .content(request.getContent())

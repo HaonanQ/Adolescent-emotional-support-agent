@@ -52,20 +52,22 @@
             <el-form-item>
               <el-input
                 v-model="form.username"
-                placeholder="请输入用户名"
+                placeholder="请输入用户名（4-10个字符）"
                 size="large"
                 clearable
                 prefix-icon="User"
+                maxlength="10"
               />
             </el-form-item>
             <el-form-item>
               <el-input
                 v-model="form.password"
                 type="password"
-                placeholder="请输入密码"
+                placeholder="请输入密码（6-16个字符）"
                 size="large"
                 show-password
                 prefix-icon="Lock"
+                maxlength="16"
               />
             </el-form-item>
             <el-form-item>
@@ -76,6 +78,7 @@
                 size="large"
                 show-password
                 prefix-icon="Lock"
+                maxlength="16"
                 @keyup.enter="handleSubmit"
               />
             </el-form-item>
@@ -129,9 +132,33 @@ const form = ref({
 const handleSubmit = async () => {
   errorMessage.value = '';
 
-  if (activeTab.value === 'register' && form.value.password !== form.value.confirmPassword) {
-    errorMessage.value = '两次输入的密码不一致';
+  // 前端校验
+  if (!form.value.username || !form.value.username.trim()) {
+    errorMessage.value = '用户名不能为空';
     return;
+  }
+  
+  if (!form.value.password || !form.value.password.trim()) {
+    errorMessage.value = '密码不能为空';
+    return;
+  }
+
+  // 注册时的额外校验
+  if (activeTab.value === 'register') {
+    if (form.value.username.trim().length < 4 || form.value.username.trim().length > 10) {
+      errorMessage.value = '用户名长度必须在4-20个字符之间';
+      return;
+    }
+    
+    if (form.value.password.trim().length < 6 || form.value.password.trim().length > 16) {
+      errorMessage.value = '密码长度必须在6-20个字符之间';
+      return;
+    }
+    
+    if (form.value.password !== form.value.confirmPassword) {
+      errorMessage.value = '两次输入的密码不一致';
+      return;
+    }
   }
 
   loading.value = true;

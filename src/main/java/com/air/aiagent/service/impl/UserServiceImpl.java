@@ -70,21 +70,31 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         if(StrUtil.isBlank(request.getUsername())){
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户名不能为空");
         }
-        // 2.判断密码是否为空
+        // 2.校验用户名长度
+        String username = request.getUsername().trim();
+        if(username.length() < 4 || username.length() > 10){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户名长度必须在4-10个字符之间");
+        }
+        // 3.判断密码是否为空
         if(StrUtil.isBlank(request.getPassword())){
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "密码不能为空");
         }
-        // 3.判断该用户是否存在
+        // 4.校验密码长度
+        String password = request.getPassword().trim();
+        if(password.length() < 6 || password.length() > 16){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "密码长度必须在6-16个字符之间");
+        }
+        // 5.判断该用户是否存在
         User user = null;
-        user = this.getOne(new LambdaQueryWrapper<User>().eq(User::getUsername, request.getUsername()));
+        user = this.getOne(new LambdaQueryWrapper<User>().eq(User::getUsername, username));
         if(user != null){
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "该用户名已注册过账户，请前往登录");
         }
 
-        // 4.创建用户，密码使用 BCrypt 加密
-        String encryptedPassword = BCryptUtils.encrypt(request.getPassword());
+        // 6.创建用户，密码使用 BCrypt 加密
+        String encryptedPassword = BCryptUtils.encrypt(password);
         user = User.builder()
-                .username(request.getUsername())
+                .username(username)
                 .password(encryptedPassword)
                 .nickname(getRandomNickName())
                 .createTime(new Date())
@@ -143,8 +153,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "昵称不能为空");
         }
         // 2.校验昵称长度
-        if(nickname.length() > 20){
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "昵称长度不能超过20个字符");
+        String trimmedNickname = nickname.trim();
+        if(trimmedNickname.length() < 2 || trimmedNickname.length() > 10){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "昵称长度必须在2-10个字符之间");
         }
         // 3.查询用户是否存在
         User user = this.getById(userId);
@@ -152,7 +163,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户不存在");
         }
         // 4.更新昵称
-        user.setNickname(nickname);
+        user.setNickname(trimmedNickname);
         user.setUpdateTime(new Date());
         return this.updateById(user);
     }
@@ -172,17 +183,22 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         if(StrUtil.isBlank(newPassword)){
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "新密码不能为空");
         }
-        // 2.查询用户是否存在
+        // 2.校验新密码长度
+        String trimmedNewPassword = newPassword.trim();
+        if(trimmedNewPassword.length() < 6 || trimmedNewPassword.length() > 16){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "新密码长度必须在6-16个字符之间");
+        }
+        // 3.查询用户是否存在
         User user = this.getById(userId);
         if(user == null){
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户不存在");
         }
-        // 3.验证旧密码
+        // 4.验证旧密码
         if(!BCryptUtils.verify(oldPassword, user.getPassword())){
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "旧密码错误");
         }
-        // 4.更新密码
-        user.setPassword(BCryptUtils.encrypt(newPassword));
+        // 5.更新密码
+        user.setPassword(BCryptUtils.encrypt(trimmedNewPassword));
         user.setUpdateTime(new Date());
         return this.updateById(user);
     }

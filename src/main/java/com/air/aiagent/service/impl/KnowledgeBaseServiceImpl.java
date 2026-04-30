@@ -109,20 +109,40 @@ public class KnowledgeBaseServiceImpl extends ServiceImpl<KnowledgeBaseMapper, K
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Long createKnowledgeBase(KnowledgeBase knowledgeBase) {
-        // 1. 检查名称是否已存在
-        if (isNameExists(knowledgeBase.getName(), null)) {
-            log.error("知识库名称已存在: {}", knowledgeBase.getName());
-            throw new RuntimeException("知识库名称已存在: " + knowledgeBase.getName());
+        // 1. 校验名称长度
+        if (knowledgeBase.getName() == null || knowledgeBase.getName().trim().isEmpty()) {
+            log.error("知识库名称不能为空");
+            throw new RuntimeException("知识库名称不能为空");
+        }
+        String name = knowledgeBase.getName().trim();
+        if (name.length() > 10) {
+            log.error("知识库名称长度不能超过10个字符: {}", name);
+            throw new RuntimeException("知识库名称长度不能超过10个字符");
+        }
+        
+        // 2. 检查名称是否已存在
+        if (isNameExists(name, null)) {
+            log.error("知识库名称已存在: {}", name);
+            throw new RuntimeException("知识库名称已存在: " + name);
         }
 
-        // 2. 设置默认值
+        // 3. 设置默认值
         if (knowledgeBase.getTableName() == null || knowledgeBase.getTableName().trim().isEmpty()) {
             // 根据名称生成表名
-            String tableName = "teens_" + knowledgeBase.getName().toLowerCase()
+            String tableName = "teens_" + name.toLowerCase()
                     .replaceAll("[^a-z0-9]", "_")
                     .replaceAll("_+", "_");
             knowledgeBase.setTableName(tableName);
         }
+        
+        // 4. 校验表名长度
+        String tableName = knowledgeBase.getTableName().trim();
+        if (tableName.length() > 15) {
+            log.error("表名长度不能超过15个字符: {}", tableName);
+            throw new RuntimeException("表名长度不能超过15个字符");
+        }
+        knowledgeBase.setName(name);
+        knowledgeBase.setTableName(tableName);
 
         knowledgeBase.setStatus(1);
         knowledgeBase.setAutoLoad(0);
@@ -130,36 +150,36 @@ public class KnowledgeBaseServiceImpl extends ServiceImpl<KnowledgeBaseMapper, K
         knowledgeBase.setCreateTime(LocalDateTime.now());
         knowledgeBase.setUpdateTime(LocalDateTime.now());
 
-        // 3. 保存到数据库
+        // 5. 保存到数据库
         boolean saved = save(knowledgeBase);
         if (!saved) {
-            log.error("创建知识库失败: {}", knowledgeBase.getName());
+            log.error("创建知识库失败: {}", name);
             return null;
         }
 
-        // 4. 创建知识库文件夹
-        boolean dirCreated = KnowledgeFileUtil.createKnowledgeBaseDir(knowledgeBase.getName());
+        // 6. 创建知识库文件夹
+        boolean dirCreated = KnowledgeFileUtil.createKnowledgeBaseDir(name);
         if (!dirCreated) {
-            log.error("创建知识库文件夹失败: {}", knowledgeBase.getName());
+            log.error("创建知识库文件夹失败: {}", name);
             // 删除已创建的数据库记录
             removeById(knowledgeBase.getId());
             throw new RuntimeException("创建知识库文件夹失败");
         }
 
-        // 5. 创建向量数据库表（提前创建，避免热更新时出错）
+        // 7. 创建向量数据库表（提前创建，避免热更新时出错）
         try {
             pgVectorStoreConfig.createPgVectorStore(pgJdbcTemplate, dashscopeEmbeddingModel, knowledgeBase.getTableName());
             log.info("创建知识库向量表成功: {}", knowledgeBase.getTableName());
         } catch (Exception e) {
             log.error("创建知识库向量表失败: {}", knowledgeBase.getTableName(), e);
             // 删除已创建的文件夹和数据库记录
-            KnowledgeFileUtil.deleteKnowledgeBaseDir(knowledgeBase.getName());
+            KnowledgeFileUtil.deleteKnowledgeBaseDir(name);
             removeById(knowledgeBase.getId());
             throw new RuntimeException("创建知识库向量表失败: " + e.getMessage());
         }
 
         log.info("创建知识库成功: {} (ID: {}), 表名: {}, 文件夹和向量表已创建",
-                knowledgeBase.getName(), knowledgeBase.getId(), knowledgeBase.getTableName());
+                name, knowledgeBase.getId(), knowledgeBase.getTableName());
 
         return knowledgeBase.getId();
     }

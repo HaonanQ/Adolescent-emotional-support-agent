@@ -64,8 +64,8 @@
         <el-form-item label="标题" prop="title">
           <el-input
             v-model="formData.title"
-            placeholder="请输入反馈标题"
-            maxlength="100"
+            placeholder="请输入反馈标题（不超过10个字）"
+            maxlength="10"
             show-word-limit
           />
         </el-form-item>
@@ -122,7 +122,10 @@ const formData = ref({
 });
 
 const rules = {
-  title: [{ required: true, message: '请输入标题', trigger: 'blur' }],
+  title: [
+    { required: true, message: '请输入标题', trigger: 'blur' },
+    { max: 10, message: '标题长度不能超过10个字符', trigger: 'blur' }
+  ],
   content: [{ required: true, message: '请输入内容', trigger: 'blur' }]
 };
 

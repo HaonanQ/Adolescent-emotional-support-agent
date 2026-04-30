@@ -139,8 +139,8 @@
               <label>日记标题</label>
               <el-input
                 v-model="formData.title"
-                placeholder="请输入日记标题..."
-                maxlength="100"
+                placeholder="请输入日记标题（不超过10个字）..."
+                maxlength="10"
                 show-word-limit
               />
             </div>
@@ -371,6 +371,17 @@ const handleImageClick = () => {
 const handleImageSelect = (event) => {
   const files = event.target.files;
   if (files && files.length > 0) {
+    // 检查图片总数是否超过9张
+    const currentCount = pendingImageFiles.value.length;
+    const newCount = files.length;
+    if (currentCount + newCount > 9) {
+      ElMessage.warning(`图片数量不能超过9张，当前已选择${currentCount}张，还可以选择${9 - currentCount}张`);
+      if (imageInput.value) {
+        imageInput.value.value = '';
+      }
+      return;
+    }
+    
     Array.from(files).forEach(file => {
       pendingImageFiles.value.push(file);
       const reader = new FileReader();
@@ -395,8 +406,16 @@ const saveDiary = async () => {
     ElMessage.warning('请输入日记标题');
     return;
   }
+  if (formData.value.title.trim().length > 10) {
+    ElMessage.warning('标题长度不能超过10个字符');
+    return;
+  }
   if (!formData.value.mood) {
     ElMessage.warning('请选择情绪');
+    return;
+  }
+  if (pendingImageFiles.value.length > 9) {
+    ElMessage.warning('图片数量不能超过9张');
     return;
   }
 
