@@ -279,9 +279,9 @@ public class KnowledgeBaseServiceImpl extends ServiceImpl<KnowledgeBaseMapper, K
                     pgJdbcTemplate, dashscopeEmbeddingModel, tableName);
             log.info("已为知识库 [{}] 创建向量存储", knowledgeBaseName);
 
-            // 5. 切分文档
-            List<Document> splitDocumentList = myTokenTextSplitter.splitCustomized(documentList);
-            log.info("知识库 [{}] 切分后文档块数量: {}", knowledgeBaseName, splitDocumentList.size());
+            // 5. 智能切分文档（自动识别问答格式或文章格式）
+            List<Document> splitDocumentList = myTokenTextSplitter.splitSmart(documentList);
+            log.info("知识库 [{}] 智能切分后文档块数量: {}", knowledgeBaseName, splitDocumentList.size());
 
             // 6. 添加到向量数据库（独立的表）
             vectorStore.add(splitDocumentList);

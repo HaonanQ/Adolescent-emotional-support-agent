@@ -232,8 +232,8 @@ public class TeenSupportApp {
                         List<Document> docs = vectorStore.similaritySearch(
                             SearchRequest.builder()
                                 .query(request.getMessage())
-                                .topK(10)
-                                .similarityThreshold(0.54)
+                                .topK(8)
+                                .similarityThreshold(0.52)
                                 .build()
                         );
                         allRelevantDocs.addAll(docs);
@@ -262,13 +262,13 @@ public class TeenSupportApp {
 
                 StringBuilder contextBuilder = new StringBuilder();
                 if (!uniqueDocs.isEmpty()) {
-                    contextBuilder.append("以下是相关的参考资料（仅作参考，请优先基于对话历史回答）：\n");
+                    contextBuilder.append("以下是知识库中的相关参考资料：\n\n");
                     for (int i = 0; i < uniqueDocs.size(); i++) {
                         Document doc = uniqueDocs.get(i);
-                        contextBuilder.append("资料 ").append(i + 1).append(":\n");
+                        contextBuilder.append("【参考资料 ").append(i + 1).append("】\n");
                         contextBuilder.append(doc.getText()).append("\n\n");
                     }
-                    contextBuilder.append("请根据以上参考资料回答用户的问题。如果参考资料与用户相关的话题没有关联度，则不参考资料，直接回答。\n");
+                    contextBuilder.append("请严格基于以上参考资料回答用户的问题。如果参考资料与用户问题高度相关，请直接使用参考资料中的内容回答，保持原文的准确性和完整性。如果参考资料与用户问题无关，请忽略参考资料，基于你自己的知识回答。\n");
                 }
 
                 finalMessage = contextBuilder.toString() + "用户问题：" + request.getMessage();

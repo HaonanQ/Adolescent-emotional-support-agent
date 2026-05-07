@@ -6,9 +6,20 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-//自定义基于 token 的切词器（切割效果不好）
+/**
+ * 自定义文档切分器
+ * 支持多种切分策略，针对不同类型的文档进行优化
+ * @author Qiuhaonan
+ * @since 2025/8/1
+ */
 @Component
 public class MyTokenTextSplitter {
+
+    private final QaMarkdownSplitter qaMarkdownSplitter;
+
+    public MyTokenTextSplitter(QaMarkdownSplitter qaMarkdownSplitter) {
+        this.qaMarkdownSplitter = qaMarkdownSplitter;
+    }
 
     //无参构造
     public List<Document> splitDocuments(List<Document> documents) {
@@ -47,5 +58,48 @@ public class MyTokenTextSplitter {
         // Document1 会被切割成大约2个新的 Document（例如，一个800Token，一个700Token）。
         // Document2 因为很短，可能保持不变。
         // 最终，您的 List<Document>将从最初的 2 个对象，变为处理后的 3 个对象。每个新 Document都会保留原始 Document1的元数据（如 filename: "chapter.md"）。
+    }
+
+    /**
+     * 智能切分文档
+     * 自动识别文档类型并选择最优切分策略
+     * - 问答格式（#### 标题）：按问答对切分，保持问答完整性
+     * - 文章格式：按段落切分或保持原样
+     * 
+     * 优势：
+     * 1. 问答对不会被切分，确保检索时能获取完整的问题和答案
+     * 2. 提高RAG检索的准确性和命中率
+     * 3. 回答时能直接使用知识库中的完整答案
+     *
+     * @param documents 原始文档列表
+     * @return 切分后的文档列表
+     */
+    public List<Document> splitSmart(List<Document> documents) {
+        // 使用问答格式切分器进行智能切分
+        return qaMarkdownSplitter.smartSplit(documents);
+    }
+
+    /**
+     * 问答格式切分
+     * 专门针对一问一答格式的Markdown文档
+     * 每个问答对作为一个独立的文档块
+     *
+     * @param documents 原始文档列表
+     * @return 切分后的文档列表
+     */
+    public List<Document> splitQaFormat(List<Document> documents) {
+        return qaMarkdownSplitter.splitQaDocuments(documents);
+    }
+
+    /**
+     * 文章格式切分
+     * 针对长文章类型的文档，按段落切分
+     *
+     * @param documents 原始文档列表
+     * @param maxChunkSize 最大块大小（字符数）
+     * @return 切分后的文档列表
+     */
+    public List<Document> splitArticleFormat(List<Document> documents, int maxChunkSize) {
+        return qaMarkdownSplitter.splitArticleDocuments(documents, maxChunkSize);
     }
 }

@@ -43,7 +43,8 @@ public class KnowledgeBase implements Serializable {
     private Integer status;
 
     /**
-     * 启动时自动加载：0-否，1-是
+     * 自动重载：0-否，1-是
+     * 开启后，文档上传成功时会自动触发热更新
      */
     private Integer autoLoad;
 

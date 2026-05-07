@@ -215,8 +215,11 @@ public class TeenSupportDocumentLoader {
 
         if (lowerName.endsWith(".md") || lowerName.endsWith(".markdown")) {
             // Markdown 文件
+            // 配置说明：
+            // withHorizontalRuleCreateDocument(false): 不按 --- 分隔符切分，保持文档完整性
+            // 这样可以让 QaMarkdownSplitter 按 #### 标题进行智能切分
             MarkdownDocumentReaderConfig config = MarkdownDocumentReaderConfig.builder()
-                    .withHorizontalRuleCreateDocument(true)
+                    .withHorizontalRuleCreateDocument(false)
                     .withIncludeCodeBlock(false)
                     .withIncludeBlockquote(false)
                     .withAdditionalMetadata("filename", filename)

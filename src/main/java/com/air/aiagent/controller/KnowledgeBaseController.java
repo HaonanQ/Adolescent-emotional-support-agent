@@ -200,6 +200,9 @@ public class KnowledgeBaseController {
             return (BaseResponse<Boolean>) ResultUtils.error(ErrorCode.PARAMS_ERROR, "文档ID列表不能为空");
         }
         
+        // 记录需要触发热更新的知识库ID
+        java.util.Set<Long> needReloadKnowledgeBaseIds = new java.util.HashSet<>();
+        
         for (Object idObj : idList) {
             Long id;
             if (idObj instanceof Number) {
@@ -219,8 +222,12 @@ public class KnowledgeBaseController {
             KnowledgeDocument doc = knowledgeDocumentService.getById(id);
             if (doc != null) {
                 updateKnowledgeBaseDocumentCount(doc.getKnowledgeBaseId());
+                needReloadKnowledgeBaseIds.add(doc.getKnowledgeBaseId());
             }
         }
+        
+        // 对需要热更新的知识库执行自动重载
+        autoReloadKnowledgeBases(needReloadKnowledgeBaseIds);
         
         return ResultUtils.success(true);
     }
@@ -243,6 +250,9 @@ public class KnowledgeBaseController {
         if (idList == null || idList.isEmpty()) {
             return (BaseResponse<Boolean>) ResultUtils.error(ErrorCode.PARAMS_ERROR, "文档ID列表不能为空");
         }
+        
+        // 记录需要触发热更新的知识库ID
+        java.util.Set<Long> needReloadKnowledgeBaseIds = new java.util.HashSet<>();
         
         int count = 0;
         for (Object idObj : idList) {
@@ -269,9 +279,13 @@ public class KnowledgeBaseController {
                 
                 // 更新知识库的文档数量
                 updateKnowledgeBaseDocumentCount(doc.getKnowledgeBaseId());
+                needReloadKnowledgeBaseIds.add(doc.getKnowledgeBaseId());
                 count++;
             }
         }
+        
+        // 对需要热更新的知识库执行自动重载
+        autoReloadKnowledgeBases(needReloadKnowledgeBaseIds);
         
         log.info("管理员 [{}] 批量删除文档成功，数量: {}", admin.getUsername(), count);
         return ResultUtils.success(true);
@@ -486,6 +500,22 @@ public class KnowledgeBaseController {
                 // 更新知识库的文档数量
                 updateKnowledgeBaseDocumentCount(knowledgeBaseId);
                 log.info("管理员 [{}] 上传文档成功，ID: {}，路径: {}", admin.getUsername(), document.getId(), filePath);
+                
+                // 检查是否开启自动重载，如果开启则自动触发热更新
+                if (knowledgeBase.getAutoLoad() != null && knowledgeBase.getAutoLoad() == 1) {
+                    log.info("知识库 [{}] 已开启自动重载，开始自动热更新...", knowledgeBase.getName());
+                    try {
+                        boolean reloadResult = knowledgeBaseService.hotReloadKnowledgeBase(knowledgeBaseId);
+                        if (reloadResult) {
+                            log.info("知识库 [{}] 自动热更新成功", knowledgeBase.getName());
+                        } else {
+                            log.warn("知识库 [{}] 自动热更新失败", knowledgeBase.getName());
+                        }
+                    } catch (Exception e) {
+                        log.error("知识库 [{}] 自动热更新异常: {}", knowledgeBase.getName(), e.getMessage());
+                    }
+                }
+                
                 return ResultUtils.success(document.getId());
             } else {
                 // 删除已保存的文件
@@ -545,6 +575,9 @@ public class KnowledgeBaseController {
             // 更新知识库的文档数量
             updateKnowledgeBaseDocumentCount(knowledgeBaseId);
             log.info("管理员 [{}] 删除文档成功，ID: {}", admin.getUsername(), id);
+            
+            // 检查是否需要自动重载
+            autoReloadKnowledgeBase(knowledgeBaseId);
         }
         return ResultUtils.success(removed);
     }
@@ -574,6 +607,8 @@ public class KnowledgeBaseController {
             KnowledgeDocument doc = knowledgeDocumentService.getById(id);
             if (doc != null) {
                 updateKnowledgeBaseDocumentCount(doc.getKnowledgeBaseId());
+                // 检查是否需要自动重载
+                autoReloadKnowledgeBase(doc.getKnowledgeBaseId());
             }
         }
         return ResultUtils.success(updated);
@@ -593,6 +628,47 @@ public class KnowledgeBaseController {
             knowledgeBaseService.updateById(knowledgeBase);
         } catch (Exception e) {
             log.error("更新知识库文档数量失败，knowledgeBaseId: {}", knowledgeBaseId, e);
+        }
+    }
+
+    /**
+     * 自动重载单个知识库
+     * 检查知识库是否开启自动重载，如果开启则触发热更新
+     * @param knowledgeBaseId 知识库ID
+     */
+    private void autoReloadKnowledgeBase(Long knowledgeBaseId) {
+        if (knowledgeBaseId == null) {
+            return;
+        }
+        
+        try {
+            KnowledgeBase knowledgeBase = knowledgeBaseService.getById(knowledgeBaseId);
+            if (knowledgeBase != null && knowledgeBase.getAutoLoad() != null && knowledgeBase.getAutoLoad() == 1) {
+                log.info("知识库 [{}] 已开启自动重载，开始自动热更新...", knowledgeBase.getName());
+                boolean result = knowledgeBaseService.hotReloadKnowledgeBase(knowledgeBaseId);
+                if (result) {
+                    log.info("知识库 [{}] 自动热更新成功", knowledgeBase.getName());
+                } else {
+                    log.warn("知识库 [{}] 自动热更新失败", knowledgeBase.getName());
+                }
+            }
+        } catch (Exception e) {
+            log.error("知识库 [{}] 自动热更新异常: {}", knowledgeBaseId, e.getMessage());
+        }
+    }
+
+    /**
+     * 批量自动重载知识库
+     * 对多个知识库检查是否开启自动重载，如果开启则触发热更新
+     * @param knowledgeBaseIds 知识库ID集合
+     */
+    private void autoReloadKnowledgeBases(java.util.Set<Long> knowledgeBaseIds) {
+        if (knowledgeBaseIds == null || knowledgeBaseIds.isEmpty()) {
+            return;
+        }
+        
+        for (Long knowledgeBaseId : knowledgeBaseIds) {
+            autoReloadKnowledgeBase(knowledgeBaseId);
         }
     }
 }

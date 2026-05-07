@@ -28,7 +28,8 @@ public class TeenSupportVectorStoreConfig {
 
         List<Document> list = teenSupportDocumentLoader.loadMarkdown();
 
-        List<Document> splitCustomizedList = myTokenTextSplitter.splitCustomized(list);
+        // 使用智能切分，自动识别问答格式或文章格式
+        List<Document> splitCustomizedList = myTokenTextSplitter.splitSmart(list);
 
         simpleVectorStore.add(splitCustomizedList);
 
