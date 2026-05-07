@@ -1,4 +1,5 @@
 package com.air.aiagent.controller;
+
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.lang.UUID;
 import cn.hutool.core.util.IdUtil;
@@ -24,6 +25,7 @@ import com.air.aiagent.service.UserFileService;
 import com.air.aiagent.service.UserService;
 import com.air.aiagent.service.impl.ChatMessageService;
 import com.air.aiagent.service.impl.ChatSessionService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
@@ -71,6 +73,7 @@ public class TeenSupportController {
      * RAG知识库对话，支持工具调用
      */
     @CheckLoginwithChat
+    @Operation(summary = "RAG知识库对话", description = "基于RAG知识库的智能对话，支持工具调用")
     @PostMapping(value = "/chat/rag", produces = "text/html;charset=UTF-8")
     @ClearContext
     public Flux<String> chatWithRag(@RequestBody ChatRequest request, HttpServletRequest httpServletRequest) {
@@ -89,6 +92,7 @@ public class TeenSupportController {
     }
 
     @CheckLoginwithChat
+    @Operation(summary = "情绪判断游戏", description = "判断用户输入的情绪（游戏功能）")
 //    @PostMapping("/game/emo")
     public String gameEmo(@RequestBody ChatRequest request) {
         log.info("收到判断情绪请求: {}", request);
@@ -98,6 +102,7 @@ public class TeenSupportController {
     }
 
     @CheckLoginwithChat
+    @Operation(summary = "游戏对话", description = "游戏模式的对话接口")
 //    @PostMapping(value = "/game/chat", produces = "text/html;charset=UTF-8")
     public Flux<String> gameChat(@RequestBody ChatRequest request) {
         log.info("收到游戏请求: {}", request);
@@ -110,6 +115,7 @@ public class TeenSupportController {
      * 获取用户文件
      */
     @CheckLoginwithChat
+    @Operation(summary = "获取用户文件列表", description = "获取当前用户上传的所有文件列表")
     @PostMapping("/getUserFile")
     public BaseResponse<List<UserFileVO>> getUserFileList(@RequestBody ChatRequest request, HttpServletRequest httpServletRequest){
         User loginUser = userService.getLoginUser(httpServletRequest);
@@ -121,6 +127,7 @@ public class TeenSupportController {
      * 查询最新的会话历史，也就是进入聊天页面之后，默认进行展示的聊天历史
      */
     @CheckLoginwithChat
+    @Operation(summary = "获取最新会话历史", description = "进入聊天页面后默认展示的最新会话历史记录")
     @PostMapping("/getLatestChatHistory")
     public BaseResponse<ChatHistory> getLatestChatSession(@RequestBody ChatRequest request, HttpServletRequest httpServletRequest) {
         // 1.获取当前登录用户
@@ -179,6 +186,7 @@ public class TeenSupportController {
      * 根据 sessionId 查询该会话的聊天记录
      */
     @CheckLoginwithChat
+    @Operation(summary = "根据会话ID查询聊天记录", description = "根据sessionId查询该会话的所有聊天记录")
     @PostMapping("/getChatMessageBySessionId")
     public BaseResponse<ChatHistory> getChatMessageBySessionId(@RequestBody ChatRequest request,
             HttpServletRequest httpServletRequest) {
@@ -241,6 +249,7 @@ public class TeenSupportController {
      * 创建会话返回 sessionId ，并将会话记录保存到数据库中，之后的用户发送的消息必须携带这个生成的 sessionId
      */
     @CheckLoginwithChat
+    @Operation(summary = "创建新会话", description = "创建新的对话会话，返回sessionId")
     @PostMapping("/createChatSession")
     public BaseResponse<String> createChatSession(@RequestBody ChatRequest request, HttpServletRequest httpServletRequest) {
         // 1.获取当前登录用户
@@ -267,6 +276,7 @@ public class TeenSupportController {
      * 后面可以完善一下，例如只查询一些比较活跃的 session
      */
     @CheckLoginwithChat
+    @Operation(summary = "获取会话列表", description = "获取用户的所有会话列表，用于左侧列表展示")
     @PostMapping("/getChatSessionList")
     public BaseResponse<List<ChatSessionVO>> getChatSessionList(@RequestBody ChatRequest request,
                                                                 HttpServletRequest httpServletRequest) {
@@ -286,6 +296,7 @@ public class TeenSupportController {
      * 删除会话（包括会话记录和所有聊天消息）
      */
     @CheckLoginwithChat
+    @Operation(summary = "删除会话", description = "删除指定会话及其所有聊天消息")
     @PostMapping("/deleteChatSession")
     public BaseResponse<Boolean> deleteChatSession(@RequestBody ChatRequest request,
             HttpServletRequest httpServletRequest) {
@@ -328,6 +339,7 @@ public class TeenSupportController {
      * 清空会话中的所有聊天记录（保留会话本身）
      */
     @CheckLoginwithChat
+    @Operation(summary = "清空会话消息", description = "清空指定会话的所有聊天消息，但保留会话本身")
     @PostMapping("/deleteChatSessionBySessionId")
     public BaseResponse<Boolean> deleteChatSessionBySessionId(@RequestBody ChatRequest request,
             HttpServletRequest httpServletRequest) {
@@ -427,6 +439,7 @@ public class TeenSupportController {
      * 上传图片文件
      */
     @LoginCheck
+    @Operation(summary = "上传图片", description = "上传图片文件到云存储")
     @PostMapping("/upload/image")
     public BaseResponse<UploadFileVO> uploadImage(
             @RequestParam("file") MultipartFile file,
@@ -475,6 +488,7 @@ public class TeenSupportController {
      * 发送包含图片的消息
      */
     @CheckLoginwithChat
+    @Operation(summary = "图片对话", description = "发送包含图片的消息进行对话")
     @PostMapping(value = "/chat/image", produces = "text/html;charset=UTF-8")
     @ClearContext
     public Flux<String> chatWithImage(
@@ -576,6 +590,7 @@ public class TeenSupportController {
      * 发送包含音频的消息
      */
     @CheckLoginwithChat
+    @Operation(summary = "语音对话", description = "发送包含音频的消息进行对话")
     @PostMapping(value = "/chat/audio", produces = "text/html;charset=UTF-8")
     @ClearContext
     public Flux<String> chatWithAudio(

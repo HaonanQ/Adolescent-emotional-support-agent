@@ -9,6 +9,7 @@ import com.air.aiagent.domain.dto.FeedbackReplyRequest;
 import com.air.aiagent.domain.entity.User;
 import com.air.aiagent.service.FeedbackService;
 import com.air.aiagent.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
@@ -34,6 +35,7 @@ public class FeedbackController {
      * 添加反馈
      */
     @LoginCheck
+    @Operation(summary = "添加反馈", description = "用户提交反馈或建议")
     @PostMapping("/add")
     public BaseResponse<Long> addFeedback(@RequestBody FeedbackAddRequest request, HttpServletRequest httpServletRequest) {
         User loginUser = userService.getLoginUser(httpServletRequest);
@@ -45,6 +47,7 @@ public class FeedbackController {
      * 查询用户的反馈列表
      */
     @LoginCheck
+    @Operation(summary = "查询用户反馈列表", description = "获取当前用户提交的所有反馈记录")
     @PostMapping("/list/user")
     public BaseResponse<?> listUserFeedback(@RequestBody FeedbackQueryRequest request, HttpServletRequest httpServletRequest) {
         User loginUser = userService.getLoginUser(httpServletRequest);
@@ -55,6 +58,7 @@ public class FeedbackController {
      * 删除反馈
      */
     @LoginCheck
+    @Operation(summary = "删除反馈", description = "用户删除自己提交的反馈")
     @PostMapping("/delete")
     public BaseResponse<Boolean> deleteFeedback(@RequestBody FeedbackReplyRequest request, HttpServletRequest httpServletRequest) {
         User loginUser = userService.getLoginUser(httpServletRequest);
@@ -66,6 +70,7 @@ public class FeedbackController {
      * 查询所有反馈列表（管理员）
      */
     @LoginCheck
+    @Operation(summary = "查询所有反馈列表", description = "管理员查询所有用户的反馈记录")
     @PostMapping("/admin/list")
     public BaseResponse<?> listFeedback(@RequestBody FeedbackQueryRequest request, HttpServletRequest httpServletRequest) {
         userService.getLoginUser(httpServletRequest);
@@ -76,6 +81,7 @@ public class FeedbackController {
      * 回复反馈（管理员）
      */
     @LoginCheck
+    @Operation(summary = "回复反馈", description = "管理员回复用户反馈")
     @PostMapping("/admin/reply")
     public BaseResponse<Boolean> replyFeedback(@RequestBody FeedbackReplyRequest request, HttpServletRequest httpServletRequest) {
         userService.getLoginUser(httpServletRequest);

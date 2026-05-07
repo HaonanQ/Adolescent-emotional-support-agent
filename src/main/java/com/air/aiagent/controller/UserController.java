@@ -1,4 +1,5 @@
 package com.air.aiagent.controller;
+
 import cn.hutool.core.util.StrUtil;
 import com.air.aiagent.annotation.LoginCheck;
 import com.air.aiagent.common.BaseResponse;
@@ -14,6 +15,7 @@ import com.air.aiagent.domain.vo.UserVO;
 import com.air.aiagent.exception.BusinessException;
 import com.air.aiagent.exception.ErrorCode;
 import com.air.aiagent.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
@@ -38,6 +40,7 @@ public class UserController {
     /**
      * 注册账号
      */
+    @Operation(summary = "用户注册", description = "新用户注册账号")
     @PostMapping("/register")
     public BaseResponse<Boolean> register(@RequestBody AddUserRequest request) {
         // 1.调用注册方法，返回结果
@@ -52,6 +55,7 @@ public class UserController {
     /**
      * 登录
      */
+    @Operation(summary = "用户登录", description = "用户登录获取登录态")
     @PostMapping("/login")
     public BaseResponse<UserVO> login(@RequestBody UserLoginRequest request, HttpServletRequest httpServletRequest){
         // 1.判断传过来的参数
@@ -71,6 +75,7 @@ public class UserController {
     /**
      * 退出登录
      */
+    @Operation(summary = "退出登录", description = "用户退出登录，清除登录态")
     @GetMapping("/logout")
     public BaseResponse<Boolean> logout(HttpServletRequest request){
         // 2.用户已登录，消除登录态
@@ -82,6 +87,7 @@ public class UserController {
     /**
      * 获取当前登录用户，也就是存储到后端中的用户信息过期了，前端就清理内存，将保存的用户信息释放掉
      */
+    @Operation(summary = "检查登录状态", description = "检查用户是否已登录")
     @GetMapping("/getLoginUser")
     public BaseResponse<Boolean> getLoginUser(HttpServletRequest request){
         // 1.从 session 中获取用户
@@ -96,6 +102,7 @@ public class UserController {
      * 修改用户昵称
      */
     @LoginCheck
+    @Operation(summary = "修改昵称", description = "修改当前登录用户的昵称")
     @PostMapping("/updateNickname")
     public BaseResponse<UserVO> updateNickname(@RequestBody UpdateNicknameRequest request, HttpServletRequest httpServletRequest){
         // 1.获取当前登录用户
@@ -116,6 +123,7 @@ public class UserController {
      * 修改用户密码
      */
     @LoginCheck
+    @Operation(summary = "修改密码", description = "修改当前登录用户的密码")
     @PostMapping("/updatePassword")
     public BaseResponse<Boolean> updatePassword(@RequestBody UpdatePasswordRequest request, HttpServletRequest httpServletRequest){
         // 1.获取当前登录用户
@@ -132,6 +140,7 @@ public class UserController {
      * 修改用户头像
      */
     @LoginCheck
+    @Operation(summary = "修改头像", description = "修改当前登录用户的头像")
     @PostMapping("/updateAvatar")
     public BaseResponse<UserVO> updateAvatar(@RequestBody UpdateAvatarRequest request, HttpServletRequest httpServletRequest){
         // 1.获取当前登录用户
@@ -152,6 +161,7 @@ public class UserController {
      * 修改用户性别
      */
     @LoginCheck
+    @Operation(summary = "修改性别", description = "修改当前登录用户的性别")
     @PostMapping("/updateSex")
     public BaseResponse<UserVO> updateSex(@RequestBody UpdateStatusRequest request, HttpServletRequest httpServletRequest){
         User loginUser = userService.getLoginUser(httpServletRequest);
@@ -168,6 +178,7 @@ public class UserController {
      * 获取当前登录用户信息
      */
     @LoginCheck
+    @Operation(summary = "获取当前用户信息", description = "获取当前登录用户的详细信息")
     @GetMapping("/getCurrentUserInfo")
     public BaseResponse<UserVO> getCurrentUserInfo(HttpServletRequest httpServletRequest){
         // 1.获取当前登录用户

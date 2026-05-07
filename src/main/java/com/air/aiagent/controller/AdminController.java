@@ -15,6 +15,7 @@ import com.air.aiagent.service.EmotionDiaryService;
 import com.air.aiagent.service.UserService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
@@ -47,6 +48,7 @@ public class AdminController {
      * 获取所有用户列表（含最新情绪分数）
      */
     @LoginCheck
+    @Operation(summary = "获取用户列表", description = "管理员获取所有用户列表，包含最新情绪分数和日记数量")
     @PostMapping("/user/list")
     public BaseResponse<List<UserManageVO>> getUserList(@RequestBody(required = false) UserQueryRequest queryRequest, HttpServletRequest request) {
 //        User loginUser = userService.getLoginUser(request);
@@ -116,6 +118,7 @@ public class AdminController {
      * 启用/停用用户账号
      */
     @LoginCheck
+    @Operation(summary = "切换用户状态", description = "管理员启用或停用用户账号")
     @PostMapping("/user/toggleStatus")
     public BaseResponse<Boolean> toggleUserStatus(@RequestParam("userId") Long userId, HttpServletRequest request) {
         User loginUser = userService.getLoginUser(request);
@@ -139,6 +142,7 @@ public class AdminController {
      * 获取指定用户的情绪历史记录（按时间正序）
      */
     @LoginCheck
+    @Operation(summary = "获取用户情绪历史", description = "管理员获取指定用户的情绪历史记录")
     @PostMapping("/user/emotion/history")
     public BaseResponse<List<EmotionHistoryVO>> getEmotionHistory(@RequestParam("userId") Long userId, HttpServletRequest request) {
         User loginUser = userService.getLoginUser(request);

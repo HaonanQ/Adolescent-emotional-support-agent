@@ -10,6 +10,7 @@ import com.air.aiagent.domain.vo.EmotionDiaryVO;
 import com.air.aiagent.manage.CosManager;
 import com.air.aiagent.service.EmotionDiaryService;
 import com.air.aiagent.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
@@ -36,6 +37,7 @@ public class EmotionDiaryController {
      * 添加情绪日记
      */
     @LoginCheck
+    @Operation(summary = "添加情绪日记", description = "用户创建新的情绪日记")
     @PostMapping("/add")
     public BaseResponse<Long> addEmotionDiary(@RequestBody EmotionDiaryAddRequest request, HttpServletRequest httpServletRequest) {
         User loginUser = userService.getLoginUser(httpServletRequest);
@@ -48,6 +50,7 @@ public class EmotionDiaryController {
      * 查询单条情绪日记（需验证userId）
      */
     @LoginCheck
+    @Operation(summary = "查询单条日记", description = "根据ID查询单条情绪日记")
     @PostMapping("/getById")
     public BaseResponse<EmotionDiaryVO> getEmotionDiaryById(@RequestBody EmotionDiaryQueryRequest request, HttpServletRequest httpServletRequest) {
         User loginUser = userService.getLoginUser(httpServletRequest);
@@ -59,6 +62,7 @@ public class EmotionDiaryController {
      * 查询用户的所有情绪日记
      */
     @LoginCheck
+    @Operation(summary = "获取日记列表", description = "获取当前用户的所有情绪日记列表")
     @PostMapping("/list")
     public BaseResponse<List<EmotionDiaryVO>> getEmotionDiaryList(HttpServletRequest httpServletRequest) {
         User loginUser = userService.getLoginUser(httpServletRequest);
@@ -70,6 +74,7 @@ public class EmotionDiaryController {
      * 删除情绪日记
      */
     @LoginCheck
+    @Operation(summary = "删除情绪日记", description = "用户删除自己的情绪日记")
     @PostMapping("/delete")
     public BaseResponse<Boolean> deleteEmotionDiary(@RequestBody EmotionDiaryQueryRequest request, HttpServletRequest httpServletRequest) {
         User loginUser = userService.getLoginUser(httpServletRequest);

@@ -10,6 +10,7 @@ import com.air.aiagent.domain.entity.User;
 import com.air.aiagent.domain.vo.EmotionArticleVO;
 import com.air.aiagent.service.EmotionArticleService;
 import com.air.aiagent.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
@@ -38,6 +39,7 @@ public class EmotionArticleController {
      * 用户端：获取可见文章列表
      */
     @LoginCheck
+    @Operation(summary = "获取可见文章列表", description = "用户端获取所有可见的文章列表")
     @PostMapping("/list")
     public BaseResponse<List<EmotionArticleVO>> getVisibleArticleList() {
         List<EmotionArticleVO> list = emotionArticleService.getVisibleArticleList();
@@ -48,6 +50,7 @@ public class EmotionArticleController {
      * 用户端：查看文章详情（增加阅读次数）
      */
     @LoginCheck
+    @Operation(summary = "查看文章详情", description = "用户端查看文章详情，会增加阅读次数")
     @PostMapping("/detail")
     public BaseResponse<EmotionArticleVO> getArticleDetail(@RequestBody EmotionArticleQueryRequest request) {
         EmotionArticleVO vo = emotionArticleService.getArticleByIdForUser(request.getId());
@@ -60,6 +63,7 @@ public class EmotionArticleController {
      * 管理员：获取所有文章列表（含不可见）
      */
     @LoginCheck
+    @Operation(summary = "获取所有文章列表", description = "管理员获取所有文章列表，包含不可见的文章")
     @PostMapping("/admin/list")
     public BaseResponse<List<EmotionArticleVO>> getAllArticleList(HttpServletRequest httpServletRequest) {
         User loginUser = userService.getLoginUser(httpServletRequest);
@@ -72,6 +76,7 @@ public class EmotionArticleController {
      * 管理员：查看文章详情（含不可见）
      */
     @LoginCheck
+    @Operation(summary = "查看文章详情（管理员）", description = "管理员查看文章详情，包含不可见的文章")
     @PostMapping("/admin/detail")
     public BaseResponse<EmotionArticleVO> getArticleDetailForAdmin(@RequestBody EmotionArticleQueryRequest request,
                                                                     HttpServletRequest httpServletRequest) {
@@ -85,6 +90,7 @@ public class EmotionArticleController {
      * 管理员：创建新文章
      */
     @LoginCheck
+    @Operation(summary = "创建新文章", description = "管理员创建新的情感课堂文章")
     @PostMapping("/admin/add")
     public BaseResponse<Long> addArticle(@RequestBody EmotionArticleAddRequest request,
                                          HttpServletRequest httpServletRequest) {
@@ -100,6 +106,7 @@ public class EmotionArticleController {
      * 管理员：更新文章
      */
     @LoginCheck
+    @Operation(summary = "更新文章", description = "管理员更新情感课堂文章内容")
     @PostMapping("/admin/update")
     public BaseResponse<Boolean> updateArticle(@RequestBody EmotionArticleUpdateRequest request,
                                                HttpServletRequest httpServletRequest) {
@@ -113,6 +120,7 @@ public class EmotionArticleController {
      * 管理员：删除文章
      */
     @LoginCheck
+    @Operation(summary = "删除文章", description = "管理员删除情感课堂文章")
     @PostMapping("/admin/delete")
     public BaseResponse<Boolean> deleteArticle(@RequestBody EmotionArticleQueryRequest request,
                                                HttpServletRequest httpServletRequest) {

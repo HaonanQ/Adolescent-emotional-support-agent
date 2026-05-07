@@ -1,5 +1,6 @@
 package com.air.aiagent.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -12,6 +13,7 @@ import java.util.List;
 @Tag(name = "私密日志接口", description = "用于查看私密日志的接口，需谨慎使用")
 public class SecretLogController {
 
+    @Operation(summary = "查看主程序日志", description = "查看主程序最新1000行日志，自动3秒刷新")
     @GetMapping(value = "/admin/log/view/secret/qhn-main", produces = "text/html;charset=utf-8")
     public String viewLog() {
         try {
@@ -61,6 +63,8 @@ public class SecretLogController {
             return "<h3 style='color:red'>读取日志失败：" + escapeHtml(e.getMessage()) + "</h3>";
         }
     }
+
+    @Operation(summary = "查看图片搜索MCP服务日志", description = "查看图片搜索MCP服务最新1000行日志，自动3秒刷新")
     @GetMapping(value = "/admin/log/view/secret/qhn-mcpimage", produces = "text/html;charset=utf-8")
     public String viewmcpsearchLog() {
         try {
