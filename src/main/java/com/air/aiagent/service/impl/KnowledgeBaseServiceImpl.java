@@ -283,8 +283,18 @@ public class KnowledgeBaseServiceImpl extends ServiceImpl<KnowledgeBaseMapper, K
             List<Document> splitDocumentList = myTokenTextSplitter.splitSmart(documentList);
             log.info("知识库 [{}] 智能切分后文档块数量: {}", knowledgeBaseName, splitDocumentList.size());
 
-            // 6. 添加到向量数据库（独立的表）
-            vectorStore.add(splitDocumentList);
+            // 6. 分批添加到向量数据库（阿里云嵌入模型限制每批最多10个）
+            int batchSize = 10;
+            int totalDocs = splitDocumentList.size();
+            int addedDocs = 0;
+            for (int i = 0; i < totalDocs; i += batchSize) {
+                int endIndex = Math.min(i + batchSize, totalDocs);
+                List<Document> batch = splitDocumentList.subList(i, endIndex);
+                vectorStore.add(batch);
+                addedDocs += batch.size();
+                log.info("知识库 [{}] 已添加 {}/{} 个文档块到向量表 [{}]", 
+                        knowledgeBaseName, addedDocs, totalDocs, tableName);
+            }
             log.info("知识库 [{}] 文档已成功加载到向量表 [{}]", knowledgeBaseName, tableName);
 
             // 7. 更新知识库同步时间和统计信息
