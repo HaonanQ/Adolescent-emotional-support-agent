@@ -486,7 +486,8 @@ public class PDFGenerationTool {
             tempImageFiles.add(tempImagePath);
 
             // 2. 创建iText Image对象
-            ImageData imageData = ImageDataFactory.create(tempImagePath.toFile().getAbsolutePath());
+            // 修复：本地路径必须加 file:// 协议
+            ImageData imageData = ImageDataFactory.create("file://" + tempImagePath.toFile().getAbsolutePath());
             Image pdfImage = new Image(imageData);
 
             // 3. 自动缩放图片以适应页面宽度
