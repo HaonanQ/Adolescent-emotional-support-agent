@@ -42,6 +42,7 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -65,8 +66,8 @@ public class PDFGenerationTool {
     @Resource
     private ChatMessageService chatMessageService;
 
-    private static final float MAX_IMAGE_WIDTH = 450f;
-    private static final float MAX_IMAGE_HEIGHT = 400f;
+    private static final float MAX_IMAGE_WIDTH = 400f;
+    private static final float MAX_IMAGE_HEIGHT = 350f;
     private static final int DOWNLOAD_TIMEOUT = 15000;
 
     @Tool(description = """
@@ -81,7 +82,6 @@ public class PDFGenerationTool {
             - Quotes: > quote
             - Dividers: ---
             - Images: ![description](image_url)
-            - Emojis: 😊 💕 🎉
 
             Example:
             # Title
@@ -114,13 +114,12 @@ public class PDFGenerationTool {
 
                 PdfFont mainFont = loadRegularFont();
                 PdfFont boldFont = loadBoldFont();
-                PdfFont emojiFont = loadEmojiFont();
 
                 document.setFont(mainFont);
                 document.setFontSize(11);
                 document.setMargins(20, 30, 30, 30);
 
-                parseMarkdownAndRender(document, cleanedContent, mainFont, boldFont, emojiFont, tempImageFiles);
+                parseMarkdownAndRender(document, cleanedContent, mainFont, boldFont, tempImageFiles);
             }
 
             String aiMessageId = UUID.randomUUID().toString();
@@ -161,7 +160,7 @@ public class PDFGenerationTool {
         }
     }
 
-    // ==================== 字体加载（修复Emoji核心） ====================
+    // ==================== 字体加载 ====================
     private PdfFont loadRegularFont() {
         try {
             InputStream in = getClass().getResourceAsStream("/fonts/NotoSansCJKsc-Regular.otf");
@@ -198,25 +197,9 @@ public class PDFGenerationTool {
         return null;
     }
 
-    private PdfFont loadEmojiFont() {
-        try {
-            InputStream in = getClass().getResourceAsStream("/fonts/NotoColorEmoji.ttf");
-            if (in != null) {
-                byte[] bytes = in.readAllBytes();
-                in.close();
-                FontProgram fp = FontProgramFactory.createFont(bytes);
-                log.info("✓ Emoji字体加载成功");
-                return PdfFontFactory.createFont(fp, PdfEncodings.IDENTITY_H, PdfFontFactory.EmbeddingStrategy.FORCE_EMBEDDED);
-            }
-        } catch (Exception e) {
-            log.warn("Emoji字体加载失败（可选）");
-        }
-        return null;
-    }
-
     // ==================== Markdown解析 ====================
     private void parseMarkdownAndRender(Document document, String content,
-                                        PdfFont regularFont, PdfFont boldFont, PdfFont emojiFont, List<Path> tempImageFiles) {
+                                        PdfFont regularFont, PdfFont boldFont, List<Path> tempImageFiles) {
         String[] lines = content.split("\n");
         com.itextpdf.layout.element.List currentList = null;
         boolean inOrderedList = false;
@@ -241,19 +224,19 @@ public class PDFGenerationTool {
             if (line.startsWith("# ") && !line.startsWith("## ")) {
                 if (currentList != null) { document.add(currentList); currentList = null; }
                 addTitle(document, line.substring(2).trim(), 22, boldFont != null ? boldFont : regularFont,
-                        new DeviceRgb(41, 98, 255), regularFont, emojiFont, isFirstElement);
+                        new DeviceRgb(41, 98, 255), isFirstElement);
                 isFirstElement = false; continue;
             }
             if (line.startsWith("## ") && !line.startsWith("### ")) {
                 if (currentList != null) { document.add(currentList); currentList = null; }
                 addTitle(document, line.substring(3).trim(), 18, boldFont != null ? boldFont : regularFont,
-                        new DeviceRgb(74, 74, 74), regularFont, emojiFont, isFirstElement);
+                        new DeviceRgb(74, 74, 74), isFirstElement);
                 isFirstElement = false; continue;
             }
             if (line.startsWith("### ")) {
                 if (currentList != null) { document.add(currentList); currentList = null; }
                 addTitle(document, line.substring(4).trim(), 15, boldFont != null ? boldFont : regularFont,
-                        new DeviceRgb(100, 100, 100), regularFont, emojiFont, isFirstElement);
+                        new DeviceRgb(100, 100, 100), isFirstElement);
                 isFirstElement = false; continue;
             }
             if (line.matches("^[-*]{3,}$")) {
@@ -263,7 +246,7 @@ public class PDFGenerationTool {
             }
             if (line.startsWith("> ")) {
                 if (currentList != null) { document.add(currentList); currentList = null; }
-                addQuote(document, line.substring(2).trim(), regularFont, emojiFont, isFirstElement);
+                addQuote(document, line.substring(2).trim(), regularFont, isFirstElement);
                 isFirstElement = false; continue;
             }
             if (line.startsWith("![") && line.contains("](") && line.endsWith(")")) {
@@ -281,7 +264,7 @@ public class PDFGenerationTool {
                     inOrderedList = false;
                 }
                 String itemText = line.replaceFirst("^[-*]\\s+", "");
-                addListItem(currentList, itemText, regularFont, boldFont, emojiFont);
+                addListItem(currentList, itemText, regularFont, boldFont);
                 isFirstElement = false; continue;
             }
             if (line.matches("^\\d+\\.\\s+.*")) {
@@ -293,18 +276,18 @@ public class PDFGenerationTool {
                     inOrderedList = true;
                 }
                 String itemText = line.replaceFirst("^\\d+\\.\\s+", "");
-                addListItem(currentList, itemText, regularFont, boldFont, emojiFont);
+                addListItem(currentList, itemText, regularFont, boldFont);
                 isFirstElement = false; continue;
             }
 
             if (currentList != null) { document.add(currentList); currentList = null; }
-            addFormattedParagraph(document, line, regularFont, boldFont, emojiFont, tempImageFiles, isFirstElement);
+            addFormattedParagraph(document, line, regularFont, boldFont, tempImageFiles, isFirstElement);
             isFirstElement = false;
         }
         if (currentList != null) document.add(currentList);
     }
 
-    // ==================== 图片修复核心 ====================
+    // ==================== 图片处理 ====================
     private void addImageFromMarkdown(Document document, String line, List<Path> tempImageFiles, boolean isFirst) {
         Pattern pattern = Pattern.compile("!\\[(.+?)\\]\\((.+?)\\)");
         Matcher matcher = pattern.matcher(line);
@@ -319,7 +302,7 @@ public class PDFGenerationTool {
     private void addImageToPdf(Document document, String imageUrl, String description,
                                List<Path> tempImageFiles, boolean isFirst) {
         try {
-            Path tempImagePath = downloadImage(imageUrl);
+            Path tempImagePath = loadImageSmart(imageUrl);
             if (tempImagePath == null) {
                 document.add(new Paragraph("[图片加载失败: " + description + "]")
                         .setFontColor(ColorConstants.GRAY).setFontSize(10)
@@ -328,65 +311,110 @@ public class PDFGenerationTool {
             }
             tempImageFiles.add(tempImagePath);
 
-            // ====================== 修复：本地路径加 file:// ======================
-            ImageData imageData = ImageDataFactory.create("file://" + tempImagePath.toFile().getAbsolutePath());
+            ImageData imageData = ImageDataFactory.create(Files.readAllBytes(tempImagePath));
             Image pdfImage = new Image(imageData);
 
             float w = imageData.getWidth();
             float h = imageData.getHeight();
-            float ratio = 1f;
-            if (w > MAX_IMAGE_WIDTH) ratio = MAX_IMAGE_WIDTH / w;
-            if (h * ratio > MAX_IMAGE_HEIGHT) ratio = MAX_IMAGE_HEIGHT / h;
-            if (ratio < 1) pdfImage.scale(w * ratio, h * ratio);
+            float scale = 1.0f;
 
+            if (w > MAX_IMAGE_WIDTH) scale = MAX_IMAGE_WIDTH / w;
+            if (h * scale > MAX_IMAGE_HEIGHT) scale = MAX_IMAGE_HEIGHT / h;
+
+            pdfImage.scaleAbsolute(w * scale, h * scale);
             pdfImage.setHorizontalAlignment(com.itextpdf.layout.properties.HorizontalAlignment.CENTER);
-            pdfImage.setMarginTop(isFirst ? 0 : 10);
+            pdfImage.setMarginTop(10);
             pdfImage.setMarginBottom(10);
+
             document.add(pdfImage);
 
             if (description != null && !description.isBlank()) {
-                document.add(new Paragraph(description).setFontSize(9).setFontColor(ColorConstants.GRAY)
-                        .setTextAlignment(TextAlignment.CENTER).setMarginBottom(8));
+                document.add(new Paragraph(description)
+                        .setFontSize(9)
+                        .setFontColor(ColorConstants.GRAY)
+                        .setTextAlignment(TextAlignment.CENTER));
             }
+
             log.info("✅ 图片添加成功：{}", description);
+
         } catch (Exception e) {
             log.error("添加图片失败：{}", imageUrl, e);
-            document.add(new Paragraph("[图片处理错误: " + description + "]")
-                    .setFontColor(ColorConstants.RED).setFontSize(10)
-                    .setMarginTop(isFirst ? 0 : 8).setMarginBottom(8));
+            document.add(new Paragraph("[图片处理错误]")
+                    .setFontColor(ColorConstants.RED)
+                    .setMarginTop(5)
+                    .setMarginBottom(5));
         }
     }
 
-    private Path downloadImage(String imageUrl) {
+    // 🔥 跨平台兼容图片加载
+    private Path loadImageSmart(String imagePath) {
         try {
-            URL url = new URL(imageUrl);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestMethod("GET");
-            conn.setConnectTimeout(DOWNLOAD_TIMEOUT);
-            conn.setReadTimeout(DOWNLOAD_TIMEOUT);
-            conn.setRequestProperty("User-Agent", "Mozilla/5.0");
-            conn.setRequestProperty("Accept", "image/*");
+            if (imagePath.startsWith("http")) {
+                URL url = new URL(imagePath);
+                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                conn.setRequestMethod("GET");
+                conn.setConnectTimeout(15000);
+                conn.setReadTimeout(15000);
+                conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36");
+                conn.setRequestProperty("Referer", "https://www.pexels.com/");
+                conn.setRequestProperty("Accept", "image/*");
 
-            if (conn.getResponseCode() != 200) return null;
+                if (conn.getResponseCode() != 200) {
+                    log.warn("图片返回异常码：{}，URL：{}", conn.getResponseCode(), imagePath);
+                    return null;
+                }
 
-            try (InputStream in = conn.getInputStream();
-                 ByteArrayOutputStream out = new ByteArrayOutputStream()) {
-                byte[] buf = new byte[4096];
-                int len;
-                while ((len = in.read(buf)) != -1) out.write(buf, 0, len);
-                byte[] data = out.toByteArray();
-                if (data.length == 0) return null;
+                try (InputStream in = conn.getInputStream();
+                     ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+                    byte[] buf = new byte[4096];
+                    int len;
+                    while ((len = in.read(buf)) != -1) out.write(buf, 0, len);
+                    byte[] data = out.toByteArray();
 
-                String ext = getImageExtension(imageUrl, conn.getContentType());
-                Path tmp = Files.createTempFile("pdf_img_", ext);
-                Files.write(tmp, data);
-                log.info("✅ 图片下载成功：{}", tmp);
-                return tmp;
-            } finally {
-                conn.disconnect();
+                    if (data.length < 1024) {
+                        log.warn("下载内容不是图片：{}，大小={}字节", imagePath, data.length);
+                        return null;
+                    }
+
+                    String ext = getImageExtension(imagePath, conn.getContentType());
+                    Path tmp = Files.createTempFile("pdf_img_", ext);
+                    Files.write(tmp, data);
+                    log.info("✅ 网络图片下载成功：{}", imagePath);
+                    return tmp;
+                } finally {
+                    conn.disconnect();
+                }
             }
+
+            String fileName = imagePath;
+            if (fileName.startsWith("./")) {
+                fileName = fileName.substring(2);
+            }
+            if (fileName.contains("/") || fileName.contains("\\")) {
+                fileName = fileName.substring(Math.max(
+                        fileName.lastIndexOf("/"),
+                        fileName.lastIndexOf("\\")
+                ) + 1);
+            }
+
+            Path tmpDir = Paths.get("tmp", "download").toAbsolutePath();
+            File realFile = tmpDir.resolve(fileName).toFile();
+
+            if (!realFile.exists()) {
+                log.warn("本地文件不存在：{}", realFile.getAbsolutePath());
+                return null;
+            }
+
+            byte[] data = Files.readAllBytes(realFile.toPath());
+            String ext = getImageExtension(fileName, null);
+            Path tmp = Files.createTempFile("pdf_img_", ext);
+            Files.write(tmp, data);
+
+            log.info("✅ 本地图片加载成功：{}", realFile.getAbsolutePath());
+            return tmp;
+
         } catch (Exception e) {
-            log.error("图片下载异常：{}", imageUrl, e);
+            log.error("图片加载失败：{}", imagePath, e);
             return null;
         }
     }
@@ -409,36 +437,8 @@ public class PDFGenerationTool {
         return ".jpg";
     }
 
-    // ==================== Emoji 修复核心 ====================
-    private void addTextWithEmoji(Paragraph para, String text, PdfFont font, PdfFont emojiFont, boolean isBold) {
-        if (text == null || text.isBlank()) return;
-
-        if (emojiFont != null) {
-            StringBuilder normal = new StringBuilder();
-            for (int i = 0; i < text.length(); ) {
-                int cp = text.codePointAt(i);
-                if (cp > 0xFFFF || (cp >= 0x2600 && cp <= 0x26FF) || (cp >= 0x1F600 && cp <= 0x1F64F) || (cp >= 0x1F300 && cp <= 0x1F5FF)) {
-                    if (!normal.isEmpty()) {
-                        para.add(new Text(normal.toString()).setFont(font));
-                        normal.setLength(0);
-                    }
-                    String emoji = new String(Character.toChars(cp));
-                    para.add(new Text(emoji).setFont(emojiFont));
-                    i += Character.charCount(cp);
-                } else {
-                    normal.append((char) cp);
-                    i++;
-                }
-            }
-            if (!normal.isEmpty()) {
-                para.add(new Text(normal.toString()).setFont(font));
-            }
-        } else {
-            para.add(new Text(text).setFont(font));
-        }
-    }
-
-    private Paragraph parseInlineFormatting(String text, PdfFont regular, PdfFont bold, PdfFont emoji) {
+    // ==================== 样式 ====================
+    private Paragraph parseInlineFormatting(String text, PdfFont regular, PdfFont bold) {
         Paragraph p = new Paragraph();
         if (text == null || text.isBlank()) return p;
 
@@ -446,24 +446,20 @@ public class PDFGenerationTool {
         int last = 0;
         while (m.find()) {
             if (m.start() > last) {
-                addTextWithEmoji(p, text.substring(last, m.start()), regular, emoji, false);
+                p.add(new Text(text.substring(last, m.start())).setFont(regular));
             }
-            PdfFont f = bold != null ? bold : regular;
-            addTextWithEmoji(p, m.group(1), f, emoji, true);
+            p.add(new Text(m.group(1)).setFont(bold != null ? bold : regular));
             last = m.end();
         }
         if (last < text.length()) {
-            addTextWithEmoji(p, text.substring(last), regular, emoji, false);
+            p.add(new Text(text.substring(last)).setFont(regular));
         }
         return p;
     }
 
-    // ==================== 基础样式 ====================
     private void addTitle(Document document, String text, float size, PdfFont font,
-                          DeviceRgb color, PdfFont regular, PdfFont emoji, boolean first) {
-        Paragraph p = new Paragraph();
-        addTextWithEmoji(p, text, font, emoji, true);
-        p.setFontSize(size).setFontColor(color);
+                          DeviceRgb color, boolean first) {
+        Paragraph p = new Paragraph(text).setFont(font).setFontSize(size).setFontColor(color);
         if (first) p.setMarginTop(0).setMarginBottom(8);
         else if (size >= 20) p.setMarginTop(12).setMarginBottom(8);
         else p.setMarginTop(8).setMarginBottom(5);
@@ -477,9 +473,8 @@ public class PDFGenerationTool {
                 .setMarginTop(8).setMarginBottom(8));
     }
 
-    private void addQuote(Document document, String text, PdfFont font, PdfFont emoji, boolean first) {
-        Paragraph p = new Paragraph();
-        addTextWithEmoji(p, "💡 " + text, font, emoji, false);
+    private void addQuote(Document document, String text, PdfFont font, boolean first) {
+        Paragraph p = new Paragraph(text).setFont(font);
         p.setBackgroundColor(new DeviceRgb(245, 245, 245))
                 .setPadding(10).setMarginLeft(15)
                 .setMarginTop(first ? 0 : 6).setMarginBottom(6)
@@ -487,15 +482,15 @@ public class PDFGenerationTool {
         document.add(p);
     }
 
-    private void addListItem(com.itextpdf.layout.element.List list, String text, PdfFont r, PdfFont b, PdfFont e) {
-        Paragraph para = parseInlineFormatting(text, r, b, e);
+    private void addListItem(com.itextpdf.layout.element.List list, String text, PdfFont r, PdfFont b) {
+        Paragraph para = parseInlineFormatting(text, r, b);
         para.setMarginTop(2).setMarginBottom(2);
         ListItem item = new ListItem();
         item.add(para);
         list.add(item);
     }
 
-    private void addFormattedParagraph(Document document, String line, PdfFont r, PdfFont b, PdfFont e, List<Path> imgs, boolean first) {
+    private void addFormattedParagraph(Document document, String line, PdfFont r, PdfFont b, List<Path> imgs, boolean first) {
         Matcher m = Pattern.compile("!\\[(.+?)\\]\\((.+?)\\)").matcher(line);
         if (m.find()) {
             int last = 0;
@@ -503,7 +498,7 @@ public class PDFGenerationTool {
                 if (m.start() > last) {
                     String t = line.substring(last, m.start()).trim();
                     if (!t.isBlank()) {
-                        Paragraph p = parseInlineFormatting(t, r, b, e);
+                        Paragraph p = parseInlineFormatting(t, r, b);
                         p.setMarginTop(first ? 0 : 4).setMarginBottom(4);
                         document.add(p);
                         first = false;
@@ -516,22 +511,16 @@ public class PDFGenerationTool {
             if (last < line.length()) {
                 String t = line.substring(last).trim();
                 if (!t.isBlank()) {
-                    Paragraph p = parseInlineFormatting(t, r, b, e);
+                    Paragraph p = parseInlineFormatting(t, r, b);
                     p.setMarginTop(4).setMarginBottom(4);
                     document.add(p);
                 }
             }
         } else {
-            Paragraph p = parseInlineFormatting(line, r, b, e);
+            Paragraph p = parseInlineFormatting(line, r, b);
             p.setMarginTop(first ? 0 : 4).setMarginBottom(4);
             document.add(p);
         }
-    }
-
-    private boolean containsEmoji(String text) {
-        if (text == null) return false;
-        return text.codePoints().anyMatch(cp ->
-                cp > 0xFFFF || (cp >= 0x2600 && cp <= 0x26FF) || (cp >= 0x1F600 && cp <= 0x1F64F) || (cp >= 0x1F300 && cp <= 0x1F5FF));
     }
 
     private String cleanContent(String input) {
