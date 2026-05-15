@@ -170,7 +170,7 @@
                 type="textarea"
                 :rows="3"
                 placeholder="请输入您的问题..."
-                @keydown.enter.prevent="handleSendMessage"
+                @keydown.enter.exact.prevent="handleSendMessage"
                 resize="none"
               />
               <div class="input-tools">
